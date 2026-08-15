@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,900&family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html { scroll-behavior: smooth; }
+
+body {
+  background-color: #F3EDE3;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(13,13,13,0.07) 1px, transparent 0);
+  background-size: 22px 22px;
+  color: #0D0D0D;
+  font-family: 'Inter', sans-serif;
+}
+
+/* .texture-card y .stamp-border van en @layer components para que las
+   utilidades de Tailwind (por ejemplo border-t-gold) puedan pisar el
+   `border` shorthand de acá — si no, por orden de cascada, este archivo
+   ganaba siempre y los bordes de color de arriba quedaban invisibles. */
+@layer components {
+  /* Card tipo "ticket": antes solo sombra difusa, ahora suma un borde fino
+     (1.5px) al estilo editorial de la landing, con menos sombra. */
+  .texture-card {
+    background-color: #FAFAF8;
+    border: 1.5px solid rgba(13,13,13,0.12);
+    box-shadow: 0 1px 0 rgba(13,13,13,0.05), 0 6px 16px -10px rgba(13,13,13,0.25);
+  }
+
+  .stamp-border {
+    border: 2px dashed currentColor;
+    border-radius: 999px;
+  }
+}
+
+/* Selector de grupo de Infancias y adolescentes: línea punteada que
+   conecta las tarjetas, tomada del "camino de aprendizaje" de la landing
+   de English Kids Club. Solo visible cuando las tarjetas están en fila. */
+.kids-track-path {
+  position: relative;
+}
+.kids-track-path::before {
+  content: '';
+  position: absolute;
+  top: 38px;
+  left: 6%;
+  right: 6%;
+  height: 6px;
+  background-image: repeating-linear-gradient(90deg, #0D0D0D 0 10px, transparent 10px 20px);
+  opacity: 0.15;
+  z-index: 0;
+}
+@media (max-width: 1023px) {
+  .kids-track-path::before {
+    display: none;
+  }
+}
+
+::selection { background: #C47A0B; color: #FAFAF8; }
+
+*:focus-visible {
+  outline: 3px solid #1B3FA0;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
