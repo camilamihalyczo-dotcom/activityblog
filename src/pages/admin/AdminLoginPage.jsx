@@ -3,6 +3,22 @@ import { Navigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient.js'
 import { useAdminSession } from '../../lib/useAdminSession.js'
 
+// Traduce los errores más comunes de Supabase Auth a algo accionable — antes
+// mostrábamos siempre "email o contraseña incorrectos" sin importar la causa
+// real (por ejemplo, variables de entorno mal configuradas en Vercel, que
+// ni siquiera llegan a comparar la contraseña), lo cual hacía imposible
+// diagnosticar el problema desde la pantalla de login.
+function describeAuthError(err) {
+  const msg = err.message || ''
+  if (msg.includes('Invalid login credentials')) {
+    return 'Email o contraseña incorrectos.'
+  }
+  if (msg.includes('Email not confirmed')) {
+    return 'Ese usuario todavía no está confirmado en Supabase. Andá a Authentication → Users, abrí el usuario y confirmalo (o volvé a crearlo activando "Auto Confirm User").'
+  }
+  return `No pudimos iniciar sesión: ${msg}`
+}
+
 export default function AdminLoginPage() {
   const session = useAdminSession()
   const [email, setEmail] = useState('')
@@ -16,9 +32,17 @@ export default function AdminLoginPage() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) setError(describeAuthError(signInError))
+    } catch {
+      // Fetch/red falló antes de llegar a Supabase — típicamente URL/clave
+      // mal configuradas (o ausentes) en las variables de entorno.
+      setError(
+        'No pudimos conectar con Supabase. Revisá que VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY estén bien configuradas (en Vercel: Settings → Environment Variables → Redeploy).'
+      )
+    }
     setLoading(false)
-    if (signInError) setError('Email o contraseña incorrectos.')
   }
 
   return (
