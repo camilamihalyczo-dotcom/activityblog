@@ -1,7 +1,7 @@
 # Cómo activar el panel de administración (fase 1: Blog)
 
 Esto conecta la app a una base de datos real en Supabase, para que el blog
-(Adultos e Infancias) se pueda editar desde `/admin` sin tocar código ni
+(Adultos e Infancias) se pueda editar desde `/notas-profe` sin tocar código ni
 volver a este chat. Son unos 10 minutos, una sola vez.
 
 ## 1. Creá tu proyecto de Supabase
@@ -45,7 +45,7 @@ pasa nunca por este chat.
 1. En Supabase, andá a **Authentication → Users**.
 2. Apretá **Add user → Create new user**.
 3. Completá tu email y una contraseña, y confirmá.
-4. Con eso ya podés entrar a `/admin/login` en la app con ese email y esa
+4. Con eso ya podés entrar a `/notas-profe/login` en la app con ese email y esa
    contraseña.
 
 ## 5. Probalo local
@@ -54,7 +54,7 @@ pasa nunca por este chat.
 npm run dev
 ```
 
-Abrí `http://localhost:5173/admin/login`, entrá con tu usuario, y desde ahí
+Abrí `http://localhost:5173/notas-profe/login`, entrá con tu usuario, y desde ahí
 ya podés cargar/editar/borrar posts del blog. Los cambios se ven al toque en
 `/adultos/blog` e `/infancias/blog` (probalo en otra pestaña).
 
@@ -67,11 +67,18 @@ ya podés cargar/editar/borrar posts del blog. Los cambios se ven al toque en
    variables de entorno que en `.env.local` (`VITE_SUPABASE_URL` y
    `VITE_SUPABASE_ANON_KEY`) en **Settings → Environment Variables**.
 4. Deploy. Listo — tus alumnos entran por la URL de Vercel, y vos seguís
-   cargando contenido desde `/admin` sin volver a subir nada a mano: los
+   cargando contenido desde `/notas-profe` sin volver a subir nada a mano: los
    cambios de blog son inmediatos porque ya no dependen del código, dependen
    de la base de datos.
 
 ---
+
+**Sobre la ruta `/notas-profe`:** es a propósito no obvia — no aparece
+linkeada en ningún lado del sitio público, así que solo se llega
+escribiéndola directamente en el navegador. Eso ayuda a que no te la
+encuentre cualquiera navegando, pero la protección real sigue siendo el
+login: sin tu usuario y contraseña de Supabase, nadie puede leer los datos
+de nadie ni cargar/editar/borrar contenido, aunque adivine la URL.
 
 **Nota sobre alcance:** por ahora solo el Blog vive en la base de datos.
 Flashcards, cuestionarios, listening, reading & writing, y la gestión de

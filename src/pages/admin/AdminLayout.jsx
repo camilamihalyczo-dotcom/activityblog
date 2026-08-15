@@ -10,12 +10,12 @@ export default function AdminLayout() {
     return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
   }
   if (session === null) {
-    return <Navigate to="/admin/login" replace />
+    return <Navigate to="/notas-profe/login" replace />
   }
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    navigate('/admin/login')
+    navigate('/notas-profe/login')
   }
 
   return (
@@ -23,7 +23,7 @@ export default function AdminLayout() {
       <div className="border-b-2 border-dashed border-ink/25 bg-cream/70">
         <div className="max-w-4xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 font-mono text-xs sm:text-sm uppercase tracking-wider text-ink/70">
-            <Link to="/admin" className="font-display font-bold text-ink text-sm sm:text-base normal-case tracking-normal">
+            <Link to="/notas-profe" className="font-display font-bold text-ink text-sm sm:text-base normal-case tracking-normal">
               Activity Blog
             </Link>
             <span className="text-ink/30">/</span>

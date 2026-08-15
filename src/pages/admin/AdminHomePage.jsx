@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 // que lee + pantalla acá que escribe) es el mismo que se usó para el blog.
 const SECTIONS = [
   {
-    to: '/admin/blog',
+    to: '/notas-profe/blog',
     label: 'Blog',
     desc: 'Novedades y reflexiones para Adultos e Infancias.',
     ready: true,

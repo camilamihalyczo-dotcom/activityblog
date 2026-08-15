@@ -42,8 +42,13 @@ export default function App() {
         <Route path="/infancias/:group/cuestionario" element={<InfanciasQuizPage />} />
         <Route path="/infancias/:group/listening" element={<InfanciasListeningPage />} />
         <Route path="/infancias/:group/reading-writing" element={<InfanciasReadingWritingPage />} />
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminLayout />}>
+        {/* Ruta del panel de administración a propósito no obvia (no "/admin"):
+            no está linkeada desde ningún lado del sitio público, así que
+            solo se llega escribiéndola directamente. La protección real es
+            el login + las políticas de Supabase, esto es una capa extra
+            para que no se note a simple vista. */}
+        <Route path="/notas-profe/login" element={<AdminLoginPage />} />
+        <Route path="/notas-profe" element={<AdminLayout />}>
           <Route index element={<AdminHomePage />} />
           <Route path="blog" element={<AdminBlogPage />} />
         </Route>

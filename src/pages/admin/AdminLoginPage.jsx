@@ -10,7 +10,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (session) return <Navigate to="/admin" replace />
+  if (session) return <Navigate to="/notas-profe" replace />
 
   const handleSubmit = async (e) => {
     e.preventDefault()

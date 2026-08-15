@@ -79,7 +79,7 @@ export default function AdminBlogPage() {
 
   return (
     <div>
-      <Link to="/admin" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Blog</h1>

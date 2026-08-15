@@ -1,5 +1,5 @@
 // Los posts del blog ahora viven en Supabase (tabla `blog_posts`), no acá —
-// se cargan/editan desde /admin. Ver supabase/README.md para la puesta en
+// se cargan/editan desde /notas-profe. Ver supabase/README.md para la puesta en
 // marcha. Este archivo solo se queda con el helper de formato de fecha,
 // compartido entre la vista pública (AdultosBlogPage/InfanciasBlogPage) y
 // el panel de administración.
