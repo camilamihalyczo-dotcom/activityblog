@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getLevel } from '../data/levels.js'
-import { getTheme, getTemario, THEME_COLORS } from '../data/themes.js'
-import { getTemarioContent } from '../data/contentIndex.js'
+import { fetchTrack, fetchTemario } from '../lib/tracks.js'
+import { THEME_COLORS } from '../lib/colorMaps.js'
+import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import { BookOpen, PenLine } from 'lucide-react'
@@ -60,10 +61,46 @@ function WritingItem({ item, c }) {
 export default function ReadingWritingPage() {
   const { level: slug, theme: themeSlug, temario: temarioSlug } = useParams()
   const level = getLevel(slug)
-  const theme = getTheme(themeSlug)
-  const temario = getTemario(themeSlug, temarioSlug)
-  const c = THEME_COLORS[theme.color]
-  const { readingWriting } = getTemarioContent(slug, themeSlug, temarioSlug)
+  const [theme, setTheme] = useState(null)
+  const [temario, setTemario] = useState(null)
+  const [readingWriting, setReadingWriting] = useState([])
+  const [status, setStatus] = useState('loading') // loading | error | ready
+
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    Promise.all([
+      fetchTrack(themeSlug),
+      fetchTemario(themeSlug, temarioSlug),
+      fetchContent(buildAdultosScopeKey(slug, themeSlug, temarioSlug, 'reading_writing'), 'reading_writing'),
+    ])
+      .then(([trackData, temarioData, readingWritingData]) => {
+        if (!active) return
+        setTheme(trackData)
+        setTemario(temarioData)
+        setReadingWriting(readingWritingData || [])
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [slug, themeSlug, temarioSlug])
+
+  if (status === 'loading') {
+    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+  }
+  if (status === 'error' || !theme || !temario) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-stamp text-sm px-5 text-center">
+        No pudimos cargar este contenido ahora mismo. Probá de nuevo en un rato.
+      </div>
+    )
+  }
+
+  const c = THEME_COLORS[theme.color_key]
 
   return (
     <div className="min-h-screen">

@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { getLevel } from '../data/levels.js'
-import { getTheme, getTemario, THEME_COLORS } from '../data/themes.js'
+import { fetchTrack, fetchTemario } from '../lib/tracks.js'
+import { THEME_COLORS } from '../lib/colorMaps.js'
 import { useLevelAccess } from '../hooks.js'
 import PasswordGate from '../components/PasswordGate.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
@@ -8,7 +10,7 @@ import { Layers, ListChecks, Headphones, BookOpenText } from 'lucide-react'
 
 // Las 4 actividades, iguales para cualquier nivel/track/temario. Se
 // diferencian por ícono, no por color — el color de identidad es el del
-// track al que pertenece el temario (ver ThemeHubPage/themes.js).
+// track al que pertenece el temario.
 const TOPICS = [
   { slug: 'flashcards', label: 'Flashcards', desc: 'Vocabulario en formato de juego', icon: Layers },
   { slug: 'cuestionario', label: 'Cuestionario', desc: 'Preguntas de opción múltiple', icon: ListChecks },
@@ -19,14 +21,42 @@ const TOPICS = [
 export default function TemarioHubPage() {
   const { level: slug, theme: themeSlug, temario: temarioSlug } = useParams()
   const level = getLevel(slug)
-  const theme = getTheme(themeSlug)
-  const temario = getTemario(themeSlug, temarioSlug)
+  const [theme, setTheme] = useState(null)
+  const [temario, setTemario] = useState(null)
+  const [status, setStatus] = useState('loading') // loading | error | not-found | ready
   // Misma clave que ThemeHubPage: es por track, no por nivel ni por temario.
   const [unlocked, unlock] = useLevelAccess(`track-${themeSlug}`)
 
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    Promise.all([fetchTrack(themeSlug), fetchTemario(themeSlug, temarioSlug)])
+      .then(([trackData, temarioData]) => {
+        if (!active) return
+        setTheme(trackData)
+        setTemario(temarioData)
+        setStatus(trackData && temarioData ? 'ready' : 'not-found')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [themeSlug, temarioSlug])
+
   if (!level) return <Navigate to="/adultos" replace />
-  if (!theme) return <Navigate to={`/adultos/${slug}`} replace />
-  if (!temario) return <Navigate to={`/adultos/${slug}/${themeSlug}`} replace />
+  if (status === 'loading') {
+    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+  }
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-stamp text-sm px-5 text-center">
+        No pudimos cargar este temario ahora mismo. Probá de nuevo en un rato.
+      </div>
+    )
+  }
+  if (status === 'not-found') return <Navigate to={`/adultos/${slug}/${themeSlug}`} replace />
   if (!unlocked) {
     return (
       <PasswordGate
@@ -38,7 +68,7 @@ export default function TemarioHubPage() {
     )
   }
 
-  const c = THEME_COLORS[theme.color]
+  const c = THEME_COLORS[theme.color_key]
 
   return (
     <div className="min-h-screen">

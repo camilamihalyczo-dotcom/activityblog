@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Lock } from 'lucide-react'
 import KidsBlobs from './KidsBlobs.jsx'
-import { KIDS_GROUP_COLORS } from '../data/kidsGroups.js'
+import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 
 export default function KidsPasswordGate({ group, onUnlock }) {
   const [value, setValue] = useState('')
   const [error, setError] = useState(false)
-  const c = KIDS_GROUP_COLORS[group.color] || KIDS_GROUP_COLORS.kidsPurple
+  const c = KIDS_GROUP_COLORS[group.color_key] || KIDS_GROUP_COLORS.kidsPurple
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -26,7 +26,7 @@ export default function KidsPasswordGate({ group, onUnlock }) {
           <Lock className="text-white" size={24} />
         </div>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-2">
-          {group.name} · {group.ageRange}
+          {group.name} · {group.age_range}
         </h1>
         <p className="font-playful text-kidsInk/65 text-sm mb-8">
           Ingresá la clave que te compartió la profe para entrar a este grupo.

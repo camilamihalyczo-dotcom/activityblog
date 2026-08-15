@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getGroup, KIDS_GROUP_COLORS } from '../data/kidsGroups.js'
-import { KIDS_CONTENT_BY_GROUP } from '../data/kidsContentIndex.js'
+import { fetchGroup } from '../lib/groups.js'
+import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
+import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import { BookOpen, PenLine } from 'lucide-react'
@@ -58,9 +59,40 @@ function WritingItem({ item, c }) {
 
 export default function InfanciasReadingWritingPage() {
   const { group: slug } = useParams()
-  const group = getGroup(slug)
-  const c = KIDS_GROUP_COLORS[group.color]
-  const { readingWriting } = KIDS_CONTENT_BY_GROUP[slug]
+  const [group, setGroup] = useState(null)
+  const [readingWriting, setReadingWriting] = useState([])
+  const [status, setStatus] = useState('loading') // loading | error | ready
+
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    Promise.all([fetchGroup(slug), fetchContent(buildInfanciasScopeKey(slug, 'reading_writing'), 'reading_writing')])
+      .then(([groupData, readingWritingData]) => {
+        if (!active) return
+        setGroup(groupData)
+        setReadingWriting(readingWritingData || [])
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [slug])
+
+  if (status === 'loading') {
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+  }
+  if (status === 'error' || !group) {
+    return (
+      <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsRed font-playful text-sm px-5 text-center">
+        No pudimos cargar este contenido ahora mismo. Probá de nuevo en un rato.
+      </div>
+    )
+  }
+
+  const c = KIDS_GROUP_COLORS[group.color_key]
 
   return (
     <div className="min-h-screen bg-kidsCream">

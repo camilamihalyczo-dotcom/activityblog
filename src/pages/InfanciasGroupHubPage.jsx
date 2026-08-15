@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
-import { getGroup, KIDS_GROUP_COLORS } from '../data/kidsGroups.js'
+import { fetchGroup } from '../lib/groups.js'
+import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { useLevelAccess } from '../hooks.js'
 import KidsPasswordGate from '../components/KidsPasswordGate.jsx'
 import KidsHeader from '../components/KidsHeader.jsx'
@@ -15,14 +17,42 @@ const ALL_TOPICS = [
 
 export default function InfanciasGroupHubPage() {
   const { group: slug } = useParams()
-  const group = getGroup(slug)
+  const [group, setGroup] = useState(null)
+  const [status, setStatus] = useState('loading') // loading | error | not-found | ready
   const [unlocked, unlock] = useLevelAccess(`infancias-${slug}`)
 
-  if (!group) return <Navigate to="/infancias" replace />
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    fetchGroup(slug)
+      .then((data) => {
+        if (!active) return
+        setGroup(data)
+        setStatus(data ? 'ready' : 'not-found')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [slug])
+
+  if (status === 'loading') {
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+  }
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsRed font-playful text-sm px-5 text-center">
+        No pudimos cargar este grupo ahora mismo. Probá de nuevo en un rato.
+      </div>
+    )
+  }
+  if (status === 'not-found') return <Navigate to="/infancias" replace />
   if (!unlocked) return <KidsPasswordGate group={group} onUnlock={unlock} />
 
   const topics = ALL_TOPICS.filter((t) => group.topics.includes(t.slug))
-  const c = KIDS_GROUP_COLORS[group.color]
+  const c = KIDS_GROUP_COLORS[group.color_key]
 
   return (
     <div className="min-h-screen bg-kidsCream">
@@ -35,7 +65,7 @@ export default function InfanciasGroupHubPage() {
             {group.milestone}
           </div>
           <span className={`font-playful font-bold text-xs uppercase tracking-wide ${c.text}`}>
-            Nivel {group.milestone} de 4 · {group.ageRange}
+            Nivel {group.milestone} de 4 · {group.age_range}
           </span>
         </div>
 

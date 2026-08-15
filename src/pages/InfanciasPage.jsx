@@ -1,10 +1,31 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { GROUPS, KIDS_GROUP_COLORS } from '../data/kidsGroups.js'
+import { fetchGroups } from '../lib/groups.js'
+import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsBlobs from '../components/KidsBlobs.jsx'
 import { Newspaper } from 'lucide-react'
 
 export default function InfanciasPage() {
+  const [groups, setGroups] = useState([])
+  const [status, setStatus] = useState('loading') // loading | error | ready
+
+  useEffect(() => {
+    let active = true
+    fetchGroups()
+      .then((data) => {
+        if (!active) return
+        setGroups(data)
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
   return (
     <div className="relative min-h-screen bg-kidsCream">
       <KidsHeader crumbs={['Infancias y adolescentes']} backTo="/" />
@@ -35,9 +56,14 @@ export default function InfanciasPage() {
           aria-hidden="true"
         />
 
+        {status === 'loading' && <p className="font-playful text-kidsInk/50 text-sm mb-6">Cargando…</p>}
+        {status === 'error' && (
+          <p className="font-playful text-kidsRed text-sm mb-6">No pudimos cargar los grupos ahora mismo. Probá de nuevo en un rato.</p>
+        )}
+
         <div className="kids-track-path grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {GROUPS.map((group) => {
-            const c = KIDS_GROUP_COLORS[group.color]
+          {groups.map((group) => {
+            const c = KIDS_GROUP_COLORS[group.color_key]
             return (
               <Link
                 key={group.slug}
@@ -48,7 +74,7 @@ export default function InfanciasPage() {
                   {group.milestone}
                 </div>
                 <p className="font-body font-extrabold uppercase tracking-wide text-lg text-kidsInk leading-tight mb-1">{group.name}</p>
-                <p className={`font-playful font-bold text-xs ${c.text} mb-3`}>{group.ageRange}</p>
+                <p className={`font-playful font-bold text-xs ${c.text} mb-3`}>{group.age_range}</p>
                 <p className="font-playful text-kidsInk/65 text-sm">{group.description}</p>
               </Link>
             )

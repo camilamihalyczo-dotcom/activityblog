@@ -1,19 +1,41 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getGroup, KIDS_GROUP_COLORS } from '../data/kidsGroups.js'
-import { KIDS_CONTENT_BY_GROUP } from '../data/kidsContentIndex.js'
+import { fetchGroup } from '../lib/groups.js'
+import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
+import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import { RotateCw, ArrowLeft, ArrowRight, Shuffle } from 'lucide-react'
 
 export default function InfanciasFlashcardsPage() {
   const { group: slug } = useParams()
-  const group = getGroup(slug)
-  const c = KIDS_GROUP_COLORS[group.color]
-  const { flashcards } = KIDS_CONTENT_BY_GROUP[slug]
-  const [order, setOrder] = useState(flashcards.map((_, i) => i))
+  const [group, setGroup] = useState(null)
+  const [flashcards, setFlashcards] = useState([])
+  const [status, setStatus] = useState('loading') // loading | error | ready
+  const [order, setOrder] = useState([])
   const [index, setIndex] = useState(0)
   const [flipped, setFlipped] = useState(false)
+
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    Promise.all([fetchGroup(slug), fetchContent(buildInfanciasScopeKey(slug, 'flashcards'), 'flashcards')])
+      .then(([groupData, flashcardsData]) => {
+        if (!active) return
+        setGroup(groupData)
+        setFlashcards(flashcardsData || [])
+        setOrder((flashcardsData || []).map((_, i) => i))
+        setIndex(0)
+        setFlipped(false)
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [slug])
 
   const shuffle = () => {
     const next = [...order]
@@ -30,6 +52,19 @@ export default function InfanciasFlashcardsPage() {
     setFlipped(false)
     setIndex((i) => (i + dir + order.length) % order.length)
   }
+
+  if (status === 'loading') {
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+  }
+  if (status === 'error' || !group) {
+    return (
+      <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsRed font-playful text-sm px-5 text-center">
+        No pudimos cargar este contenido ahora mismo. Probá de nuevo en un rato.
+      </div>
+    )
+  }
+
+  const c = KIDS_GROUP_COLORS[group.color_key]
 
   return (
     <div className="min-h-screen bg-kidsCream">

@@ -1,14 +1,17 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { getLevel } from '../data/levels.js'
-import { THEMES, THEME_COLORS } from '../data/themes.js'
+import { fetchTracks } from '../lib/tracks.js'
+import { THEME_COLORS } from '../lib/colorMaps.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import { Briefcase, Palette, GraduationCap, Sparkles, Code2, Plane } from 'lucide-react'
 
-// Un ícono por track. Los tracks en sí (nombre, color, progresión interna,
-// clave de acceso) salen de src/data/themes.js — sacados 1:1 de la landing
-// de cursos (English for Developers y English for Travel son la excepción,
-// ver comentario en ese archivo). El nivel ya no pide clave: la clave es
-// por track (ver ThemeHubPage), así que esta pantalla es de acceso libre.
+// Un ícono por track conocido. Los tracks en sí (nombre, color, progresión
+// interna, clave de acceso, temarios) ahora viven en Supabase y se cargan
+// acá — se editan desde /notas-profe/tracks. Un track nuevo cargado desde
+// el panel que no esté en este mapa cae en el ícono genérico (Sparkles).
+// El nivel ya no pide clave: la clave es por track (ver ThemeHubPage), así
+// que esta pantalla es de acceso libre.
 const ICONS = {
   'business-english': Briefcase,
   'english-for-creatives': Palette,
@@ -21,6 +24,24 @@ const ICONS = {
 export default function LevelHubPage() {
   const { level: slug } = useParams()
   const level = getLevel(slug)
+  const [tracks, setTracks] = useState([])
+  const [status, setStatus] = useState('loading') // loading | error | ready
+
+  useEffect(() => {
+    let active = true
+    fetchTracks()
+      .then((data) => {
+        if (!active) return
+        setTracks(data)
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   if (!level) return <Navigate to="/adultos" replace />
 
@@ -33,10 +54,15 @@ export default function LevelHubPage() {
           Nivel {level.code} · {level.name} — cada track es una especialización en paralelo, con sus propias flashcards, cuestionario, listening y reading &amp; writing.
         </p>
 
+        {status === 'loading' && <p className="text-ink/50 text-sm mb-6">Cargando…</p>}
+        {status === 'error' && (
+          <p className="text-stamp text-sm mb-6">No pudimos cargar los tracks ahora mismo. Probá de nuevo en un rato.</p>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-5">
-          {THEMES.map((theme) => {
-            const c = THEME_COLORS[theme.color]
-            const Icon = ICONS[theme.slug]
+          {tracks.map((theme) => {
+            const c = THEME_COLORS[theme.color_key]
+            const Icon = ICONS[theme.slug] || Sparkles
             return (
               <Link
                 key={theme.slug}

@@ -11,16 +11,22 @@ const SECTIONS = [
     ready: true,
   },
   {
-    to: '#',
-    label: 'Tracks y grupos',
-    desc: 'Nombre, descripción, color y clave de acceso de cada track (Adultos) y grupo (Infancias).',
-    ready: false,
+    to: '/notas-profe/tracks',
+    label: 'Tracks y temarios (Adultos)',
+    desc: 'Nombre, descripción, color y clave de acceso de cada track, y sus temarios.',
+    ready: true,
   },
   {
-    to: '#',
+    to: '/notas-profe/groups',
+    label: 'Grupos (Infancias)',
+    desc: 'Nombre, edad, color, clave de acceso y actividades disponibles de cada grupo.',
+    ready: true,
+  },
+  {
+    to: '/notas-profe/content',
     label: 'Flashcards, cuestionarios, listening y reading & writing',
-    desc: 'El contenido de estudio de cada temario/grupo.',
-    ready: false,
+    desc: 'El contenido de estudio de cada temario (Adultos) o grupo (Infancias).',
+    ready: true,
   },
 ]
 

@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { getLevel } from '../data/levels.js'
-import { getTheme, THEME_COLORS } from '../data/themes.js'
+import { fetchTrack, fetchTemarios } from '../lib/tracks.js'
+import { THEME_COLORS } from '../lib/colorMaps.js'
 import { useLevelAccess } from '../hooks.js'
 import PasswordGate from '../components/PasswordGate.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
@@ -8,14 +10,44 @@ import TicketHeader from '../components/TicketHeader.jsx'
 export default function ThemeHubPage() {
   const { level: slug, theme: themeSlug } = useParams()
   const level = getLevel(slug)
-  const theme = getTheme(themeSlug)
+  const [theme, setTheme] = useState(null)
+  const [temarios, setTemarios] = useState([])
+  const [status, setStatus] = useState('loading') // loading | error | not-found | ready
   // La clave es por track, no por nivel: se guarda con una key que depende
   // solo del track, así que desbloquear "Business English" una vez alcanza
   // para cualquier nivel (A1-A2/B1-B2/C1-C2) que use ese mismo track.
   const [unlocked, unlock] = useLevelAccess(`track-${themeSlug}`)
 
+  useEffect(() => {
+    let active = true
+    setStatus('loading')
+    Promise.all([fetchTrack(themeSlug), fetchTemarios(themeSlug)])
+      .then(([trackData, temariosData]) => {
+        if (!active) return
+        setTheme(trackData)
+        setTemarios(temariosData)
+        setStatus(trackData ? 'ready' : 'not-found')
+      })
+      .catch(() => {
+        if (active) setStatus('error')
+      })
+    return () => {
+      active = false
+    }
+  }, [themeSlug])
+
   if (!level) return <Navigate to="/adultos" replace />
-  if (!theme) return <Navigate to={`/adultos/${slug}`} replace />
+  if (status === 'loading') {
+    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+  }
+  if (status === 'error') {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-stamp text-sm px-5 text-center">
+        No pudimos cargar este track ahora mismo. Probá de nuevo en un rato.
+      </div>
+    )
+  }
+  if (status === 'not-found') return <Navigate to={`/adultos/${slug}`} replace />
   if (!unlocked) {
     return (
       <PasswordGate
@@ -27,7 +59,7 @@ export default function ThemeHubPage() {
     )
   }
 
-  const c = THEME_COLORS[theme.color]
+  const c = THEME_COLORS[theme.color_key]
 
   return (
     <div className="min-h-screen">
@@ -40,7 +72,7 @@ export default function ThemeHubPage() {
         <p className="text-ink/60 mb-10">Nivel {level.code} · {level.name} — {theme.description}</p>
 
         <div className="flex flex-col gap-5">
-          {theme.temarios.map((temario, i) => (
+          {temarios.map((temario, i) => (
             <Link
               key={temario.slug}
               to={`/adultos/${slug}/${themeSlug}/${temario.slug}`}

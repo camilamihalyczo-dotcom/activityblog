@@ -20,6 +20,9 @@ import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import AdminHomePage from './pages/admin/AdminHomePage.jsx'
 import AdminBlogPage from './pages/admin/AdminBlogPage.jsx'
+import AdminTracksPage from './pages/admin/AdminTracksPage.jsx'
+import AdminGroupsPage from './pages/admin/AdminGroupsPage.jsx'
+import AdminContentPage from './pages/admin/AdminContentPage.jsx'
 
 export default function App() {
   return (
@@ -51,6 +54,9 @@ export default function App() {
         <Route path="/notas-profe" element={<AdminLayout />}>
           <Route index element={<AdminHomePage />} />
           <Route path="blog" element={<AdminBlogPage />} />
+          <Route path="tracks" element={<AdminTracksPage />} />
+          <Route path="groups" element={<AdminGroupsPage />} />
+          <Route path="content" element={<AdminContentPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
