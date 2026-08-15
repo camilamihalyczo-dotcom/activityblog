@@ -84,3 +84,27 @@ de nadie ni cargar/editar/borrar contenido, aunque adivine la URL.
 Flashcards, cuestionarios, listening, reading & writing, y la gestión de
 tracks/grupos (nombres, colores, claves) siguen siendo archivos de código —
 esa es la fase 2 del panel, y usa el mismo patrón que el blog.
+
+---
+
+# Fase 2: Tracks, grupos y contenido
+
+Mismo mecanismo que el blog, pero para tracks/temarios (Adultos), grupos
+(Infancias), y el contenido de estudio (flashcards, cuestionario, listening,
+reading & writing). Se activa una sola vez, corriendo dos archivos SQL más.
+
+1. En Supabase, andá a **SQL Editor** (el mismo lugar donde corriste
+   `schema.sql` y `seed.sql`).
+2. Apretá **New query**. Abrí `supabase/schema_phase2.sql` (en la carpeta del
+   proyecto en tu compu), copiá todo el contenido, pegalo ahí, y apretá
+   **Run**. Esto crea las tablas `tracks`, `temarios`, `groups` y
+   `content_items`, con sus permisos.
+3. Apretá **New query** de nuevo. Abrí `supabase/seed_phase2.sql`, copiá todo
+   el contenido, pegalo, y apretá **Run**. Esto carga los tracks, temarios y
+   grupos que ya tenías, más el contenido de muestra que ya existía
+   (Business English → Foundations, B1-B2).
+
+Con eso ya está. Hacé `git add`, `commit` y `push` de los cambios del código
+para que Vercel despliegue las páginas y el panel nuevo, y desde
+`/notas-profe` vas a ver tres secciones más: **Tracks y temarios**,
+**Grupos**, y **Contenido**.
