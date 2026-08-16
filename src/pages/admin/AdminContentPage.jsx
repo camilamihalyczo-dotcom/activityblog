@@ -360,6 +360,12 @@ export default function AdminContentPage() {
   const [contentType, setContentType] = useState('flashcards')
   const [contentData, setContentData] = useState(null)
   const [contentStatus, setContentStatus] = useState('idle') // idle | loading | error | ready
+  // Recuerda para qué scopeKey es válido el contentData actual. Sin esto,
+  // al cambiar de pestaña (ej: Flashcards → Cuestionario) React ya re-renderiza
+  // con el contentType nuevo pero el contentData viejo (el efecto que lo
+  // vuelve a cargar corre recién después) — y un editor intenta leer datos
+  // con la forma de otro tipo de contenido, lo que rompe la página.
+  const [loadedScopeKey, setLoadedScopeKey] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
 
@@ -402,6 +408,7 @@ export default function AdminContentPage() {
       .then((data) => {
         if (!active) return
         setContentData(data)
+        setLoadedScopeKey(scopeKey)
         setContentStatus('ready')
       })
       .catch(() => {
@@ -445,7 +452,7 @@ export default function AdminContentPage() {
     }
   }
 
-  const editorReady = contentStatus === 'ready'
+  const editorReady = contentStatus === 'ready' && loadedScopeKey === scopeKey
 
   return (
     <div>
