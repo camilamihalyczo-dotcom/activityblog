@@ -61,6 +61,16 @@ export async function deleteTrack(id) {
   if (error) throw error
 }
 
+// Recibe los tracks ya reordenados (por drag-and-drop en el panel) y les
+// asigna sort_order según su posición en el array.
+export async function reorderTracks(orderedTracks) {
+  const results = await Promise.all(
+    orderedTracks.map((t, i) => supabase.from('tracks').update({ sort_order: i }).eq('id', t.id))
+  )
+  const failed = results.find((r) => r.error)
+  if (failed) throw failed.error
+}
+
 export async function saveTemario(temario) {
   const payload = {
     track_slug: temario.track_slug,
@@ -78,4 +88,12 @@ export async function saveTemario(temario) {
 export async function deleteTemario(id) {
   const { error } = await supabase.from('temarios').delete().eq('id', id)
   if (error) throw error
+}
+
+export async function reorderTemarios(orderedTemarios) {
+  const results = await Promise.all(
+    orderedTemarios.map((t, i) => supabase.from('temarios').update({ sort_order: i }).eq('id', t.id))
+  )
+  const failed = results.find((r) => r.error)
+  if (failed) throw failed.error
 }

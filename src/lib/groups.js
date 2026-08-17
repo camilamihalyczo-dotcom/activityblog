@@ -38,3 +38,11 @@ export async function deleteGroup(id) {
   const { error } = await supabase.from('groups').delete().eq('id', id)
   if (error) throw error
 }
+
+export async function reorderGroups(orderedGroups) {
+  const results = await Promise.all(
+    orderedGroups.map((g, i) => supabase.from('groups').update({ sort_order: i }).eq('id', g.id))
+  )
+  const failed = results.find((r) => r.error)
+  if (failed) throw failed.error
+}

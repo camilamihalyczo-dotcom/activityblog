@@ -6,9 +6,9 @@ import { THEME_COLORS } from '../lib/colorMaps.js'
 import { useLevelAccess } from '../hooks.js'
 import PasswordGate from '../components/PasswordGate.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
-import { Layers, ListChecks, Headphones, BookOpenText } from 'lucide-react'
+import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines } from 'lucide-react'
 
-// Las 4 actividades, iguales para cualquier nivel/track/temario. Se
+// Las 7 actividades, iguales para cualquier nivel/track/temario. Se
 // diferencian por ícono, no por color — el color de identidad es el del
 // track al que pertenece el temario.
 const TOPICS = [
@@ -16,6 +16,9 @@ const TOPICS = [
   { slug: 'cuestionario', label: 'Cuestionario', desc: 'Preguntas de opción múltiple', icon: ListChecks },
   { slug: 'listening', label: 'Listening', desc: 'Video, transcripción y preguntas', icon: Headphones },
   { slug: 'reading-writing', label: 'Reading & Writing', desc: 'Comprensión lectora y producción escrita', icon: BookOpenText },
+  { slug: 'completar', label: 'Completar oraciones', desc: 'Espacios en blanco para completar', icon: SpellCheck2 },
+  { slug: 'sinonimos-antonimos', label: 'Sinónimos y antónimos', desc: 'Arrastrá cada palabra a su par', icon: ArrowLeftRight },
+  { slug: 'pronunciacion', label: 'Pronunciación', desc: 'Agrupá las palabras que suenan parecido', icon: AudioLines },
 ]
 
 export default function TemarioHubPage() {

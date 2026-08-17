@@ -15,6 +15,9 @@ function ReadingItem({ item, c }) {
         <span className="font-playful text-xs uppercase tracking-wider font-semibold">Reading</span>
       </div>
       <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{item.title}</h2>
+      {item.image_url && (
+        <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
+      )}
       <p className="font-playful whitespace-pre-line text-kidsInk/85 leading-relaxed mb-6">{item.text}</p>
 
       <div className="flex flex-col gap-4">
@@ -44,6 +47,9 @@ function WritingItem({ item, c }) {
         <span className="font-playful text-xs uppercase tracking-wider font-semibold">Writing</span>
       </div>
       <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-3">{item.title}</h2>
+      {item.image_url && (
+        <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
+      )}
       <p className="font-playful text-kidsInk/70 mb-4">{item.prompt}</p>
       <textarea
         rows={8}

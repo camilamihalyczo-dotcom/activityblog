@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPostDate } from '../data/blog.js'
+import { renderMarkdown } from '../lib/markdown.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 
 export default function AdultosBlogPage() {
@@ -51,9 +52,20 @@ export default function AdultosBlogPage() {
         <div className="flex flex-col gap-8">
           {posts.map((post) => (
             <article key={post.id} className="texture-card rounded-2xl border-t-4 border-t-brand p-6 sm:p-8">
+              {post.image_url && (
+                <img
+                  src={post.image_url}
+                  alt=""
+                  className="w-full aspect-video object-cover rounded-xl mb-5"
+                  loading="lazy"
+                />
+              )}
               <p className="font-mono text-xs text-ink/40 mb-2 uppercase tracking-wider">{formatPostDate(post.date)}</p>
               <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-3">{post.title}</h2>
-              <p className="text-ink/80 leading-relaxed whitespace-pre-line">{post.body}</p>
+              <div
+                className="post-body text-ink/80 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
+              />
             </article>
           ))}
         </div>

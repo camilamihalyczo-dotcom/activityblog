@@ -16,6 +16,10 @@ function ListeningItem({ item, c }) {
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
       <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{item.title}</h2>
 
+      {item.image_url && (
+        <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-2xl mb-4" />
+      )}
+
       <div className="aspect-video rounded-2xl overflow-hidden bg-kidsInk/5 flex items-center justify-center mb-4">
         {item.youtubeId ? (
           <iframe
@@ -49,6 +53,7 @@ function ListeningItem({ item, c }) {
         {item.questions.map((q, qi) => (
           <div key={q.id}>
             <p className="font-playful text-xs text-kidsInk/45 mb-1 font-semibold">Pregunta {qi + 1}</p>
+            {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-2" />}
             <p className="font-playful font-semibold text-kidsInk mb-2">{q.q}</p>
             <div className="flex flex-col gap-2">
               {q.options.map((opt, oi) => {

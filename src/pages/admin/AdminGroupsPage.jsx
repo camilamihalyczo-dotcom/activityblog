@@ -1,13 +1,43 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchGroups, saveGroup, deleteGroup } from '../../lib/groups.js'
+import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
+import { fetchGroups, saveGroup, deleteGroup, reorderGroups } from '../../lib/groups.js'
 import { GROUP_COLOR_OPTIONS, KIDS_GROUP_COLORS } from '../../lib/colorMaps.js'
+
+function SortableRow({ id, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab active:cursor-grabbing text-ink/25 hover:text-ink/60 shrink-0 p-1"
+        title="Arrastrar para reordenar"
+      >
+        <GripVertical size={18} />
+      </button>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  )
+}
 
 const ALL_TOPICS = [
   { slug: 'flashcards', label: 'Flashcards' },
   { slug: 'cuestionario', label: 'Cuestionario' },
   { slug: 'listening', label: 'Listening' },
   { slug: 'reading-writing', label: 'Reading & Writing' },
+  { slug: 'completar', label: 'Completar oraciones' },
+  { slug: 'sinonimos-antonimos', label: 'Sinónimos y antónimos' },
+  { slug: 'pronunciacion', label: 'Pronunciación' },
 ]
 
 const EMPTY_FORM = {
@@ -30,6 +60,11 @@ export default function AdminGroupsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
+
   const loadGroups = () => {
     setStatus('loading')
     fetchGroups()
@@ -48,7 +83,7 @@ export default function AdminGroupsPage() {
   }
 
   const startNew = () => {
-    setForm(EMPTY_FORM)
+    setForm({ ...EMPTY_FORM, sort_order: groups.length })
     setError('')
   }
 
@@ -78,6 +113,20 @@ export default function AdminGroupsPage() {
     if (!window.confirm(`¿Borrar el grupo "${group.name}"? No se puede deshacer.`)) return
     await deleteGroup(group.id)
     loadGroups()
+  }
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = groups.findIndex((g) => g.id === active.id)
+    const newIndex = groups.findIndex((g) => g.id === over.id)
+    const reordered = arrayMove(groups, oldIndex, newIndex)
+    setGroups(reordered)
+    try {
+      await reorderGroups(reordered)
+    } catch {
+      loadGroups()
+    }
   }
 
   return (
@@ -186,26 +235,15 @@ export default function AdminGroupsPage() {
           </div>
         </div>
 
-        <div className="flex gap-4 flex-wrap">
-          <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Clave de acceso</span>
-            <input
-              required
-              value={form.passcode}
-              onChange={(e) => setForm({ ...form, passcode: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
-            />
-          </label>
-          <label className="w-32">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Orden</span>
-            <input
-              type="number"
-              value={form.sort_order}
-              onChange={(e) => setForm({ ...form, sort_order: Number(e.target.value) })}
-              className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
-            />
-          </label>
-        </div>
+        <label>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Clave de acceso</span>
+          <input
+            required
+            value={form.passcode}
+            onChange={(e) => setForm({ ...form, passcode: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
+          />
+        </label>
 
         {error && <p className="text-stamp text-sm">{error}</p>}
 
@@ -227,30 +265,39 @@ export default function AdminGroupsPage() {
 
       {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm">No pudimos cargar los grupos.</p>}
+      {status === 'ready' && (
+        <p className="text-ink/40 text-xs mb-3">Arrastrá del ícono de la izquierda para cambiar el orden en que se muestran.</p>
+      )}
 
-      <div className="flex flex-col gap-3">
-        {groups.map((group) => {
-          const c = KIDS_GROUP_COLORS[group.color_key]
-          return (
-            <div key={group.id} className={`texture-card rounded-xl p-4 flex items-center justify-between gap-4 ${c?.borderT8 || ''}`}>
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
-                  {group.slug} · nivel {group.milestone} · {group.age_range}
-                </p>
-                <p className="font-display font-semibold text-ink truncate">{group.name}</p>
-              </div>
-              <div className="flex gap-3 shrink-0">
-                <button onClick={() => startEdit(group)} className="text-brand hover:underline text-sm font-medium">
-                  Editar
-                </button>
-                <button onClick={() => handleDelete(group)} className="text-stamp hover:underline text-sm font-medium">
-                  Borrar
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={groups.map((g) => g.id)} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-col gap-3">
+            {groups.map((group) => {
+              const c = KIDS_GROUP_COLORS[group.color_key]
+              return (
+                <SortableRow key={group.id} id={group.id}>
+                  <div className={`texture-card rounded-xl p-4 flex items-center justify-between gap-4 ${c?.borderT8 || ''}`}>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+                        {group.slug} · nivel {group.milestone} · {group.age_range}
+                      </p>
+                      <p className="font-display font-semibold text-ink truncate">{group.name}</p>
+                    </div>
+                    <div className="flex gap-3 shrink-0">
+                      <button onClick={() => startEdit(group)} className="text-brand hover:underline text-sm font-medium">
+                        Editar
+                      </button>
+                      <button onClick={() => handleDelete(group)} className="text-stamp hover:underline text-sm font-medium">
+                        Borrar
+                      </button>
+                    </div>
+                  </div>
+                </SortableRow>
+              )
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   )
 }

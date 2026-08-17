@@ -93,9 +93,16 @@ export default function FlashcardsPage() {
             </p>
             <button
               onClick={() => setFlipped((f) => !f)}
-              className={`w-full aspect-[16/9] texture-card rounded-2xl ${c.borderT4} flex items-center justify-center p-8 text-center transition-transform duration-300`}
+              className={`w-full aspect-[16/9] texture-card rounded-2xl ${c.borderT4} flex flex-col items-center justify-center gap-4 p-8 text-center transition-transform duration-300`}
               style={{ perspective: '1000px' }}
             >
+              {!flipped && flashcards[order[index]].image_url && (
+                <img
+                  src={flashcards[order[index]].image_url}
+                  alt=""
+                  className="max-h-32 sm:max-h-40 rounded-lg object-contain"
+                />
+              )}
               <span className="font-display text-2xl sm:text-3xl font-semibold text-ink">
                 {flipped ? flashcards[order[index]].back : flashcards[order[index]].front}
               </span>

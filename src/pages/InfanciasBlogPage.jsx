@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient.js'
 import { formatPostDate } from '../data/blog.js'
+import { renderMarkdown } from '../lib/markdown.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsBlobs from '../components/KidsBlobs.jsx'
 
@@ -55,9 +56,20 @@ export default function InfanciasBlogPage() {
         <div className="relative flex flex-col gap-6">
           {posts.map((post) => (
             <article key={post.id} className="bg-white rounded-[22px] shadow-kids border-t-8 border-kidsPurpleDeep p-6 sm:p-8">
+              {post.image_url && (
+                <img
+                  src={post.image_url}
+                  alt=""
+                  className="w-full aspect-video object-cover rounded-2xl mb-5"
+                  loading="lazy"
+                />
+              )}
               <p className="font-playful text-xs text-kidsInk/45 mb-2 font-semibold uppercase tracking-wide">{formatPostDate(post.date)}</p>
               <h2 className="font-body font-extrabold uppercase tracking-wide text-lg sm:text-xl text-kidsInk mb-3">{post.title}</h2>
-              <p className="font-playful text-kidsInk/80 leading-relaxed whitespace-pre-line">{post.body}</p>
+              <div
+                className="post-body font-playful text-kidsInk/80 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(post.body) }}
+              />
             </article>
           ))}
         </div>

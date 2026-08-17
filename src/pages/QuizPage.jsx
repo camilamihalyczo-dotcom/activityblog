@@ -83,6 +83,7 @@ export default function QuizPage() {
           {quiz.questions.map((q, qi) => (
             <div key={q.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
               <p className="font-mono text-xs text-ink/40 mb-2">Pregunta {qi + 1}</p>
+              {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
               <p className="font-semibold text-ink mb-4">{q.q}</p>
               <div className="flex flex-col gap-2">
                 {q.options.map((opt, oi) => {

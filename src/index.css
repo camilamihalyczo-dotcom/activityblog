@@ -71,3 +71,51 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Cuerpo de los posts del blog, renderizado desde markdown (ver
+   src/lib/markdown.js). El color y la tipografía los pone el contenedor
+   (con clases de Tailwind, distintas para Adultos/Infancias) — acá solo
+   van los estilos de los tags que genera el markdown en sí. */
+.post-body p {
+  margin-bottom: 1em;
+}
+.post-body p:last-child {
+  margin-bottom: 0;
+}
+.post-body strong {
+  font-weight: 700;
+}
+.post-body em {
+  font-style: italic;
+}
+.post-body a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.post-body ul,
+.post-body ol {
+  margin: 0.75em 0;
+  padding-left: 1.25em;
+}
+.post-body ul {
+  list-style: disc;
+}
+.post-body ol {
+  list-style: decimal;
+}
+.post-body li {
+  margin-bottom: 0.25em;
+}
+.post-body code {
+  background: rgba(13, 13, 13, 0.08);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.post-body blockquote {
+  border-left: 3px solid currentColor;
+  opacity: 0.85;
+  padding-left: 1em;
+  margin: 1em 0;
+}

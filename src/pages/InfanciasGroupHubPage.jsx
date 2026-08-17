@@ -6,13 +6,16 @@ import { useLevelAccess } from '../hooks.js'
 import KidsPasswordGate from '../components/KidsPasswordGate.jsx'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsBlobs from '../components/KidsBlobs.jsx'
-import { Layers, ListChecks, Headphones, BookOpenText } from 'lucide-react'
+import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines } from 'lucide-react'
 
 const ALL_TOPICS = [
   { slug: 'flashcards', label: 'Flashcards', desc: 'Vocabulario en formato de juego', icon: Layers },
   { slug: 'cuestionario', label: 'Cuestionario', desc: 'Preguntas de opción múltiple', icon: ListChecks },
   { slug: 'listening', label: 'Listening', desc: 'Video, canciones y preguntas', icon: Headphones },
   { slug: 'reading-writing', label: 'Reading & Writing', desc: 'Comprensión lectora y producción escrita', icon: BookOpenText },
+  { slug: 'completar', label: 'Completar oraciones', desc: 'Espacios en blanco para completar', icon: SpellCheck2 },
+  { slug: 'sinonimos-antonimos', label: 'Sinónimos y antónimos', desc: 'Arrastrá cada palabra a su par', icon: ArrowLeftRight },
+  { slug: 'pronunciacion', label: 'Pronunciación', desc: 'Agrupá las palabras que suenan parecido', icon: AudioLines },
 ]
 
 export default function InfanciasGroupHubPage() {

@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient.js'
+import { renderMarkdown } from '../../lib/markdown.js'
+import { uploadImage, deleteImage } from '../../lib/media.js'
 
-const EMPTY_FORM = { id: null, audience: 'adultos', slug: '', date: '', title: '', body: '' }
+const EMPTY_FORM = { id: null, audience: 'adultos', slug: '', date: '', title: '', body: '', image_url: null }
 
 export default function AdminBlogPage() {
   const [posts, setPosts] = useState([])
@@ -10,6 +12,10 @@ export default function AdminBlogPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [preview, setPreview] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [imageError, setImageError] = useState('')
+  const bodyRef = useRef(null)
 
   const loadPosts = () => {
     setStatus('loading')
@@ -32,11 +38,68 @@ export default function AdminBlogPage() {
   const startEdit = (post) => {
     setForm(post)
     setError('')
+    setPreview(false)
   }
 
   const startNew = () => {
     setForm(EMPTY_FORM)
     setError('')
+    setPreview(false)
+  }
+
+  // ─── Herramientas de formato para el textarea ──────────────────────
+
+  const wrapSelection = (before, after = before) => {
+    const el = bodyRef.current
+    if (!el) return
+    const { selectionStart, selectionEnd, value } = el
+    const selected = value.slice(selectionStart, selectionEnd)
+    const next = value.slice(0, selectionStart) + before + selected + after + value.slice(selectionEnd)
+    setForm((f) => ({ ...f, body: next }))
+    requestAnimationFrame(() => {
+      el.focus()
+      el.selectionStart = selectionStart + before.length
+      el.selectionEnd = selectionStart + before.length + selected.length
+    })
+  }
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setImageError('')
+    setUploadingImage(true)
+    try {
+      const url = await uploadImage(file, 'blog')
+      setForm((f) => ({ ...f, image_url: url }))
+    } catch (err) {
+      setImageError(err.message || 'No pudimos subir la imagen.')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const removeImage = () => {
+    deleteImage(form.image_url)
+    setForm((f) => ({ ...f, image_url: null }))
+  }
+
+  const insertLink = () => {
+    const el = bodyRef.current
+    if (!el) return
+    const { selectionStart, selectionEnd, value } = el
+    const selected = value.slice(selectionStart, selectionEnd) || 'texto del link'
+    const url = window.prompt('¿A qué URL apunta el link?', 'https://')
+    if (!url) return
+    const before = value.slice(0, selectionStart)
+    const after = value.slice(selectionEnd)
+    const inserted = `[${selected}](${url})`
+    setForm((f) => ({ ...f, body: before + inserted + after }))
+    requestAnimationFrame(() => {
+      el.focus()
+      const pos = before.length + inserted.length
+      el.selectionStart = el.selectionEnd = pos
+    })
   }
 
   const handleSubmit = async (e) => {
@@ -50,6 +113,7 @@ export default function AdminBlogPage() {
       date: form.date,
       title: form.title.trim(),
       body: form.body,
+      image_url: form.image_url || null,
     }
 
     const { error: saveError } = form.id
@@ -68,6 +132,7 @@ export default function AdminBlogPage() {
     }
 
     setForm(EMPTY_FORM)
+    setPreview(false)
     loadPosts()
   }
 
@@ -137,16 +202,89 @@ export default function AdminBlogPage() {
           />
         </label>
 
-        <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Texto</span>
-          <textarea
-            required
-            rows={6}
-            value={form.body}
-            onChange={(e) => setForm({ ...form, body: e.target.value })}
-            className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm resize-y"
-          />
-        </label>
+        <div>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+            Imagen de portada (opcional)
+          </span>
+          {form.image_url ? (
+            <div className="flex items-center gap-3">
+              <img src={form.image_url} alt="" className="w-24 h-16 object-cover rounded-lg border-2 border-ink/15" />
+              <button type="button" onClick={removeImage} className="text-stamp hover:underline text-sm font-medium">
+                Quitar imagen
+              </button>
+            </div>
+          ) : (
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              disabled={uploadingImage}
+              className="text-sm text-ink/70"
+            />
+          )}
+          {uploadingImage && <p className="text-ink/50 text-xs mt-1">Subiendo…</p>}
+          {imageError && <p className="text-stamp text-xs mt-1">{imageError}</p>}
+        </div>
+
+        <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-xs font-mono uppercase tracking-wide text-ink/50 mr-1">Texto</span>
+            <button
+              type="button"
+              disabled={preview}
+              onClick={() => wrapSelection('**')}
+              title="Negrita"
+              className="px-2 py-1 rounded border-2 border-ink/15 text-xs font-bold hover:border-ink transition-colors disabled:opacity-30 disabled:hover:border-ink/15"
+            >
+              N
+            </button>
+            <button
+              type="button"
+              disabled={preview}
+              onClick={() => wrapSelection('*')}
+              title="Cursiva"
+              className="px-2 py-1 rounded border-2 border-ink/15 text-xs italic hover:border-ink transition-colors disabled:opacity-30 disabled:hover:border-ink/15"
+            >
+              I
+            </button>
+            <button
+              type="button"
+              disabled={preview}
+              onClick={insertLink}
+              title="Link"
+              className="px-2 py-1 rounded border-2 border-ink/15 text-xs hover:border-ink transition-colors disabled:opacity-30 disabled:hover:border-ink/15"
+            >
+              Link
+            </button>
+            <button
+              type="button"
+              onClick={() => setPreview((p) => !p)}
+              className="ml-auto text-brand hover:underline text-xs font-medium"
+            >
+              {preview ? '← Volver a editar' : 'Vista previa →'}
+            </button>
+          </div>
+
+          {preview ? (
+            <div
+              className="post-body w-full min-h-[150px] px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm text-ink/80"
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(form.body) || '<p class="text-ink/40">Nada para mostrar todavía.</p>' }}
+            />
+          ) : (
+            <textarea
+              ref={bodyRef}
+              required
+              rows={8}
+              value={form.body}
+              onChange={(e) => setForm({ ...form, body: e.target.value })}
+              className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm resize-y font-mono"
+            />
+          )}
+          <p className="text-ink/40 text-xs mt-1.5">
+            Seleccioná texto y usá los botones, o escribí directo: **negrita**, *cursiva*, una línea que empiece con
+            "- " para hacer una lista.
+          </p>
+        </div>
 
         {error && <p className="text-stamp text-sm">{error}</p>}
 

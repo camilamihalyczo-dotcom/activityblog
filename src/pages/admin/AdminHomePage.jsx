@@ -28,6 +28,12 @@ const SECTIONS = [
     desc: 'El contenido de estudio de cada temario (Adultos) o grupo (Infancias).',
     ready: true,
   },
+  {
+    to: '/notas-profe/content-status',
+    label: 'Qué falta',
+    desc: 'De un vistazo, qué track/temario o grupo todavía no tiene contenido cargado.',
+    ready: true,
+  },
 ]
 
 export default function AdminHomePage() {

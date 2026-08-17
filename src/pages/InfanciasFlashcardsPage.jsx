@@ -85,9 +85,16 @@ export default function InfanciasFlashcardsPage() {
             </p>
             <button
               onClick={() => setFlipped((f) => !f)}
-              className={`w-full aspect-[16/9] bg-white rounded-[22px] shadow-kids ${c.borderT8} flex items-center justify-center p-8 text-center transition-transform duration-300`}
+              className={`w-full aspect-[16/9] bg-white rounded-[22px] shadow-kids ${c.borderT8} flex flex-col items-center justify-center gap-4 p-8 text-center transition-transform duration-300`}
               style={{ perspective: '1000px' }}
             >
+              {!flipped && flashcards[order[index]].image_url && (
+                <img
+                  src={flashcards[order[index]].image_url}
+                  alt=""
+                  className="max-h-32 sm:max-h-40 rounded-xl object-contain"
+                />
+              )}
               <span className="font-body font-extrabold text-2xl sm:text-3xl text-kidsInk">
                 {flipped ? flashcards[order[index]].back : flashcards[order[index]].front}
               </span>

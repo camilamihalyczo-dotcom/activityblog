@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core'
+import { SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { GripVertical } from 'lucide-react'
 import {
   fetchTracks,
   fetchTemarios,
   saveTrack,
   deleteTrack,
+  reorderTracks,
   saveTemario,
   deleteTemario,
+  reorderTemarios,
 } from '../../lib/tracks.js'
 import { TRACK_COLOR_OPTIONS, THEME_COLORS } from '../../lib/colorMaps.js'
 
@@ -23,6 +29,32 @@ const EMPTY_TRACK_FORM = {
 
 const EMPTY_TEMARIO_FORM = { id: null, track_slug: '', slug: '', name: '', description: '', sort_order: 0 }
 
+// Fila arrastrable genérica: el ícono de la izquierda es la única parte que
+// dispara el drag (así "Editar"/"Borrar" siguen funcionando con un click
+// normal). Se usa tanto para tracks como para temarios.
+function SortableRow({ id, children }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-2">
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab active:cursor-grabbing text-ink/25 hover:text-ink/60 shrink-0 p-1"
+        title="Arrastrar para reordenar"
+      >
+        <GripVertical size={18} />
+      </button>
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
+  )
+}
+
 export default function AdminTracksPage() {
   const [tracks, setTracks] = useState([])
   const [status, setStatus] = useState('loading') // loading | error | ready
@@ -36,6 +68,11 @@ export default function AdminTracksPage() {
   const [temarioForm, setTemarioForm] = useState(EMPTY_TEMARIO_FORM)
   const [savingTemario, setSavingTemario] = useState(false)
   const [temarioError, setTemarioError] = useState('')
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
   const loadTracks = () => {
     setStatus('loading')
@@ -74,7 +111,7 @@ export default function AdminTracksPage() {
   }
 
   const startNewTrack = () => {
-    setTrackForm(EMPTY_TRACK_FORM)
+    setTrackForm({ ...EMPTY_TRACK_FORM, sort_order: tracks.length })
     setTrackError('')
   }
 
@@ -105,6 +142,20 @@ export default function AdminTracksPage() {
     loadTracks()
   }
 
+  const handleTrackDragEnd = async (event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = tracks.findIndex((t) => t.id === active.id)
+    const newIndex = tracks.findIndex((t) => t.id === over.id)
+    const reordered = arrayMove(tracks, oldIndex, newIndex)
+    setTracks(reordered)
+    try {
+      await reorderTracks(reordered)
+    } catch {
+      loadTracks()
+    }
+  }
+
   // ─── Temario form ──────────────────────────────────────────────────
 
   const startEditTemario = (temario) => {
@@ -113,7 +164,7 @@ export default function AdminTracksPage() {
   }
 
   const startNewTemario = () => {
-    setTemarioForm({ ...EMPTY_TEMARIO_FORM, track_slug: selectedTrackSlug })
+    setTemarioForm({ ...EMPTY_TEMARIO_FORM, track_slug: selectedTrackSlug, sort_order: temarios.length })
     setTemarioError('')
   }
 
@@ -142,6 +193,20 @@ export default function AdminTracksPage() {
     loadTemarios(selectedTrackSlug)
   }
 
+  const handleTemarioDragEnd = async (event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = temarios.findIndex((t) => t.id === active.id)
+    const newIndex = temarios.findIndex((t) => t.id === over.id)
+    const reordered = arrayMove(temarios, oldIndex, newIndex)
+    setTemarios(reordered)
+    try {
+      await reorderTemarios(reordered)
+    } catch {
+      loadTemarios(selectedTrackSlug)
+    }
+  }
+
   const selectedTrack = tracks.find((t) => t.slug === selectedTrackSlug)
 
   return (
@@ -152,7 +217,8 @@ export default function AdminTracksPage() {
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Tracks y temarios</h1>
       <p className="text-ink/60 mb-8">
         Los tracks son las especializaciones de Adultos (Business English, English for Creatives, etc). Cada uno tiene sus
-        propios temarios, que a su vez agrupan flashcards, cuestionario, listening y reading &amp; writing.
+        propios temarios, que a su vez agrupan flashcards, cuestionario, listening y reading &amp; writing. Arrastrá del
+        ícono de la izquierda para cambiar el orden en que se muestran.
       </p>
 
       {/* ─── Tracks ─────────────────────────────────────────────────── */}
@@ -226,26 +292,15 @@ export default function AdminTracksPage() {
           />
         </label>
 
-        <div className="flex gap-4 flex-wrap">
-          <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Clave de acceso</span>
-            <input
-              required
-              value={trackForm.passcode}
-              onChange={(e) => setTrackForm({ ...trackForm, passcode: e.target.value })}
-              className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
-            />
-          </label>
-          <label className="w-32">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Orden</span>
-            <input
-              type="number"
-              value={trackForm.sort_order}
-              onChange={(e) => setTrackForm({ ...trackForm, sort_order: Number(e.target.value) })}
-              className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
-            />
-          </label>
-        </div>
+        <label>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Clave de acceso</span>
+          <input
+            required
+            value={trackForm.passcode}
+            onChange={(e) => setTrackForm({ ...trackForm, passcode: e.target.value })}
+            className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
+          />
+        </label>
 
         {trackError && <p className="text-stamp text-sm">{trackError}</p>}
 
@@ -268,33 +323,36 @@ export default function AdminTracksPage() {
       {status === 'loading' && <p className="text-ink/50 text-sm mb-6">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm mb-6">No pudimos cargar los tracks.</p>}
 
-      <div className="flex flex-col gap-3 mb-12">
-        {tracks.map((track) => {
-          const c = THEME_COLORS[track.color_key]
-          return (
-            <div key={track.id} className={`texture-card rounded-xl p-4 flex items-center justify-between gap-4 ${c?.borderL8 || ''}`}>
-              <div className="min-w-0">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">{track.slug}</p>
-                <p className="font-display font-semibold text-ink truncate">{track.name}</p>
-              </div>
-              <div className="flex gap-3 shrink-0">
-                <button
-                  onClick={() => selectTrack(track.slug)}
-                  className="text-ink/70 hover:underline text-sm font-medium"
-                >
-                  Temarios
-                </button>
-                <button onClick={() => startEditTrack(track)} className="text-brand hover:underline text-sm font-medium">
-                  Editar
-                </button>
-                <button onClick={() => handleDeleteTrack(track)} className="text-stamp hover:underline text-sm font-medium">
-                  Borrar
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTrackDragEnd}>
+        <SortableContext items={tracks.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+          <div className="flex flex-col gap-3 mb-12">
+            {tracks.map((track) => {
+              const c = THEME_COLORS[track.color_key]
+              return (
+                <SortableRow key={track.id} id={track.id}>
+                  <div className={`texture-card rounded-xl p-4 flex items-center justify-between gap-4 ${c?.borderL8 || ''}`}>
+                    <div className="min-w-0">
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">{track.slug}</p>
+                      <p className="font-display font-semibold text-ink truncate">{track.name}</p>
+                    </div>
+                    <div className="flex gap-3 shrink-0">
+                      <button onClick={() => selectTrack(track.slug)} className="text-ink/70 hover:underline text-sm font-medium">
+                        Temarios
+                      </button>
+                      <button onClick={() => startEditTrack(track)} className="text-brand hover:underline text-sm font-medium">
+                        Editar
+                      </button>
+                      <button onClick={() => handleDeleteTrack(track)} className="text-stamp hover:underline text-sm font-medium">
+                        Borrar
+                      </button>
+                    </div>
+                  </div>
+                </SortableRow>
+              )
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {/* ─── Temarios del track seleccionado ───────────────────────── */}
 
@@ -348,16 +406,6 @@ export default function AdminTracksPage() {
               />
             </label>
 
-            <label className="w-32">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Orden</span>
-              <input
-                type="number"
-                value={temarioForm.sort_order}
-                onChange={(e) => setTemarioForm({ ...temarioForm, sort_order: Number(e.target.value) })}
-                className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm"
-              />
-            </label>
-
             {temarioError && <p className="text-stamp text-sm">{temarioError}</p>}
 
             <div className="flex items-center gap-4">
@@ -383,24 +431,30 @@ export default function AdminTracksPage() {
           {temarioStatus === 'loading' && <p className="text-ink/50 text-sm mb-6">Cargando…</p>}
           {temarioStatus === 'error' && <p className="text-stamp text-sm mb-6">No pudimos cargar los temarios.</p>}
 
-          <div className="flex flex-col gap-3">
-            {temarios.map((temario) => (
-              <div key={temario.id} className="texture-card rounded-xl p-4 flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">{temario.slug}</p>
-                  <p className="font-display font-semibold text-ink truncate">{temario.name}</p>
-                </div>
-                <div className="flex gap-3 shrink-0">
-                  <button onClick={() => startEditTemario(temario)} className="text-brand hover:underline text-sm font-medium">
-                    Editar
-                  </button>
-                  <button onClick={() => handleDeleteTemario(temario)} className="text-stamp hover:underline text-sm font-medium">
-                    Borrar
-                  </button>
-                </div>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTemarioDragEnd}>
+            <SortableContext items={temarios.map((t) => t.id)} strategy={verticalListSortingStrategy}>
+              <div className="flex flex-col gap-3">
+                {temarios.map((temario) => (
+                  <SortableRow key={temario.id} id={temario.id}>
+                    <div className="texture-card rounded-xl p-4 flex items-center justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">{temario.slug}</p>
+                        <p className="font-display font-semibold text-ink truncate">{temario.name}</p>
+                      </div>
+                      <div className="flex gap-3 shrink-0">
+                        <button onClick={() => startEditTemario(temario)} className="text-brand hover:underline text-sm font-medium">
+                          Editar
+                        </button>
+                        <button onClick={() => handleDeleteTemario(temario)} className="text-stamp hover:underline text-sm font-medium">
+                          Borrar
+                        </button>
+                      </div>
+                    </div>
+                  </SortableRow>
+                ))}
               </div>
-            ))}
-          </div>
+            </SortableContext>
+          </DndContext>
         </div>
       )}
     </div>

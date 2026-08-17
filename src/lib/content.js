@@ -10,6 +10,9 @@ export const EMPTY_CONTENT_BY_TYPE = {
   quiz: null,
   listening: [],
   reading_writing: [],
+  fill_blank: [],
+  synonyms_antonyms: [],
+  pronunciation: [],
 }
 
 export function buildAdultosScopeKey(levelSlug, trackSlug, temarioSlug, contentType) {
@@ -46,6 +49,23 @@ export async function fetchInfanciasContentBundle(groupSlug) {
     fetchContent(buildInfanciasScopeKey(groupSlug, 'reading_writing'), 'reading_writing'),
   ])
   return { flashcards, quiz, listenings: listening, readingWriting }
+}
+
+// Trae todos los content_items guardados y devuelve el conjunto de
+// scope_key que tienen contenido real cargado (no vacío), para el panel
+// de "qué falta". Una sola consulta en vez de una por combinación.
+export async function fetchAllContentStatus() {
+  const { data, error } = await supabase.from('content_items').select('scope_key, content_type, data')
+  if (error) throw error
+  const filled = new Set()
+  for (const row of data) {
+    const hasContent =
+      row.content_type === 'quiz'
+        ? Boolean(row.data && row.data.questions && row.data.questions.length > 0)
+        : Array.isArray(row.data) && row.data.length > 0
+    if (hasContent) filled.add(row.scope_key)
+  }
+  return filled
 }
 
 // ─── Escritura (panel /notas-profe) ────────────────────────────────────
