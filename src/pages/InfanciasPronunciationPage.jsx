@@ -42,7 +42,7 @@ function SortableChip({ id, text, submitted, correct, onMoveLeft, onMoveRight, i
       `}
     >
       {!submitted && (
-        <button onClick={onMoveLeft} disabled={isFirst} className="text-kidsInk/30 hover:text-kidsInk disabled:opacity-20 disabled:hover:text-kidsInk/30" title="Mover a la izquierda">
+        <button onClick={onMoveLeft} disabled={isFirst} className="-m-1.5 p-1.5 text-kidsInk/30 hover:text-kidsInk disabled:opacity-20 disabled:hover:text-kidsInk/30" title="Mover a la izquierda">
           <ChevronLeft size={14} />
         </button>
       )}
@@ -50,14 +50,14 @@ function SortableChip({ id, text, submitted, correct, onMoveLeft, onMoveRight, i
         {...attributes}
         {...listeners}
         disabled={submitted}
-        className="text-kidsInk/30 cursor-grab touch-none disabled:cursor-default"
+        className="-m-1.5 p-1.5 text-kidsInk/30 cursor-grab touch-none disabled:cursor-default"
         title="Arrastrar"
       >
         <GripVertical size={14} />
       </button>
       <span>{text}</span>
       {!submitted && (
-        <button onClick={onMoveRight} disabled={isLast} className="text-kidsInk/30 hover:text-kidsInk disabled:opacity-20 disabled:hover:text-kidsInk/30" title="Mover a la derecha">
+        <button onClick={onMoveRight} disabled={isLast} className="-m-1.5 p-1.5 text-kidsInk/30 hover:text-kidsInk disabled:opacity-20 disabled:hover:text-kidsInk/30" title="Mover a la derecha">
           <ChevronRight size={14} />
         </button>
       )}

@@ -12,7 +12,7 @@ export default function KidsHeader({ crumbs = [], backTo }) {
           {backTo && (
             <Link
               to={backTo}
-              className="flex items-center gap-1 text-kidsInk hover:text-kidsPurpleDeep transition-colors mr-1"
+              className="flex items-center gap-1 -m-2 p-2 text-kidsInk hover:text-kidsPurpleDeep transition-colors mr-1"
             >
               <ChevronLeft size={16} />
               <span className="hidden sm:inline">Volver</span>

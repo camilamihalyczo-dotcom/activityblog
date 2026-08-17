@@ -10,7 +10,7 @@ export default function TicketHeader({ crumbs = [], backTo }) {
           {backTo && (
             <Link
               to={backTo}
-              className="flex items-center gap-1 text-ink hover:text-brand transition-colors mr-1"
+              className="flex items-center gap-1 -m-2 p-2 text-ink hover:text-brand transition-colors mr-1"
             >
               <ChevronLeft size={16} />
               <span className="hidden sm:inline">Volver</span>
