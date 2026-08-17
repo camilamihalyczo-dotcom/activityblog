@@ -23,7 +23,7 @@ create policy "public_read_blog_posts"
   to anon, authenticated
   using (true);
 
--- Solo un usuario logueado (vos, en /admin) puede crear, editar o borrar.
+-- Solo un usuario logueado (vos, en /notas-profe) puede crear, editar o borrar.
 create policy "authenticated_insert_blog_posts"
   on blog_posts for insert
   to authenticated

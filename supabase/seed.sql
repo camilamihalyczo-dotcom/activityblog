@@ -1,8 +1,8 @@
 -- Carga los posts que ya existían en el blog (los de ejemplo que armamos
 -- antes de tener base de datos), para no perderlos al pasar a Supabase.
 -- Corré esto DESPUÉS de schema.sql, también en el SQL Editor.
--- Si ya cargaste posts a mano desde /admin antes de correr esto, podés
--- saltearlo — es solo para no arrancar de cero.
+-- Si ya cargaste posts a mano desde /notas-profe antes de correr esto,
+-- podés saltearlo — es solo para no arrancar de cero.
 
 insert into blog_posts (audience, slug, date, title, body) values
   ('adultos', 'bienvenida-al-blog', '2026-08-01', 'Bienvenidos a Activity Blog',

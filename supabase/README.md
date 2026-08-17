@@ -108,3 +108,39 @@ Con eso ya está. Hacé `git add`, `commit` y `push` de los cambios del código
 para que Vercel despliegue las páginas y el panel nuevo, y desde
 `/notas-profe` vas a ver tres secciones más: **Tracks y temarios**,
 **Grupos**, y **Contenido**.
+
+---
+
+# Fase 3: Imágenes
+
+Suma imagen opcional al blog, a las flashcards, y a las preguntas/ítems de
+todos los tipos de contenido. Un solo archivo SQL más.
+
+1. En Supabase, **SQL Editor → New query**. Abrí `supabase/schema_phase3.sql`,
+   copiá todo el contenido, pegalo, y apretá **Run**. Esto agrega la columna
+   de imagen del blog y crea el bucket de Storage `media` (público para
+   lectura, protegido para subir/borrar) con sus permisos.
+2. Este script está armado para poder correrse de nuevo sin error si hace
+   falta — no rompe nada si ya lo corriste.
+
+No hace falta cargar nada más: las imágenes se suben directo desde el panel
+de administración cuando editás cualquier contenido.
+
+---
+
+# Fase 4: Completar oraciones, sinónimos/antónimos y pronunciación
+
+Suma tres tipos de contenido nuevos al panel. La tabla `content_items` de la
+fase 2 tiene una regla que limita qué valores acepta `content_type` — sin
+este paso, guardar contenido de estos tres tipos nuevos falla con un error
+de la base de datos.
+
+1. En Supabase, **SQL Editor → New query**. Abrí `supabase/schema_phase4.sql`,
+   copiá todo el contenido, pegalo, y apretá **Run**. Esto amplía esa regla
+   para permitir `fill_blank`, `synonyms_antonyms` y `pronunciation` además
+   de los cuatro tipos que ya había.
+2. También se puede correr de nuevo sin problema si hace falta.
+
+Con eso ya podés cargar "Completar oraciones", "Sinónimos y antónimos" y
+"Pronunciación" desde `/notas-profe/content` sin que la base de datos
+rechace el guardado.
