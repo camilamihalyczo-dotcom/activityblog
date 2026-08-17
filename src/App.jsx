@@ -13,6 +13,7 @@ import ReadingWritingPage from './pages/ReadingWritingPage.jsx'
 import FillBlankPage from './pages/FillBlankPage.jsx'
 import MatchingPage from './pages/MatchingPage.jsx'
 import PronunciationPage from './pages/PronunciationPage.jsx'
+import GlossaryPage from './pages/GlossaryPage.jsx'
 import InfanciasPage from './pages/InfanciasPage.jsx'
 import InfanciasBlogPage from './pages/InfanciasBlogPage.jsx'
 import InfanciasGroupHubPage from './pages/InfanciasGroupHubPage.jsx'
@@ -23,6 +24,7 @@ import InfanciasReadingWritingPage from './pages/InfanciasReadingWritingPage.jsx
 import InfanciasFillBlankPage from './pages/InfanciasFillBlankPage.jsx'
 import InfanciasMatchingPage from './pages/InfanciasMatchingPage.jsx'
 import InfanciasPronunciationPage from './pages/InfanciasPronunciationPage.jsx'
+import InfanciasGlossaryPage from './pages/InfanciasGlossaryPage.jsx'
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import AdminHomePage from './pages/admin/AdminHomePage.jsx'
@@ -32,6 +34,7 @@ import AdminGroupsPage from './pages/admin/AdminGroupsPage.jsx'
 import AdminContentPage from './pages/admin/AdminContentPage.jsx'
 import AdminContentStatusPage from './pages/admin/AdminContentStatusPage.jsx'
 import AdminErrorLogPage from './pages/admin/AdminErrorLogPage.jsx'
+import AdminGlossaryPage from './pages/admin/AdminGlossaryPage.jsx'
 
 export default function App() {
   return (
@@ -51,6 +54,7 @@ export default function App() {
         <Route path="/adultos/:level/:theme/:temario/completar" element={<FillBlankPage />} />
         <Route path="/adultos/:level/:theme/:temario/sinonimos-antonimos" element={<MatchingPage />} />
         <Route path="/adultos/:level/:theme/:temario/pronunciacion" element={<PronunciationPage />} />
+        <Route path="/adultos/:level/:theme/glosario" element={<GlossaryPage />} />
         <Route path="/infancias" element={<InfanciasPage />} />
         <Route path="/infancias/blog" element={<InfanciasBlogPage />} />
         <Route path="/infancias/:group" element={<InfanciasGroupHubPage />} />
@@ -61,6 +65,7 @@ export default function App() {
         <Route path="/infancias/:group/completar" element={<InfanciasFillBlankPage />} />
         <Route path="/infancias/:group/sinonimos-antonimos" element={<InfanciasMatchingPage />} />
         <Route path="/infancias/:group/pronunciacion" element={<InfanciasPronunciationPage />} />
+        <Route path="/infancias/:group/glosario" element={<InfanciasGlossaryPage />} />
         {/* Ruta del panel de administración a propósito no obvia (no "/admin"):
             no está linkeada desde ningún lado del sitio público, así que
             solo se llega escribiéndola directamente. La protección real es
@@ -75,6 +80,7 @@ export default function App() {
           <Route path="content" element={<AdminContentPage />} />
           <Route path="content-status" element={<AdminContentStatusPage />} />
           <Route path="errores" element={<AdminErrorLogPage />} />
+          <Route path="glosario" element={<AdminGlossaryPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

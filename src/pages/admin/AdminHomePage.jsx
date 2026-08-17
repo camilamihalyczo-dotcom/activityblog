@@ -40,6 +40,12 @@ const SECTIONS = [
     desc: 'Notas privadas por alumno para detectar qué categoría se repite y ya no corrige la práctica sola.',
     ready: true,
   },
+  {
+    to: '/notas-profe/glosario',
+    label: 'Glosario',
+    desc: 'Vocabulario acumulado por track o grupo — se arma solo desde las flashcards, más las palabras sueltas que sumes.',
+    ready: true,
+  },
 ]
 
 export default function AdminHomePage() {

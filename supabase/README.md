@@ -161,3 +161,23 @@ solo la ves vos, no aparece en ningún lado del sitio público.
 Con eso ya tenés la sección **Registro de errores** en `/notas-profe`: vas
 anotando fecha, alumno, categoría del error, ejemplo y corrección, y el
 panel te muestra qué categorías se repiten más para ese alumno.
+
+---
+
+# Fase 6: Glosario
+
+Suma un glosario acumulado por track (Adultos) o grupo (Infancias), visible
+para los alumnos junto al resto del contenido.
+
+1. En Supabase, **SQL Editor → New query**. Abrí `supabase/schema_phase6.sql`,
+   copiá todo el contenido, pegalo, y apretá **Run**. Esto crea la tabla
+   `glossary_entries`, con lectura pública (la ven los alumnos) y escritura
+   solo para vos logueado — mismo patrón que el resto del contenido.
+2. También se puede correr de nuevo sin problema si hace falta.
+
+El glosario se arma solo con las palabras que ya están en las flashcards de
+cada track o grupo — no hace falta cargar nada para que empiece a
+funcionar. Desde `/notas-profe/glosario` podés además sumar palabras
+sueltas que todavía no tengan su propia flashcard. Los alumnos lo ven
+tocando el botón "Glosario" dentro de cada track (Adultos) o grupo
+(Infancias).

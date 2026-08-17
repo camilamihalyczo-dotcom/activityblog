@@ -6,6 +6,7 @@ import { THEME_COLORS } from '../lib/colorMaps.js'
 import { useLevelAccess } from '../hooks.js'
 import PasswordGate from '../components/PasswordGate.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
+import { BookMarked } from 'lucide-react'
 
 export default function ThemeHubPage() {
   const { level: slug, theme: themeSlug } = useParams()
@@ -65,9 +66,17 @@ export default function ThemeHubPage() {
     <div className="min-h-screen">
       <TicketHeader crumbs={['Adultos', level.code, theme.name]} backTo={`/adultos/${slug}`} />
       <div className="max-w-3xl mx-auto px-5 py-12 sm:py-16">
-        <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 ${c.tag}`}>
-          {theme.progression}
-        </span>
+        <div className="flex items-start justify-between gap-4 flex-wrap mb-3">
+          <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 ${c.tag}`}>
+            {theme.progression}
+          </span>
+          <Link
+            to={`/adultos/${slug}/${themeSlug}/glosario`}
+            className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest border border-ink/20 rounded-full px-4 py-2 text-ink/70 hover:border-ink hover:text-ink transition-colors"
+          >
+            <BookMarked size={14} /> Glosario
+          </Link>
+        </div>
         <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mb-2">{theme.name}</h1>
         <p className="text-ink/60 mb-10">Nivel {level.code} · {level.name} — {theme.description}</p>
 

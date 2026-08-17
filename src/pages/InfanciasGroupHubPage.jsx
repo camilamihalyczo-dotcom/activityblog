@@ -6,7 +6,7 @@ import { useLevelAccess } from '../hooks.js'
 import KidsPasswordGate from '../components/KidsPasswordGate.jsx'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsBlobs from '../components/KidsBlobs.jsx'
-import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines } from 'lucide-react'
+import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines, BookMarked } from 'lucide-react'
 
 const ALL_TOPICS = [
   { slug: 'flashcards', label: 'Flashcards', desc: 'Vocabulario en formato de juego', icon: Layers },
@@ -63,13 +63,21 @@ export default function InfanciasGroupHubPage() {
       <div className="relative max-w-3xl mx-auto px-5 py-12 sm:py-16 overflow-hidden">
         <KidsBlobs />
 
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`w-9 h-9 shrink-0 rounded-full ${c.bg} text-white flex items-center justify-center font-playful font-bold text-sm`}>
-            {group.milestone}
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-9 h-9 shrink-0 rounded-full ${c.bg} text-white flex items-center justify-center font-playful font-bold text-sm`}>
+              {group.milestone}
+            </div>
+            <span className={`font-playful font-bold text-xs uppercase tracking-wide ${c.text}`}>
+              Nivel {group.milestone} de 4 · {group.age_range}
+            </span>
           </div>
-          <span className={`font-playful font-bold text-xs uppercase tracking-wide ${c.text}`}>
-            Nivel {group.milestone} de 4 · {group.age_range}
-          </span>
+          <Link
+            to={`/infancias/${slug}/glosario`}
+            className="relative z-10 inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
+          >
+            <BookMarked size={14} /> Glosario
+          </Link>
         </div>
 
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Temas generales</h1>
