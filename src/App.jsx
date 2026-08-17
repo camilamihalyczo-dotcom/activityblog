@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
+import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
 import AdultosPage from './pages/AdultosPage.jsx'
 import AdultosBlogPage from './pages/AdultosBlogPage.jsx'
@@ -83,6 +84,7 @@ export default function App() {
           <Route path="glosario" element={<AdminGlossaryPage />} />
         </Route>
       </Routes>
+      <Footer />
     </BrowserRouter>
   )
 }

@@ -181,3 +181,72 @@ funcionar. Desde `/notas-profe/glosario` podés además sumar palabras
 sueltas que todavía no tengan su propia flashcard. Los alumnos lo ven
 tocando el botón "Glosario" dentro de cada track (Adultos) o grupo
 (Infancias).
+
+---
+
+# Fase 7: Sugerencias por email (EmailJS)
+
+Suma una sección plegable "Sugerencias" al pie de todas las páginas
+públicas (no aparece en `/notas-profe`), para que alumnos y familias
+puedan mandarte un comentario sin salir de la página. No pasa por
+Supabase: usa [EmailJS](https://www.emailjs.com) para mandar el mail
+directo desde el navegador a tu casilla, sin necesidad de un servidor
+propio. Es gratis hasta 200 mails por mes.
+
+Si no completás estos pasos, la sección "Sugerencias" del footer
+simplemente no aparece — no rompe nada del resto de la página.
+
+## 1. Creá tu cuenta de EmailJS
+
+1. Andá a [emailjs.com](https://www.emailjs.com) y creá una cuenta gratis
+   (podés entrar con Google).
+
+## 2. Conectá tu email
+
+1. En el dashboard, andá a **Email Services → Add New Service**.
+2. Elegí Gmail (o el que uses) y seguí los pasos para conectar tu cuenta.
+3. Copiá el **Service ID** que te muestra (algo tipo `service_xxxxxxx`).
+
+## 3. Creá el template del mail
+
+1. Andá a **Email Templates → Create New Template**.
+2. En el campo **To Email**, poné tu propio email (ahí es donde te van a
+   llegar las sugerencias).
+3. En el asunto y el cuerpo, usá estas variables — son las que manda la
+   página automáticamente:
+
+   ```
+   Asunto: Nueva sugerencia — Activity Blog
+
+   De: {{name}}
+   Contacto: {{contact}}
+   Página: {{page}}
+
+   Mensaje:
+   {{message}}
+   ```
+4. Guardá y copiá el **Template ID** (algo tipo `template_xxxxxxx`).
+
+## 4. Copiá tu Public Key
+
+1. Andá a **Account → General**.
+2. Copiá el valor de **Public Key**.
+
+## 5. Conectá la app
+
+1. En `.env.local` (el mismo archivo donde tenés las variables de
+   Supabase), agregá:
+
+   ```
+   VITE_EMAILJS_SERVICE_ID=el-service-id-del-paso-2
+   VITE_EMAILJS_TEMPLATE_ID=el-template-id-del-paso-3
+   VITE_EMAILJS_PUBLIC_KEY=la-public-key-del-paso-4
+   ```
+2. Cuando lo subas a Vercel, agregá esas mismas tres variables en
+   **Settings → Environment Variables**, igual que hiciste con las de
+   Supabase.
+
+Con eso ya está: al pie de cada página (menos en `/notas-profe`) va a
+aparecer un botón "Sugerencias" que despliega un formulario chico —
+mensaje, y nombre/contacto opcionales — y te llega por mail apenas lo
+mandan, con la página desde la que escribieron.
