@@ -144,3 +144,20 @@ de la base de datos.
 Con eso ya podés cargar "Completar oraciones", "Sinónimos y antónimos" y
 "Pronunciación" desde `/notas-profe/content` sin que la base de datos
 rechace el guardado.
+
+---
+
+# Fase 5: Registro de errores
+
+Suma una sección privada para anotar errores recurrentes de cada alumno —
+solo la ves vos, no aparece en ningún lado del sitio público.
+
+1. En Supabase, **SQL Editor → New query**. Abrí `supabase/schema_phase5.sql`,
+   copiá todo el contenido, pegalo, y apretá **Run**. Esto crea la tabla
+   `error_notes`, con permisos SOLO para vos logueado (a diferencia del
+   resto de las tablas, acá no hay lectura pública).
+2. También se puede correr de nuevo sin problema si hace falta.
+
+Con eso ya tenés la sección **Registro de errores** en `/notas-profe`: vas
+anotando fecha, alumno, categoría del error, ejemplo y corrección, y el
+panel te muestra qué categorías se repiten más para ese alumno.

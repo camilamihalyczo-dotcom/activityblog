@@ -31,6 +31,7 @@ import AdminTracksPage from './pages/admin/AdminTracksPage.jsx'
 import AdminGroupsPage from './pages/admin/AdminGroupsPage.jsx'
 import AdminContentPage from './pages/admin/AdminContentPage.jsx'
 import AdminContentStatusPage from './pages/admin/AdminContentStatusPage.jsx'
+import AdminErrorLogPage from './pages/admin/AdminErrorLogPage.jsx'
 
 export default function App() {
   return (
@@ -73,6 +74,7 @@ export default function App() {
           <Route path="groups" element={<AdminGroupsPage />} />
           <Route path="content" element={<AdminContentPage />} />
           <Route path="content-status" element={<AdminContentStatusPage />} />
+          <Route path="errores" element={<AdminErrorLogPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -34,6 +34,12 @@ const SECTIONS = [
     desc: 'De un vistazo, qué track/temario o grupo todavía no tiene contenido cargado.',
     ready: true,
   },
+  {
+    to: '/notas-profe/errores',
+    label: 'Registro de errores',
+    desc: 'Notas privadas por alumno para detectar qué categoría se repite y ya no corrige la práctica sola.',
+    ready: true,
+  },
 ]
 
 export default function AdminHomePage() {
