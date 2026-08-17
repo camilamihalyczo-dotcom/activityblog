@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Lock } from 'lucide-react'
+import { Lock, MessageCircle } from 'lucide-react'
 import KidsBlobs from './KidsBlobs.jsx'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
+import { buildWhatsAppLink } from '../lib/contact.js'
 
 export default function KidsPasswordGate({ group, onUnlock }) {
   const [value, setValue] = useState('')
@@ -52,6 +53,14 @@ export default function KidsPasswordGate({ group, onUnlock }) {
             Entrar
           </button>
         </form>
+        <a
+          href={buildWhatsAppLink('Hola! No puedo entrar a Activity Blog con la clave de mi grupo, ¿me ayudás?')}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-6 inline-flex items-center gap-2 font-playful text-xs text-kidsInk/50 hover:text-kidsInk transition-colors"
+        >
+          <MessageCircle size={14} /> ¿No funciona? Escribinos por WhatsApp
+        </a>
       </div>
     </div>
   )

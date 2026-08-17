@@ -4,7 +4,8 @@ import { fetchGroups } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsBlobs from '../components/KidsBlobs.jsx'
-import { Newspaper } from 'lucide-react'
+import { Newspaper, ExternalLink } from 'lucide-react'
+import { MARKETING_SITES } from '../lib/contact.js'
 
 export default function InfanciasPage() {
   const [groups, setGroups] = useState([])
@@ -35,12 +36,22 @@ export default function InfanciasPage() {
           <span className="inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-kidsYellow px-4 py-1.5 rounded-full">
             English Kids Club 🎈
           </span>
-          <Link
-            to="/infancias/blog"
-            className="relative z-10 inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
-          >
-            <Newspaper size={14} /> Blog
-          </Link>
+          <div className="flex items-center gap-2">
+            <a
+              href={MARKETING_SITES.infancias}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-10 inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
+            >
+              <ExternalLink size={14} /> Más info
+            </a>
+            <Link
+              to="/infancias/blog"
+              className="relative z-10 inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
+            >
+              <Newspaper size={14} /> Blog
+            </Link>
+          </div>
         </div>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2 leading-tight">
           Elegí el grupo

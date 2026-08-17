@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom'
 import { LEVELS } from '../data/levels.js'
 import StampBadge from '../components/StampBadge.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
-import { Newspaper } from 'lucide-react'
+import { Newspaper, ExternalLink } from 'lucide-react'
+import { MARKETING_SITES } from '../lib/contact.js'
 
 // Igual que en la landing, cada nivel tiene su color y se ve en más de un
 // lugar: no solo en el sello, también como franja lateral de la card.
@@ -19,12 +20,22 @@ export default function AdultosPage() {
       <div className="max-w-3xl mx-auto px-5 py-12 sm:py-16">
         <div className="flex items-start justify-between gap-4 flex-wrap mb-2">
           <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink">Elegí tu nivel</h1>
-          <Link
-            to="/adultos/blog"
-            className="shrink-0 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest border border-ink/20 rounded-full px-4 py-2 text-ink/70 hover:border-ink hover:text-ink transition-colors"
-          >
-            <Newspaper size={14} /> Blog
-          </Link>
+          <div className="shrink-0 flex items-center gap-2">
+            <a
+              href={MARKETING_SITES.adultos}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest border border-ink/20 rounded-full px-4 py-2 text-ink/70 hover:border-ink hover:text-ink transition-colors"
+            >
+              <ExternalLink size={14} /> Más info
+            </a>
+            <Link
+              to="/adultos/blog"
+              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest border border-ink/20 rounded-full px-4 py-2 text-ink/70 hover:border-ink hover:text-ink transition-colors"
+            >
+              <Newspaper size={14} /> Blog
+            </Link>
+          </div>
         </div>
         <p className="text-ink/60 mb-10">Dentro de cada nivel vas a elegir un track — ahí vas a necesitar la clave que te compartió tu profesora.</p>
 
