@@ -4,8 +4,10 @@ import { DndContext, useDraggable, useDroppable, PointerSensor, KeyboardSensor, 
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { CheckCircle2, XCircle, GripVertical } from 'lucide-react'
 
 function shuffle(arr) {
@@ -77,6 +79,7 @@ export default function InfanciasMatchingPage() {
   const [placement, setPlacement] = useState({})
   const [selectedChip, setSelectedChip] = useState(null)
   const [submitted, setSubmitted] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor))
 
@@ -208,13 +211,33 @@ export default function InfanciasMatchingPage() {
         </DndContext>
 
         {!submitted ? (
-          <button
-            onClick={() => setSubmitted(true)}
-            disabled={!allPlaced}
-            className={`mt-8 w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            Corregir
-          </button>
+          <div className="mt-8">
+            <NameField value={studentName} onChange={setStudentName} kids c={c} />
+            <button
+              onClick={() => {
+                setSubmitted(true)
+                recordSubmission({
+                  scope: 'infancias',
+                  groupSlug: slug,
+                  contentType: 'synonyms_antonyms',
+                  studentName,
+                  score,
+                  total: items.length,
+                  detail: items.map((item) => ({
+                    id: item.id,
+                    word: item.word,
+                    given: placement[item.id] ? itemsById[placement[item.id]]?.match ?? null : null,
+                    correct: item.match,
+                    is_correct: placement[item.id] === item.id,
+                  })),
+                })
+              }}
+              disabled={!allPlaced}
+              className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              Corregir
+            </button>
+          </div>
         ) : (
           <div className="mt-8 bg-white rounded-[22px] shadow-kids p-6 text-center">
             <p className="font-body font-extrabold text-2xl text-kidsInk">

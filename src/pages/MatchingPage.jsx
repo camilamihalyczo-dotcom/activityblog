@@ -5,8 +5,10 @@ import { getLevel } from '../data/levels.js'
 import { fetchTrack, fetchTemario } from '../lib/tracks.js'
 import { THEME_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { CheckCircle2, XCircle, GripVertical } from 'lucide-react'
 
 function shuffle(arr) {
@@ -80,6 +82,7 @@ export default function MatchingPage() {
   const [placement, setPlacement] = useState({}) // targetItemId -> sourceItemId
   const [selectedChip, setSelectedChip] = useState(null)
   const [submitted, setSubmitted] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor))
 
@@ -218,13 +221,35 @@ export default function MatchingPage() {
         </DndContext>
 
         {!submitted ? (
-          <button
-            onClick={() => setSubmitted(true)}
-            disabled={!allPlaced}
-            className={`mt-8 w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            Corregir
-          </button>
+          <div className="mt-8">
+            <NameField value={studentName} onChange={setStudentName} c={c} />
+            <button
+              onClick={() => {
+                setSubmitted(true)
+                recordSubmission({
+                  scope: 'adultos',
+                  levelSlug: slug,
+                  trackSlug: themeSlug,
+                  temarioSlug,
+                  contentType: 'synonyms_antonyms',
+                  studentName,
+                  score,
+                  total: items.length,
+                  detail: items.map((item) => ({
+                    id: item.id,
+                    word: item.word,
+                    given: placement[item.id] ? itemsById[placement[item.id]]?.match ?? null : null,
+                    correct: item.match,
+                    is_correct: placement[item.id] === item.id,
+                  })),
+                })
+              }}
+              disabled={!allPlaced}
+              className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              Corregir
+            </button>
+          </div>
         ) : (
           <div className="mt-8 texture-card rounded-2xl p-6 text-center">
             <p className="font-display text-2xl font-semibold text-ink">

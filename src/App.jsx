@@ -35,6 +35,7 @@ import AdminGroupsPage from './pages/admin/AdminGroupsPage.jsx'
 import AdminContentPage from './pages/admin/AdminContentPage.jsx'
 import AdminContentStatusPage from './pages/admin/AdminContentStatusPage.jsx'
 import AdminErrorLogPage from './pages/admin/AdminErrorLogPage.jsx'
+import AdminSubmissionsPage from './pages/admin/AdminSubmissionsPage.jsx'
 import AdminGlossaryPage from './pages/admin/AdminGlossaryPage.jsx'
 
 export default function App() {
@@ -81,6 +82,7 @@ export default function App() {
           <Route path="content" element={<AdminContentPage />} />
           <Route path="content-status" element={<AdminContentStatusPage />} />
           <Route path="errores" element={<AdminErrorLogPage />} />
+          <Route path="respuestas" element={<AdminSubmissionsPage />} />
           <Route path="glosario" element={<AdminGlossaryPage />} />
         </Route>
       </Routes>

@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { BookOpen, PenLine } from 'lucide-react'
 
-function ReadingItem({ item, c }) {
+function ReadingItem({ item, c, answers, onChange, disabled }) {
   return (
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
       <div className="flex items-center gap-2 mb-4 text-kidsInk/50">
@@ -27,8 +29,11 @@ function ReadingItem({ item, c }) {
             <p className="font-playful font-medium text-kidsInk mb-2">{q.q}</p>
             <textarea
               rows={2}
+              value={answers[q.id] || ''}
+              onChange={(e) => onChange(q.id, e.target.value)}
+              disabled={disabled}
               placeholder="Escribí tu respuesta acá..."
-              className={`w-full px-3 py-2 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-none`}
+              className={`w-full px-3 py-2 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-none disabled:opacity-60`}
             />
           </div>
         ))}
@@ -37,8 +42,7 @@ function ReadingItem({ item, c }) {
   )
 }
 
-function WritingItem({ item, c }) {
-  const [text, setText] = useState('')
+function WritingItem({ item, c, text, onChange, disabled }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
@@ -54,9 +58,10 @@ function WritingItem({ item, c }) {
       <textarea
         rows={8}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
         placeholder="Escribí tu producción acá..."
-        className={`w-full px-4 py-3 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm leading-relaxed focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-y`}
+        className={`w-full px-4 py-3 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm leading-relaxed focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-y disabled:opacity-60`}
       />
       <p className="text-right font-playful text-xs text-kidsInk/45 mt-2 font-semibold">{words} palabras</p>
     </div>
@@ -68,6 +73,11 @@ export default function InfanciasReadingWritingPage() {
   const [group, setGroup] = useState(null)
   const [readingWriting, setReadingWriting] = useState([])
   const [status, setStatus] = useState('loading') // loading | error | ready
+  const [readingAnswers, setReadingAnswers] = useState({}) // { [itemId]: { [questionId]: text } }
+  const [writingAnswers, setWritingAnswers] = useState({}) // { [itemId]: text }
+  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
 
   useEffect(() => {
     let active = true
@@ -77,6 +87,9 @@ export default function InfanciasReadingWritingPage() {
         if (!active) return
         setGroup(groupData)
         setReadingWriting(readingWritingData || [])
+        setReadingAnswers({})
+        setWritingAnswers({})
+        setSaved(false)
         setStatus('ready')
       })
       .catch(() => {
@@ -100,6 +113,39 @@ export default function InfanciasReadingWritingPage() {
 
   const c = KIDS_GROUP_COLORS[group.color_key]
 
+  const hasAnyAnswer =
+    Object.values(readingAnswers).some((qs) => Object.values(qs || {}).some((v) => v && v.trim() !== '')) ||
+    Object.values(writingAnswers).some((v) => v && v.trim() !== '')
+
+  const handleSave = async () => {
+    setSaving(true)
+    await Promise.all(
+      readingWriting.map((item) => {
+        const common = {
+          scope: 'infancias',
+          groupSlug: slug,
+          contentType: 'reading_writing',
+          studentName,
+        }
+        if (item.type === 'reading') {
+          const answers = readingAnswers[item.id] || {}
+          return recordSubmission({
+            ...common,
+            label: `Reading — ${item.title}`,
+            detail: item.questions.map((q) => ({ id: q.id, question: q.q, answer: answers[q.id] || '' })),
+          })
+        }
+        return recordSubmission({
+          ...common,
+          label: `Writing — ${item.title}`,
+          detail: [{ prompt: item.prompt, answer: writingAnswers[item.id] || '' }],
+        })
+      })
+    )
+    setSaving(false)
+    setSaved(true)
+  }
+
   return (
     <div className="min-h-screen bg-kidsCream">
       <KidsHeader crumbs={[group.name, 'Reading & Writing']} backTo={`/infancias/${slug}`} />
@@ -113,13 +159,57 @@ export default function InfanciasReadingWritingPage() {
         {readingWriting.length === 0 ? (
           <KidsEmptyState label="ejercicios de reading/writing" />
         ) : (
-          readingWriting.map((item) =>
-            item.type === 'reading' ? (
-              <ReadingItem key={item.id} item={item} c={c} />
+          <>
+            {readingWriting.map((item) =>
+              item.type === 'reading' ? (
+                <ReadingItem
+                  key={item.id}
+                  item={item}
+                  c={c}
+                  answers={readingAnswers[item.id] || {}}
+                  disabled={saved}
+                  onChange={(qId, value) =>
+                    setReadingAnswers((a) => ({ ...a, [item.id]: { ...a[item.id], [qId]: value } }))
+                  }
+                />
+              ) : (
+                <WritingItem
+                  key={item.id}
+                  item={item}
+                  c={c}
+                  text={writingAnswers[item.id] || ''}
+                  disabled={saved}
+                  onChange={(value) => setWritingAnswers((a) => ({ ...a, [item.id]: value }))}
+                />
+              )
+            )}
+
+            {!saved ? (
+              <div className="mt-2">
+                <NameField value={studentName} onChange={setStudentName} kids c={c} />
+                <button
+                  onClick={handleSave}
+                  disabled={!hasAnyAnswer || saving}
+                  className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+                >
+                  {saving ? 'Guardando…' : 'Guardar mis respuestas'}
+                </button>
+                <p className="font-playful text-kidsInk/40 text-xs mt-2">
+                  Esto no se corrige solo — tu profe lo lee directamente.
+                </p>
+              </div>
             ) : (
-              <WritingItem key={item.id} item={item} c={c} />
-            )
-          )
+              <div className="mt-2 bg-white rounded-[22px] shadow-kids p-6 text-center">
+                <p className="font-body font-extrabold text-xl text-kidsInk">¡Guardado! Tu profe ya lo puede ver.</p>
+                <button
+                  onClick={() => setSaved(false)}
+                  className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+                >
+                  Seguir editando
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -4,11 +4,13 @@ import { getLevel } from '../data/levels.js'
 import { fetchTrack, fetchTemario } from '../lib/tracks.js'
 import { THEME_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { BookOpen, PenLine } from 'lucide-react'
 
-function ReadingItem({ item, c }) {
+function ReadingItem({ item, c, answers, onChange, disabled }) {
   return (
     <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
       <div className="flex items-center gap-2 mb-4 text-ink/50">
@@ -28,8 +30,11 @@ function ReadingItem({ item, c }) {
             <p className="font-medium text-ink mb-2">{q.q}</p>
             <textarea
               rows={2}
+              value={answers[q.id] || ''}
+              onChange={(e) => onChange(q.id, e.target.value)}
+              disabled={disabled}
               placeholder="Escribí tu respuesta acá..."
-              className={`w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm ${c.focusBorder} outline-none transition-colors resize-none`}
+              className={`w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm ${c.focusBorder} outline-none transition-colors resize-none disabled:opacity-60`}
             />
           </div>
         ))}
@@ -38,8 +43,7 @@ function ReadingItem({ item, c }) {
   )
 }
 
-function WritingItem({ item, c }) {
-  const [text, setText] = useState('')
+function WritingItem({ item, c, text, onChange, disabled }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
     <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
@@ -55,9 +59,10 @@ function WritingItem({ item, c }) {
       <textarea
         rows={8}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
         placeholder="Escribí tu producción acá..."
-        className={`w-full px-4 py-3 rounded-lg border-2 border-ink/15 bg-paper text-sm leading-relaxed ${c.focusBorder} outline-none transition-colors resize-y`}
+        className={`w-full px-4 py-3 rounded-lg border-2 border-ink/15 bg-paper text-sm leading-relaxed ${c.focusBorder} outline-none transition-colors resize-y disabled:opacity-60`}
       />
       <p className="text-right font-mono text-xs text-ink/40 mt-2">{words} palabras</p>
     </div>
@@ -71,6 +76,11 @@ export default function ReadingWritingPage() {
   const [temario, setTemario] = useState(null)
   const [readingWriting, setReadingWriting] = useState([])
   const [status, setStatus] = useState('loading') // loading | error | ready
+  const [readingAnswers, setReadingAnswers] = useState({}) // { [itemId]: { [questionId]: text } }
+  const [writingAnswers, setWritingAnswers] = useState({}) // { [itemId]: text }
+  const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
 
   useEffect(() => {
     let active = true
@@ -85,6 +95,9 @@ export default function ReadingWritingPage() {
         setTheme(trackData)
         setTemario(temarioData)
         setReadingWriting(readingWritingData || [])
+        setReadingAnswers({})
+        setWritingAnswers({})
+        setSaved(false)
         setStatus('ready')
       })
       .catch(() => {
@@ -108,6 +121,41 @@ export default function ReadingWritingPage() {
 
   const c = THEME_COLORS[theme.color_key]
 
+  const hasAnyAnswer =
+    Object.values(readingAnswers).some((qs) => Object.values(qs || {}).some((v) => v && v.trim() !== '')) ||
+    Object.values(writingAnswers).some((v) => v && v.trim() !== '')
+
+  const handleSave = async () => {
+    setSaving(true)
+    await Promise.all(
+      readingWriting.map((item) => {
+        const common = {
+          scope: 'adultos',
+          levelSlug: slug,
+          trackSlug: themeSlug,
+          temarioSlug,
+          contentType: 'reading_writing',
+          studentName,
+        }
+        if (item.type === 'reading') {
+          const answers = readingAnswers[item.id] || {}
+          return recordSubmission({
+            ...common,
+            label: `Reading — ${item.title}`,
+            detail: item.questions.map((q) => ({ id: q.id, question: q.q, answer: answers[q.id] || '' })),
+          })
+        }
+        return recordSubmission({
+          ...common,
+          label: `Writing — ${item.title}`,
+          detail: [{ prompt: item.prompt, answer: writingAnswers[item.id] || '' }],
+        })
+      })
+    )
+    setSaving(false)
+    setSaved(true)
+  }
+
   return (
     <div className="min-h-screen">
       <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Reading & Writing']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} />
@@ -121,13 +169,57 @@ export default function ReadingWritingPage() {
         {readingWriting.length === 0 ? (
           <EmptyState label="ejercicios de reading/writing" />
         ) : (
-          readingWriting.map((item) =>
-            item.type === 'reading' ? (
-              <ReadingItem key={item.id} item={item} c={c} />
+          <>
+            {readingWriting.map((item) =>
+              item.type === 'reading' ? (
+                <ReadingItem
+                  key={item.id}
+                  item={item}
+                  c={c}
+                  answers={readingAnswers[item.id] || {}}
+                  disabled={saved}
+                  onChange={(qId, value) =>
+                    setReadingAnswers((a) => ({ ...a, [item.id]: { ...a[item.id], [qId]: value } }))
+                  }
+                />
+              ) : (
+                <WritingItem
+                  key={item.id}
+                  item={item}
+                  c={c}
+                  text={writingAnswers[item.id] || ''}
+                  disabled={saved}
+                  onChange={(value) => setWritingAnswers((a) => ({ ...a, [item.id]: value }))}
+                />
+              )
+            )}
+
+            {!saved ? (
+              <div className="mt-2">
+                <NameField value={studentName} onChange={setStudentName} c={c} />
+                <button
+                  onClick={handleSave}
+                  disabled={!hasAnyAnswer || saving}
+                  className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+                >
+                  {saving ? 'Guardando…' : 'Guardar mis respuestas'}
+                </button>
+                <p className="text-ink/40 text-xs mt-2">
+                  Esto no se autocorrige (no tiene una única respuesta correcta) — tu profe lo revisa directamente.
+                </p>
+              </div>
             ) : (
-              <WritingItem key={item.id} item={item} c={c} />
-            )
-          )
+              <div className="mt-2 texture-card rounded-2xl p-6 text-center">
+                <p className="font-display text-xl font-semibold text-ink">¡Guardado! Tu profe ya lo puede ver.</p>
+                <button
+                  onClick={() => setSaved(false)}
+                  className={`mt-4 text-ink/60 ${c.hoverText} text-sm font-medium underline`}
+                >
+                  Seguir editando
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

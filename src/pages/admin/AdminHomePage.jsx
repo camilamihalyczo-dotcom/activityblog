@@ -35,6 +35,12 @@ const SECTIONS = [
     ready: true,
   },
   {
+    to: '/notas-profe/respuestas',
+    label: 'Respuestas de los alumnos',
+    desc: 'Lo que cada uno contestó al corregir un ejercicio o guardar un Reading/Writing — se guarda solo, no hace falta cargarlo a mano.',
+    ready: true,
+  },
+  {
     to: '/notas-profe/errores',
     label: 'Registro de errores',
     desc: 'Notas privadas por alumno para detectar qué categoría se repite y ya no corrige la práctica sola.',

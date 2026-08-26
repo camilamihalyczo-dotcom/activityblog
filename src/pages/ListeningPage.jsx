@@ -4,14 +4,18 @@ import { getLevel } from '../data/levels.js'
 import { fetchTrack, fetchTemario } from '../lib/tracks.js'
 import { THEME_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { FileText, CheckCircle2, XCircle, Video } from 'lucide-react'
 
-function ListeningItem({ item, c }) {
+function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
   const [showTranscript, setShowTranscript] = useState(false)
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
+  const score = item.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
     <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
@@ -84,12 +88,35 @@ function ListeningItem({ item, c }) {
       </div>
 
       {!submitted ? (
-        <button
-          onClick={() => setSubmitted(true)}
-          className={`mt-6 bg-ink text-cream font-semibold px-5 py-2.5 rounded-lg ${c.hoverBg} transition-colors text-sm`}
-        >
-          Corregir
-        </button>
+        <div className="mt-6">
+          <NameField value={studentName} onChange={setStudentName} c={c} />
+          <button
+            onClick={() => {
+              setSubmitted(true)
+              recordSubmission({
+                scope: 'adultos',
+                levelSlug,
+                trackSlug: themeSlug,
+                temarioSlug,
+                contentType: 'listening',
+                label: item.title,
+                studentName,
+                score,
+                total: item.questions.length,
+                detail: item.questions.map((q) => ({
+                  id: q.id,
+                  question: q.q,
+                  given: q.options[answers[q.id]] ?? null,
+                  correct: q.options[q.answer],
+                  is_correct: answers[q.id] === q.answer,
+                })),
+              })
+            }}
+            className={`bg-ink text-cream font-semibold px-5 py-2.5 rounded-lg ${c.hoverBg} transition-colors text-sm`}
+          >
+            Corregir
+          </button>
+        </div>
       ) : (
         <button
           onClick={() => {
@@ -162,7 +189,9 @@ export default function ListeningPage() {
         {listenings.length === 0 ? (
           <EmptyState label="listenings" />
         ) : (
-          listenings.map((item) => <ListeningItem key={item.id} item={item} c={c} />)
+          listenings.map((item) => (
+            <ListeningItem key={item.id} item={item} c={c} levelSlug={slug} themeSlug={themeSlug} temarioSlug={temarioSlug} />
+          ))
         )}
       </div>
     </div>

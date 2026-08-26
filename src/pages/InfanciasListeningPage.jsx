@@ -3,14 +3,18 @@ import { useParams } from 'react-router-dom'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { FileText, CheckCircle2, XCircle, Video } from 'lucide-react'
 
-function ListeningItem({ item, c }) {
+function ListeningItem({ item, c, groupSlug }) {
   const [showTranscript, setShowTranscript] = useState(false)
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
+  const score = item.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
@@ -83,12 +87,33 @@ function ListeningItem({ item, c }) {
       </div>
 
       {!submitted ? (
-        <button
-          onClick={() => setSubmitted(true)}
-          className={`mt-6 bg-kidsInk text-white font-playful font-semibold px-5 py-2.5 rounded-full ${c.hoverBg} transition-colors text-sm`}
-        >
-          Corregir
-        </button>
+        <div className="mt-6">
+          <NameField value={studentName} onChange={setStudentName} kids c={c} />
+          <button
+            onClick={() => {
+              setSubmitted(true)
+              recordSubmission({
+                scope: 'infancias',
+                groupSlug,
+                contentType: 'listening',
+                label: item.title,
+                studentName,
+                score,
+                total: item.questions.length,
+                detail: item.questions.map((q) => ({
+                  id: q.id,
+                  question: q.q,
+                  given: q.options[answers[q.id]] ?? null,
+                  correct: q.options[q.answer],
+                  is_correct: answers[q.id] === q.answer,
+                })),
+              })
+            }}
+            className={`bg-kidsInk text-white font-playful font-semibold px-5 py-2.5 rounded-full ${c.hoverBg} transition-colors text-sm`}
+          >
+            Corregir
+          </button>
+        </div>
       ) : (
         <button
           onClick={() => {
@@ -154,7 +179,7 @@ export default function InfanciasListeningPage() {
         {listenings.length === 0 ? (
           <KidsEmptyState label="listenings" />
         ) : (
-          listenings.map((item) => <ListeningItem key={item.id} item={item} c={c} />)
+          listenings.map((item) => <ListeningItem key={item.id} item={item} c={c} groupSlug={slug} />)
         )}
       </div>
     </div>

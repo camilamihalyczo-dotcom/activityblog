@@ -5,8 +5,10 @@ import { fetchTrack, fetchTemario } from '../lib/tracks.js'
 import { THEME_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
 import { isAnswerCorrect, splitSentenceAtBlank } from '../lib/text.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import NameField from '../components/NameField.jsx'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 function isItemCorrect(item, userAnswer) {
@@ -91,6 +93,7 @@ export default function FillBlankPage() {
   const [status, setStatus] = useState('loading') // loading | error | ready
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [studentName, setStudentName] = useStudentName()
 
   useEffect(() => {
     let active = true
@@ -171,13 +174,35 @@ export default function FillBlankPage() {
         </div>
 
         {!submitted ? (
-          <button
-            onClick={() => setSubmitted(true)}
-            disabled={!allAnswered}
-            className={`mt-8 w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            Corregir
-          </button>
+          <div className="mt-8">
+            <NameField value={studentName} onChange={setStudentName} c={c} />
+            <button
+              onClick={() => {
+                setSubmitted(true)
+                recordSubmission({
+                  scope: 'adultos',
+                  levelSlug: slug,
+                  trackSlug: themeSlug,
+                  temarioSlug,
+                  contentType: 'fill_blank',
+                  studentName,
+                  score,
+                  total: items.length,
+                  detail: items.map((item) => ({
+                    id: item.id,
+                    sentence: item.sentence,
+                    given: answers[item.id] ?? null,
+                    correct: item.answer,
+                    is_correct: isItemCorrect(item, answers[item.id]),
+                  })),
+                })
+              }}
+              disabled={!allAnswered}
+              className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              Corregir
+            </button>
+          </div>
         ) : (
           <div className="mt-8 texture-card rounded-2xl p-6 text-center">
             <p className="font-display text-2xl font-semibold text-ink">
