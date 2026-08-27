@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Upload } from 'lucide-react'
 import { LEVELS } from '../../data/levels.js'
 import { fetchTracks } from '../../lib/tracks.js'
 import { fetchGroups } from '../../lib/groups.js'
-import { fetchGlossaryEntries, saveGlossaryEntry, deleteGlossaryEntry } from '../../lib/glossary.js'
+import { fetchGlossaryEntries, saveGlossaryEntry, deleteGlossaryEntry, parseGlossaryCsv } from '../../lib/glossary.js'
 
 const EMPTY_FORM = { id: null, word: '', translation: '', example: '' }
 
@@ -24,6 +25,11 @@ export default function AdminGlossaryPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState(null) // { added, updated, skipped } | null
+  const [importError, setImportError] = useState('')
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     fetchTracks()
@@ -100,6 +106,54 @@ export default function AdminGlossaryPage() {
     loadEntries()
   }
 
+  // Importa un CSV de palabra,traducción,ejemplo(opcional) para el
+  // nivel+track o grupo seleccionado ahora mismo. Si una palabra ya
+  // existe en ese mismo track/grupo (sin importar mayúsculas), la
+  // actualiza en vez de duplicarla — así se puede resubir el mismo
+  // archivo corregido sin generar copias.
+  const handleCsvFile = async (e) => {
+    const file = e.target.files?.[0]
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    if (!file) return
+
+    setImporting(true)
+    setImportError('')
+    setImportResult(null)
+    try {
+      const text = await file.text()
+      const { entries: parsed, skipped: skippedRows } = parseGlossaryCsv(text)
+      if (parsed.length === 0) {
+        setImportError('No encontramos filas válidas en ese archivo (hace falta al menos palabra y traducción).')
+        return
+      }
+
+      const existingByWord = new Map(filtered.map((entry) => [entry.word.trim().toLowerCase(), entry]))
+      let added = 0
+      let updated = 0
+      for (const row of parsed) {
+        const existing = existingByWord.get(row.word.toLowerCase())
+        await saveGlossaryEntry({
+          id: existing?.id ?? null,
+          scope,
+          level_slug: selectedLevelSlug,
+          track_slug: selectedTrackSlug,
+          group_slug: selectedGroupSlug,
+          word: row.word,
+          translation: row.translation,
+          example: row.example || '',
+        })
+        if (existing) updated++
+        else added++
+      }
+      setImportResult({ added, updated, skipped: skippedRows })
+      loadEntries()
+    } catch (err) {
+      setImportError(err.message || 'No pudimos leer ese archivo.')
+    } finally {
+      setImporting(false)
+    }
+  }
+
   return (
     <div>
       <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
@@ -107,8 +161,8 @@ export default function AdminGlossaryPage() {
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Glosario</h1>
       <p className="text-ink/60 mb-8">
-        El glosario que ven tus alumnos ya se arma solo con las palabras de las flashcards de cada track o grupo.
-        Acá solo sumás palabras sueltas que todavía no tienen su flashcard.
+        El glosario que ven tus alumnos se arma 100% con lo que cargás acá abajo — no se completa solo con las
+        flashcards, así que solo aparecen las palabras que vos elegís. Se muestra siempre en orden alfabético.
       </p>
 
       <div className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
@@ -174,6 +228,42 @@ export default function AdminGlossaryPage() {
             </select>
           </label>
         )}
+      </div>
+
+      <div className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-3">
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">Importar desde CSV</p>
+        <p className="text-ink/60 text-sm">
+          Subí un archivo con una palabra por fila: <span className="font-mono text-xs">palabra,traducción</span> y
+          opcionalmente <span className="font-mono text-xs">,ejemplo</span> como tercera columna. Podés incluir una
+          fila de encabezado o no — la detectamos sola. Se importa para{' '}
+          {scope === 'adultos' ? 'el nivel y track' : 'el grupo'} que tenés elegido arriba, y si una palabra ya
+          existe ahí, se actualiza en vez de duplicarse.
+        </p>
+        <div className="flex items-center gap-4 flex-wrap">
+          <label
+            className={`inline-flex items-center gap-2 font-semibold px-5 py-2.5 rounded-lg cursor-pointer transition-colors ${
+              importing ? 'bg-ink/40 text-cream cursor-wait' : 'bg-ink text-cream hover:bg-brand'
+            }`}
+          >
+            <Upload size={16} />
+            {importing ? 'Importando…' : 'Elegir archivo CSV'}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              onChange={handleCsvFile}
+              disabled={importing || (scope === 'adultos' ? !selectedTrackSlug : !selectedGroupSlug)}
+              className="hidden"
+            />
+          </label>
+          {importResult && (
+            <p className="text-olive text-sm">
+              {importResult.added} nuevas, {importResult.updated} actualizadas
+              {importResult.skipped > 0 && `, ${importResult.skipped} filas ignoradas (incompletas)`}.
+            </p>
+          )}
+        </div>
+        {importError && <p className="text-stamp text-sm">{importError}</p>}
       </div>
 
       <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">

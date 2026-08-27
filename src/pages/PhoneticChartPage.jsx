@@ -124,7 +124,7 @@ export default function PhoneticChartPage() {
 
   return (
     <div className="min-h-screen">
-      <TicketHeader crumbs={['Tabla fonética']} backTo="/" />
+      <TicketHeader crumbs={['Tabla fonética']} backTo={-1} />
       <div className="max-w-3xl mx-auto px-5 py-12 sm:py-16">
         <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 border-brand/40 text-brand">
           <Volume2 size={12} /> Recurso para todos

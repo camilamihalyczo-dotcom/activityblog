@@ -1,78 +1,36 @@
 import { supabase } from './supabaseClient.js'
 
-// El glosario combina dos fuentes: las flashcards ya cargadas (se arma
-// solo, sin trabajo extra) y las entradas sueltas de `glossary_entries`
-// (cargadas a mano desde /notas-profe/glosario). Si una palabra está en
-// las dos, gana la manual — es la más específica/actualizada.
+// El glosario es 100% manual: solo aparecen las palabras que la profesora
+// carga a mano desde /notas-profe/glosario (tabla `glossary_entries`). Ya
+// no se completa solo con las flashcards — mezclaba cosas que no eran
+// vocabulario suelto (preguntas, consignas, etc.) y quedaba muy largo. Se
+// ordena siempre alfabéticamente.
 
-function mergeGlossary(fromFlashcards, manual) {
-  const map = new Map()
-  for (const item of fromFlashcards) {
-    const key = item.word.trim().toLowerCase()
-    if (!key) continue
-    map.set(key, item)
-  }
-  for (const item of manual) {
-    const key = item.word.trim().toLowerCase()
-    if (!key) continue
-    map.set(key, item)
-  }
-  return Array.from(map.values()).sort((a, b) => a.word.localeCompare(b.word, 'es', { sensitivity: 'base' }))
+function sortGlossary(entries) {
+  return [...entries].sort((a, b) => a.word.localeCompare(b.word, 'es', { sensitivity: 'base' }))
 }
 
 // ─── Lectura (sitio público) ───────────────────────────────────────────
 
-// Glosario de un track dentro de un nivel: junta las flashcards de TODOS
-// los temarios de ese track para ese nivel (no solo uno), más las
-// entradas manuales cargadas para ese mismo nivel+track.
 export async function fetchAdultosGlossary(levelSlug, trackSlug) {
-  const [flashResult, manualResult] = await Promise.all([
-    supabase
-      .from('content_items')
-      .select('data')
-      .eq('scope', 'adultos')
-      .eq('level_slug', levelSlug)
-      .eq('track_slug', trackSlug)
-      .eq('content_type', 'flashcards'),
-    supabase
-      .from('glossary_entries')
-      .select('*')
-      .eq('scope', 'adultos')
-      .eq('level_slug', levelSlug)
-      .eq('track_slug', trackSlug),
-  ])
-  if (flashResult.error) throw flashResult.error
-  if (manualResult.error) throw manualResult.error
-
-  const fromFlashcards = (flashResult.data || [])
-    .flatMap((row) => row.data || [])
-    .map((card) => ({ word: card.front, translation: card.back, example: null, source: 'flashcards' }))
-  const manual = (manualResult.data || []).map((e) => ({ ...e, source: 'manual' }))
-
-  return mergeGlossary(fromFlashcards, manual)
+  const { data, error } = await supabase
+    .from('glossary_entries')
+    .select('*')
+    .eq('scope', 'adultos')
+    .eq('level_slug', levelSlug)
+    .eq('track_slug', trackSlug)
+  if (error) throw error
+  return sortGlossary(data || [])
 }
 
-// Glosario de un grupo (Infancias): junta sus flashcards + entradas
-// manuales cargadas para ese grupo.
 export async function fetchInfanciasGlossary(groupSlug) {
-  const [flashResult, manualResult] = await Promise.all([
-    supabase
-      .from('content_items')
-      .select('data')
-      .eq('scope', 'infancias')
-      .eq('group_slug', groupSlug)
-      .eq('content_type', 'flashcards'),
-    supabase.from('glossary_entries').select('*').eq('scope', 'infancias').eq('group_slug', groupSlug),
-  ])
-  if (flashResult.error) throw flashResult.error
-  if (manualResult.error) throw manualResult.error
-
-  const fromFlashcards = (flashResult.data || [])
-    .flatMap((row) => row.data || [])
-    .map((card) => ({ word: card.front, translation: card.back, example: null, source: 'flashcards' }))
-  const manual = (manualResult.data || []).map((e) => ({ ...e, source: 'manual' }))
-
-  return mergeGlossary(fromFlashcards, manual)
+  const { data, error } = await supabase
+    .from('glossary_entries')
+    .select('*')
+    .eq('scope', 'infancias')
+    .eq('group_slug', groupSlug)
+  if (error) throw error
+  return sortGlossary(data || [])
 }
 
 // Todas las entradas manuales, para el panel de administración.
@@ -103,4 +61,81 @@ export async function saveGlossaryEntry(entry) {
 export async function deleteGlossaryEntry(id) {
   const { error } = await supabase.from('glossary_entries').delete().eq('id', id)
   if (error) throw error
+}
+
+// ─── Importar desde CSV (panel /notas-profe) ───────────────────────────
+// Parser chico a mano (soporta campos entre comillas con comas/comillas
+// adentro, tipo lo que exporta Excel/Google Sheets) — no hace falta
+// sumar una librería para 3 columnas.
+
+function parseCsvRows(text) {
+  const rows = []
+  let row = []
+  let field = ''
+  let inQuotes = false
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i]
+    if (inQuotes) {
+      if (char === '"') {
+        if (text[i + 1] === '"') {
+          field += '"'
+          i++
+        } else {
+          inQuotes = false
+        }
+      } else {
+        field += char
+      }
+    } else if (char === '"') {
+      inQuotes = true
+    } else if (char === ',') {
+      row.push(field)
+      field = ''
+    } else if (char === '\n' || char === '\r') {
+      if (char === '\r' && text[i + 1] === '\n') i++
+      row.push(field)
+      rows.push(row)
+      row = []
+      field = ''
+    } else {
+      field += char
+    }
+  }
+  if (field.length > 0 || row.length > 0) {
+    row.push(field)
+    rows.push(row)
+  }
+  return rows.filter((r) => r.some((cell) => cell.trim() !== ''))
+}
+
+const HEADER_WORDS = ['palabra', 'word']
+const HEADER_TRANSLATIONS = ['traduccion', 'traducción', 'translation']
+
+// Devuelve { entries, skipped } — `entries` son filas válidas (palabra +
+// traducción), `skipped` cuenta filas vacías/incompletas que se ignoraron.
+// Detecta sola si la primera fila es un encabezado (palabra/word,
+// traducción/translation) y la salta; si no, la trata como dato.
+export function parseGlossaryCsv(text) {
+  const rows = parseCsvRows(text)
+  if (rows.length === 0) return { entries: [], skipped: 0 }
+
+  const [first] = rows
+  const looksLikeHeader =
+    HEADER_WORDS.includes((first[0] || '').trim().toLowerCase()) &&
+    HEADER_TRANSLATIONS.includes((first[1] || '').trim().toLowerCase())
+  const dataRows = looksLikeHeader ? rows.slice(1) : rows
+
+  const entries = []
+  let skipped = 0
+  for (const row of dataRows) {
+    const word = (row[0] || '').trim()
+    const translation = (row[1] || '').trim()
+    const example = (row[2] || '').trim()
+    if (!word || !translation) {
+      skipped++
+      continue
+    }
+    entries.push({ word, translation, example: example || null })
+  }
+  return { entries, skipped }
 }
