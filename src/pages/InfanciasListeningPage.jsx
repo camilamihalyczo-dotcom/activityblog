@@ -109,7 +109,8 @@ function ListeningItem({ item, c, groupSlug }) {
                 })),
               })
             }}
-            className={`bg-kidsInk text-white font-playful font-semibold px-5 py-2.5 rounded-full ${c.hoverBg} transition-colors text-sm`}
+            disabled={!studentName.trim()}
+            className={`bg-kidsInk text-white font-playful font-semibold px-5 py-2.5 rounded-full ${c.hoverBg} transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed`}
           >
             Corregir
           </button>

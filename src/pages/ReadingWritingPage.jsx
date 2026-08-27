@@ -199,7 +199,7 @@ export default function ReadingWritingPage() {
                 <NameField value={studentName} onChange={setStudentName} c={c} />
                 <button
                   onClick={handleSave}
-                  disabled={!hasAnyAnswer || saving}
+                  disabled={!hasAnyAnswer || saving || !studentName.trim()}
                   className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
                   {saving ? 'Guardando…' : 'Guardar mis respuestas'}

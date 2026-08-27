@@ -197,7 +197,7 @@ export default function FillBlankPage() {
                   })),
                 })
               }}
-              disabled={!allAnswered}
+              disabled={!allAnswered || !studentName.trim()}
               className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               Corregir

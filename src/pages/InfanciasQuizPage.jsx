@@ -7,6 +7,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import QuestionHint from '../components/QuestionHint.jsx'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 export default function InfanciasQuizPage() {
@@ -79,7 +80,8 @@ export default function InfanciasQuizPage() {
             <div key={q.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
               <p className="font-playful text-xs text-kidsInk/45 mb-2 font-semibold">Pregunta {qi + 1}</p>
               {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
-              <p className="font-playful font-semibold text-kidsInk mb-4">{q.q}</p>
+              <p className="font-playful font-semibold text-kidsInk mb-2">{q.q}</p>
+              <QuestionHint hint={q.hint} kids />
               <div className="flex flex-col gap-2">
                 {q.options.map((opt, oi) => {
                   const chosen = answers[q.id] === oi
@@ -130,7 +132,7 @@ export default function InfanciasQuizPage() {
                   })),
                 })
               }}
-              disabled={Object.keys(answers).length < quiz.questions.length}
+              disabled={Object.keys(answers).length < quiz.questions.length || !studentName.trim()}
               className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               Corregir

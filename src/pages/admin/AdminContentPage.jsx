@@ -266,8 +266,10 @@ function FlashcardsEditor({ data, onChange }) {
 }
 
 // ─── Preguntas de opción múltiple (usado por Quiz y Listening) ────────
+// `withHint` solo lo pasa QuizEditor — Listening comparte el mismo
+// componente pero, por ahora, sin la opción de pista.
 
-function OptionsQuestionEditor({ question, onChange, onRemove }) {
+function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false }) {
   const updateOption = (oi, value) => {
     const options = [...question.options]
     options[oi] = value
@@ -312,6 +314,19 @@ function OptionsQuestionEditor({ question, onChange, onRemove }) {
         }}
         label="Imagen de contexto (opcional)"
       />
+      {withHint && (
+        <label>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+            Pista (opcional — dejala vacía si no querés que esta pregunta tenga)
+          </span>
+          <input
+            value={question.hint || ''}
+            onChange={(e) => onChange({ ...question, hint: e.target.value })}
+            placeholder="ej: Pensá en qué momento pasa la acción"
+            className={inputCls}
+          />
+        </label>
+      )}
       <div className="flex flex-col gap-2">
         <span className="text-xs font-mono uppercase tracking-wide text-ink/50">
           Opciones (marcá la correcta)
@@ -357,7 +372,9 @@ function QuizEditor({ data, onChange }) {
     setQuiz({ questions })
   }
   const addQuestion = () =>
-    setQuiz({ questions: [...quiz.questions, { id: genId(), q: '', options: ['', ''], answer: 0, image_url: null }] })
+    setQuiz({
+      questions: [...quiz.questions, { id: genId(), q: '', options: ['', ''], answer: 0, image_url: null, hint: '' }],
+    })
   const removeQuestion = (qi) => setQuiz({ questions: quiz.questions.filter((_, idx) => idx !== qi) })
 
   return (
@@ -377,6 +394,7 @@ function QuizEditor({ data, onChange }) {
           question={q}
           onChange={(patch) => updateQuestion(qi, patch)}
           onRemove={() => removeQuestion(qi)}
+          withHint
         />
       ))}
       <button onClick={addQuestion} className="text-brand hover:underline text-sm font-medium self-start">

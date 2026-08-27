@@ -189,7 +189,7 @@ export default function InfanciasReadingWritingPage() {
                 <NameField value={studentName} onChange={setStudentName} kids c={c} />
                 <button
                   onClick={handleSave}
-                  disabled={!hasAnyAnswer || saving}
+                  disabled={!hasAnyAnswer || saving || !studentName.trim()}
                   className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
                   {saving ? 'Guardando…' : 'Guardar mis respuestas'}

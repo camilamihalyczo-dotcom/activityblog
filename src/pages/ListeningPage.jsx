@@ -112,7 +112,8 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
                 })),
               })
             }}
-            className={`bg-ink text-cream font-semibold px-5 py-2.5 rounded-lg ${c.hoverBg} transition-colors text-sm`}
+            disabled={!studentName.trim()}
+            className={`bg-ink text-cream font-semibold px-5 py-2.5 rounded-lg ${c.hoverBg} transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed`}
           >
             Corregir
           </button>

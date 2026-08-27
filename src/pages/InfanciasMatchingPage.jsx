@@ -232,7 +232,7 @@ export default function InfanciasMatchingPage() {
                   })),
                 })
               }}
-              disabled={!allPlaced}
+              disabled={!allPlaced || !studentName.trim()}
               className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               Corregir

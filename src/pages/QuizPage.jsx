@@ -8,6 +8,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import QuestionHint from '../components/QuestionHint.jsx'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 export default function QuizPage() {
@@ -87,7 +88,8 @@ export default function QuizPage() {
             <div key={q.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
               <p className="font-mono text-xs text-ink/40 mb-2">Pregunta {qi + 1}</p>
               {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
-              <p className="font-semibold text-ink mb-4">{q.q}</p>
+              <p className="font-semibold text-ink mb-2">{q.q}</p>
+              <QuestionHint hint={q.hint} />
               <div className="flex flex-col gap-2">
                 {q.options.map((opt, oi) => {
                   const chosen = answers[q.id] === oi
@@ -140,7 +142,7 @@ export default function QuizPage() {
                   })),
                 })
               }}
-              disabled={Object.keys(answers).length < quiz.questions.length}
+              disabled={Object.keys(answers).length < quiz.questions.length || !studentName.trim()}
               className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
             >
               Corregir
