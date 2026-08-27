@@ -862,26 +862,27 @@ function SynonymsAntonymsEditor({ data, onChange }) {
 }
 
 // ─── Pronunciación ───────────────────────────────────────────────────
-// Cada grupo son 2+ palabras que suenan parecido. En la página pública se
-// mezclan todas las palabras de todos los grupos y el alumno las reordena
-// arrastrando, tratando de dejar juntas las de cada grupo.
+// Cada grupo son 2+ palabras que suenan parecido. La primera palabra queda
+// fija arriba (es la que se muestra como consigna); el resto son las
+// palabras que el alumno tiene que emparejar, tocándolas desde un banco
+// compartido debajo. Cada grupo puede tener una pista opcional.
 
 function PronunciationEditor({ data, onChange }) {
   const groups = data || []
-  const updateGroup = (gi, words) => {
+  const updateGroup = (gi, patch) => {
     const next = [...groups]
-    next[gi] = { ...next[gi], words }
+    next[gi] = { ...next[gi], ...patch }
     onChange(next)
   }
-  const addGroup = () => onChange([...groups, { id: genId(), words: ['', ''] }])
+  const addGroup = () => onChange([...groups, { id: genId(), words: ['', ''], hint: '' }])
   const removeGroup = (gi) => onChange(groups.filter((_, idx) => idx !== gi))
   const updateWord = (gi, wi, value) => {
     const words = [...groups[gi].words]
     words[wi] = value
-    updateGroup(gi, words)
+    updateGroup(gi, { words })
   }
-  const addWord = (gi) => updateGroup(gi, [...groups[gi].words, ''])
-  const removeWord = (gi, wi) => updateGroup(gi, groups[gi].words.filter((_, idx) => idx !== wi))
+  const addWord = (gi) => updateGroup(gi, { words: [...groups[gi].words, ''] })
+  const removeWord = (gi, wi) => updateGroup(gi, { words: groups[gi].words.filter((_, idx) => idx !== wi) })
 
   return (
     <div className="flex flex-col gap-4">
@@ -902,7 +903,7 @@ function PronunciationEditor({ data, onChange }) {
                   value={w}
                   onChange={(e) => updateWord(gi, wi, e.target.value)}
                   className={`${inputCls} flex-1`}
-                  placeholder={`Palabra ${wi + 1}`}
+                  placeholder={wi === 0 ? 'Palabra fija (aparece arriba)' : `Palabra para emparejar ${wi}`}
                 />
                 {group.words.length > 2 && (
                   <button onClick={() => removeWord(gi, wi)} className="text-stamp text-xs font-medium shrink-0">
@@ -915,6 +916,12 @@ function PronunciationEditor({ data, onChange }) {
               + Agregar palabra
             </button>
           </div>
+          <input
+            value={group.hint || ''}
+            onChange={(e) => updateGroup(gi, { hint: e.target.value })}
+            className={`${inputCls} mt-1`}
+            placeholder="Pista (opcional)"
+          />
         </div>
       ))}
       <button onClick={addGroup} className="text-brand hover:underline text-sm font-medium self-start">
@@ -922,7 +929,8 @@ function PronunciationEditor({ data, onChange }) {
       </button>
       {groups.length === 0 && (
         <p className="text-ink/50 text-xs">
-          Sin grupos todavía. Cada grupo son 2 o más palabras que suenan parecido (ej: ship / sheep).
+          Sin grupos todavía. Cada grupo son 2 o más palabras que suenan parecido (ej: ship / sheep). La primera
+          palabra que cargues queda fija como consigna; el resto son las que el alumno tiene que emparejar.
         </p>
       )}
     </div>

@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { DndContext, PointerSensor, KeyboardSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core'
-import { SortableContext, useSortable, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
+import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
-import { GripVertical, ChevronLeft, ChevronRight } from 'lucide-react'
+import NameField from '../components/NameField.jsx'
+import QuestionHint from '../components/QuestionHint.jsx'
 
 function shuffle(arr) {
   const next = [...arr]
@@ -19,61 +18,32 @@ function shuffle(arr) {
   return next
 }
 
-function buildChips(groups) {
-  return groups.flatMap((g) => g.words.map((w, wi) => ({ id: `${g.id}-${wi}`, text: w, groupId: g.id })))
-}
+// La primera palabra de cada grupo queda fija como consigna arriba; el
+// resto son las que el alumno tiene que emparejar tocándolas desde el
+// banco compartido de abajo (en vez de arrastrar para reordenar).
+function buildGroupsData(rawGroups) {
+  const groups = (rawGroups || [])
+    .map((g) => ({ ...g, words: (g.words || []).map((w) => (w || '').trim()).filter(Boolean) }))
+    .filter((g) => g.words.length >= 2)
 
-function isGroupContiguous(order, groupChipIds) {
-  const positions = order.map((id, idx) => (groupChipIds.includes(id) ? idx : -1)).filter((idx) => idx !== -1)
-  if (positions.length === 0) return false
-  return Math.max(...positions) - Math.min(...positions) + 1 === groupChipIds.length
-}
+  const chips = groups.flatMap((g) => g.words.slice(1).map((w, wi) => ({ id: `${g.id}-c${wi}`, text: w, groupId: g.id })))
+  const slots = groups.flatMap((g) => g.words.slice(1).map((_, wi) => ({ id: `${g.id}-s${wi}`, groupId: g.id })))
 
-function SortableChip({ id, text, submitted, correct, onMoveLeft, onMoveRight, isFirst, isLast }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id, disabled: submitted })
-  const style = { transform: CSS.Transform.toString(transform), transition }
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-center gap-1 px-3 py-2 rounded-xl border-2 font-playful bg-kidsCream text-sm font-medium transition-colors
-        ${isDragging ? 'opacity-50' : ''}
-        ${submitted ? (correct ? 'border-kidsGreenDeep bg-kidsGreen/15' : 'border-kidsRed bg-kidsRed/10') : 'border-kidsInk/12'}
-      `}
-    >
-      {!submitted && (
-        <button onClick={onMoveLeft} disabled={isFirst} className="-m-1.5 p-1.5 text-kidsInk/30 hover:text-kidsInk disabled:opacity-20 disabled:hover:text-kidsInk/30" title="Mover a la izquierda">
-          <ChevronLeft size={14} />
-        </button>
-      )}
-      <button
-        {...attributes}
-        {...listeners}
-        disabled={submitted}
-        className="-m-1.5 p-1.5 text-kidsInk/30 cursor-grab touch-none disabled:cursor-default"
-        title="Arrastrar"
-      >
-        <GripVertical size={14} />
-      </button>
-      <span>{text}</span>
-      {!submitted && (
-        <button onClick={onMoveRight} disabled={isLast} className="-m-1.5 p-1.5 text-kidsInk/30 hover:text-kidsInk disabled:opacity-20 disabled:hover:text-kidsInk/30" title="Mover a la derecha">
-          <ChevronRight size={14} />
-        </button>
-      )}
-    </div>
-  )
+  return { groups, chips, slots }
 }
 
 export default function InfanciasPronunciationPage() {
   const { group: slug } = useParams()
   const [group, setGroup] = useState(null)
-  const [groups, setGroups] = useState([])
   const [status, setStatus] = useState('loading') // loading | error | ready
-  const [order, setOrder] = useState([])
+  const [groups, setGroups] = useState([])
+  const [chips, setChips] = useState([])
+  const [slots, setSlots] = useState([])
+  const [bankOrder, setBankOrder] = useState([])
+  const [placements, setPlacements] = useState({}) // slotId -> chipId
+  const [selectedChipId, setSelectedChipId] = useState(null)
   const [submitted, setSubmitted] = useState(false)
-
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
+  const [studentName, setStudentName] = useStudentName()
 
   useEffect(() => {
     let active = true
@@ -82,9 +52,13 @@ export default function InfanciasPronunciationPage() {
       .then(([groupData, groupsData]) => {
         if (!active) return
         setGroup(groupData)
-        const loaded = groupsData || []
-        setGroups(loaded)
-        setOrder(shuffle(buildChips(loaded).map((c) => c.id)))
+        const { groups: g, chips: c2, slots: s } = buildGroupsData(groupsData)
+        setGroups(g)
+        setChips(c2)
+        setSlots(s)
+        setBankOrder(shuffle(c2.map((c3) => c3.id)))
+        setPlacements({})
+        setSelectedChipId(null)
         setSubmitted(false)
         setStatus('ready')
       })
@@ -120,34 +94,67 @@ export default function InfanciasPronunciationPage() {
     )
   }
 
-  const chips = buildChips(groups)
-  const chipsById = Object.fromEntries(chips.map((c2) => [c2.id, c2]))
-  const groupCorrectness = Object.fromEntries(
-    groups.map((g) => [
-      g.id,
-      isGroupContiguous(
-        order,
-        chips.filter((c2) => c2.groupId === g.id).map((c2) => c2.id)
-      ),
-    ])
-  )
-  const score = groups.filter((g) => groupCorrectness[g.id]).length
+  const chipsById = Object.fromEntries(chips.map((chip) => [chip.id, chip]))
+  const placedChipIds = new Set(Object.values(placements))
+  const bankChipIds = bankOrder.filter((id) => !placedChipIds.has(id))
+  const allPlaced = Object.keys(placements).length === slots.length
+  const score = slots.filter((s) => chipsById[placements[s.id]]?.groupId === s.groupId).length
 
-  const moveChip = (from, to) => {
-    if (to < 0 || to >= order.length) return
-    setOrder((o) => arrayMove(o, from, to))
+  const handleChipClick = (chipId) => {
+    if (submitted) return
+    setSelectedChipId((cur) => (cur === chipId ? null : chipId))
   }
 
-  const handleDragEnd = (event) => {
-    const { active, over } = event
-    if (!over || active.id === over.id) return
-    const oldIndex = order.indexOf(active.id)
-    const newIndex = order.indexOf(over.id)
-    setOrder((o) => arrayMove(o, oldIndex, newIndex))
+  const handleSlotClick = (slotId) => {
+    if (submitted) return
+    if (selectedChipId) {
+      setPlacements((p) => {
+        const next = {}
+        for (const [sid, cid] of Object.entries(p)) {
+          if (cid !== selectedChipId) next[sid] = cid
+        }
+        next[slotId] = selectedChipId
+        return next
+      })
+      setSelectedChipId(null)
+    } else if (placements[slotId]) {
+      setPlacements((p) => {
+        const next = { ...p }
+        delete next[slotId]
+        return next
+      })
+    }
+  }
+
+  const handleSubmit = () => {
+    setSubmitted(true)
+    recordSubmission({
+      scope: 'infancias',
+      groupSlug: slug,
+      contentType: 'pronunciation',
+      label: 'Pronunciación',
+      studentName,
+      score,
+      total: slots.length,
+      detail: groups.flatMap((g) =>
+        g.words.slice(1).map((_, wi) => {
+          const slotId = `${g.id}-s${wi}`
+          const chip = chipsById[placements[slotId]]
+          return {
+            question: `${g.words[0]} — palabra ${wi + 1}`,
+            given: chip?.text ?? null,
+            is_correct: chip?.groupId === g.id,
+            correct: g.words.slice(1).join(' / '),
+          }
+        })
+      ),
+    })
   }
 
   const retry = () => {
-    setOrder(shuffle(chips.map((c2) => c2.id)))
+    setPlacements({})
+    setSelectedChipId(null)
+    setBankOrder(shuffle(chips.map((chip) => chip.id)))
     setSubmitted(false)
   }
 
@@ -160,44 +167,86 @@ export default function InfanciasPronunciationPage() {
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Pronunciación</h1>
         <p className="font-playful text-kidsInk/65 mb-8">
-          Reordená las palabras (arrastrando o con las flechitas) para dejar juntas las que suenan parecido.
+          Tocá una palabra del banco de abajo y después tocá el casillero de la palabra con la que suena parecido.
         </p>
 
-        <div className="bg-white rounded-[22px] shadow-kids p-6">
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={order} strategy={rectSortingStrategy}>
-              <div className="flex flex-wrap gap-2">
-                {order.map((id, idx) => (
-                  <SortableChip
-                    key={id}
-                    id={id}
-                    text={chipsById[id].text}
-                    submitted={submitted}
-                    correct={groupCorrectness[chipsById[id].groupId]}
-                    onMoveLeft={() => moveChip(idx, idx - 1)}
-                    onMoveRight={() => moveChip(idx, idx + 1)}
-                    isFirst={idx === 0}
-                    isLast={idx === order.length - 1}
-                  />
-                ))}
+        <div className="flex flex-col gap-4">
+          {groups.map((group2) => {
+            const groupSlots = slots.filter((s) => s.groupId === group2.id)
+            return (
+              <div key={group2.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-5`}>
+                <p className="font-body font-extrabold text-lg text-kidsInk mb-1">{group2.words[0]}</p>
+                <QuestionHint hint={group2.hint} kids />
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {groupSlots.map((slot) => {
+                    const chip = chipsById[placements[slot.id]]
+                    const correct = submitted && chip && chip.groupId === slot.groupId
+                    const wrong = submitted && (!chip || chip.groupId !== slot.groupId)
+                    return (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        disabled={submitted}
+                        onClick={() => handleSlotClick(slot.id)}
+                        className={`min-w-[96px] px-3 py-2 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
+                          ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
+                          ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
+                          ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
+                        `}
+                      >
+                        {chip ? chip.text : '···'}
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
-            </SortableContext>
-          </DndContext>
+            )
+          })}
+        </div>
+
+        <div className="bg-white rounded-[22px] shadow-kids p-5 mt-4">
+          <p className="font-playful text-[10px] uppercase tracking-widest font-semibold text-kidsInk/40 mb-3">Banco de palabras</p>
+          <div className="flex flex-wrap gap-2">
+            {bankChipIds.map((id) => {
+              const chip = chipsById[id]
+              const selected = selectedChipId === id
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => handleChipClick(id)}
+                  className={`px-3 py-2 rounded-xl border-2 font-playful text-sm font-medium transition-colors
+                    ${selected ? 'border-kidsInk bg-kidsInk text-white' : 'border-kidsInk/15 bg-kidsCream text-kidsInk hover:border-kidsInk/40'}
+                  `}
+                >
+                  {chip.text}
+                </button>
+              )
+            })}
+            {bankChipIds.length === 0 && <p className="font-playful text-kidsInk/40 text-xs">Usaste todas las palabras.</p>}
+          </div>
         </div>
 
         {!submitted ? (
-          <button
-            onClick={() => setSubmitted(true)}
-            className={`mt-8 w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors`}
-          >
-            Corregir
-          </button>
+          <div className="mt-8">
+            <NameField value={studentName} onChange={setStudentName} kids c={c} />
+            <button
+              onClick={handleSubmit}
+              disabled={!allPlaced || !studentName.trim()}
+              className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+            >
+              Corregir
+            </button>
+          </div>
         ) : (
           <div className="mt-8 bg-white rounded-[22px] shadow-kids p-6 text-center">
             <p className="font-body font-extrabold text-2xl text-kidsInk">
-              {score} / {groups.length} grupos bien agrupados
+              {score} / {slots.length} correctas
             </p>
-            <button onClick={retry} className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}>
+            <button
+              onClick={retry}
+              className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+            >
               Intentar de nuevo
             </button>
           </div>

@@ -9,6 +9,7 @@ const CONTENT_TYPE_LABELS = {
   synonyms_antonyms: 'Sinónimos y antónimos',
   listening: 'Listening',
   reading_writing: 'Reading & Writing',
+  pronunciation: 'Pronunciación',
 }
 
 const FOUR_WEEKS_MS = 28 * 24 * 60 * 60 * 1000
