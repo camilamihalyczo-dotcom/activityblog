@@ -6,7 +6,7 @@ import { useLevelAccess } from '../hooks.js'
 import KidsPasswordGate from '../components/KidsPasswordGate.jsx'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsBlobs from '../components/KidsBlobs.jsx'
-import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines, BookMarked } from 'lucide-react'
+import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines, BookMarked, Volume2 } from 'lucide-react'
 
 const ALL_TOPICS = [
   { slug: 'flashcards', label: 'Flashcards', desc: 'Vocabulario en formato de juego', icon: Layers },
@@ -72,12 +72,20 @@ export default function InfanciasGroupHubPage() {
               Nivel {group.milestone} de 4 · {group.age_range}
             </span>
           </div>
-          <Link
-            to={`/infancias/${slug}/glosario`}
-            className="relative z-10 inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
-          >
-            <BookMarked size={14} /> Glosario
-          </Link>
+          <div className="relative z-10 flex items-center gap-2">
+            <Link
+              to={`/infancias/${slug}/glosario`}
+              className="inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
+            >
+              <BookMarked size={14} /> Glosario
+            </Link>
+            <Link
+              to="/tabla-fonetica"
+              className="inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
+            >
+              <Volume2 size={14} /> Tabla fonética
+            </Link>
+          </div>
         </div>
 
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Temas generales</h1>

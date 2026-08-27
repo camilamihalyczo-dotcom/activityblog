@@ -15,6 +15,7 @@ import FillBlankPage from './pages/FillBlankPage.jsx'
 import MatchingPage from './pages/MatchingPage.jsx'
 import PronunciationPage from './pages/PronunciationPage.jsx'
 import GlossaryPage from './pages/GlossaryPage.jsx'
+import PhoneticChartPage from './pages/PhoneticChartPage.jsx'
 import InfanciasPage from './pages/InfanciasPage.jsx'
 import InfanciasBlogPage from './pages/InfanciasBlogPage.jsx'
 import InfanciasGroupHubPage from './pages/InfanciasGroupHubPage.jsx'
@@ -44,6 +45,7 @@ export default function App() {
       <Analytics />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/tabla-fonetica" element={<PhoneticChartPage />} />
         <Route path="/adultos" element={<AdultosPage />} />
         <Route path="/adultos/blog" element={<AdultosBlogPage />} />
         <Route path="/adultos/:level" element={<LevelHubPage />} />
