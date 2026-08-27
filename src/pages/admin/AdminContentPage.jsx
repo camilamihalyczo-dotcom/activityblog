@@ -36,8 +36,18 @@ const CONTENT_TYPE_PATHS = {
 }
 
 // Tipos de contenido cuyo `data` es un array (se guarda [] cuando está
-// vacío en vez de null, para distinguir de "sin contenido" en el quiz).
-const ARRAY_CONTENT_TYPES = ['flashcards', 'listening', 'reading_writing', 'fill_blank', 'synonyms_antonyms', 'pronunciation']
+// vacío). Un temario/grupo puede tener más de un cuestionario — por eso
+// `quiz` es un array de cuestionarios, cada uno con su propio título y
+// preguntas, igual que Listening o Reading & Writing.
+const ARRAY_CONTENT_TYPES = [
+  'flashcards',
+  'quiz',
+  'listening',
+  'reading_writing',
+  'fill_blank',
+  'synonyms_antonyms',
+  'pronunciation',
+]
 
 const inputCls = 'w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm'
 const smallBtn = 'text-sm font-medium'
@@ -362,47 +372,72 @@ function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false 
 }
 
 // ─── Quiz ───────────────────────────────────────────────────────────
+// Un temario/grupo puede tener más de un cuestionario (por ejemplo, uno
+// por unidad dentro del mismo temario) — cada uno con su propio título y
+// preguntas, igual que Listening o Reading & Writing.
 
 function QuizEditor({ data, onChange }) {
-  const quiz = data || { title: '', questions: [] }
-  const setQuiz = (patch) => onChange({ ...quiz, ...patch })
-  const updateQuestion = (qi, patch) => {
-    const questions = [...quiz.questions]
-    questions[qi] = patch
-    setQuiz({ questions })
+  const quizzes = data || []
+  const updateQuiz = (qi, patch) => {
+    const next = [...quizzes]
+    next[qi] = { ...next[qi], ...patch }
+    onChange(next)
   }
-  const addQuestion = () =>
-    setQuiz({
-      questions: [...quiz.questions, { id: genId(), q: '', options: ['', ''], answer: 0, image_url: null, hint: '' }],
+  const addQuiz = () => onChange([...quizzes, { id: genId(), title: '', questions: [] }])
+  const removeQuiz = (qi) => onChange(quizzes.filter((_, idx) => idx !== qi))
+  const updateQuestion = (qi, qqi, patch) => {
+    const questions = [...quizzes[qi].questions]
+    questions[qqi] = patch
+    updateQuiz(qi, { questions })
+  }
+  const addQuestion = (qi) =>
+    updateQuiz(qi, {
+      questions: [
+        ...quizzes[qi].questions,
+        { id: genId(), q: '', options: ['', ''], answer: 0, image_url: null, hint: '' },
+      ],
     })
-  const removeQuestion = (qi) => setQuiz({ questions: quiz.questions.filter((_, idx) => idx !== qi) })
+  const removeQuestion = (qi, qqi) => updateQuiz(qi, { questions: quizzes[qi].questions.filter((_, idx) => idx !== qqi) })
 
   return (
-    <div className="flex flex-col gap-4">
-      <label>
-        <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Título del cuestionario</span>
-        <input
-          value={quiz.title}
-          onChange={(e) => setQuiz({ title: e.target.value })}
-          placeholder="ej: Cuestionario — Foundations"
-          className={inputCls}
-        />
-      </label>
-      {quiz.questions.map((q, qi) => (
-        <OptionsQuestionEditor
-          key={q.id}
-          question={q}
-          onChange={(patch) => updateQuestion(qi, patch)}
-          onRemove={() => removeQuestion(qi)}
-          withHint
-        />
+    <div className="flex flex-col gap-6">
+      {quizzes.map((quiz, qi) => (
+        <div key={quiz.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
+          <div className="flex gap-3 items-start">
+            <label className="flex-1">
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Título del cuestionario</span>
+              <input
+                value={quiz.title}
+                onChange={(e) => updateQuiz(qi, { title: e.target.value })}
+                placeholder="ej: Cuestionario — Foundations"
+                className={inputCls}
+              />
+            </label>
+            <button onClick={() => removeQuiz(qi)} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
+              Borrar cuestionario
+            </button>
+          </div>
+          {quiz.questions.map((q, qqi) => (
+            <OptionsQuestionEditor
+              key={q.id}
+              question={q}
+              onChange={(patch) => updateQuestion(qi, qqi, patch)}
+              onRemove={() => removeQuestion(qi, qqi)}
+              withHint
+            />
+          ))}
+          <button onClick={() => addQuestion(qi)} className="text-brand hover:underline text-sm font-medium self-start">
+            + Agregar pregunta
+          </button>
+          {quiz.questions.length === 0 && (
+            <p className="text-ink/50 text-xs">Sin preguntas, este cuestionario no aparece en el sitio.</p>
+          )}
+        </div>
       ))}
-      <button onClick={addQuestion} className="text-brand hover:underline text-sm font-medium self-start">
-        + Agregar pregunta
+      <button onClick={addQuiz} className="text-brand hover:underline text-sm font-medium self-start">
+        + Agregar cuestionario
       </button>
-      {quiz.questions.length === 0 && (
-        <p className="text-ink/50 text-xs">Sin preguntas, este cuestionario se guarda vacío (no aparece en el sitio).</p>
-      )}
+      {quizzes.length === 0 && <p className="text-ink/50 text-xs">Sin cuestionarios todavía.</p>}
     </div>
   )
 }
@@ -994,13 +1029,7 @@ export default function AdminContentPage() {
     setSaving(true)
     setSaveMessage('')
 
-    // Un cuestionario sin preguntas se guarda como "sin cuestionario" para
-    // que la página pública muestre el estado vacío en vez de un título
-    // suelto sin nada debajo.
-    let dataToSave = contentData
-    if (contentType === 'quiz' && (!dataToSave || dataToSave.questions.length === 0)) {
-      dataToSave = null
-    }
+    const dataToSave = contentData
 
     try {
       await saveContent({

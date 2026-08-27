@@ -7,7 +7,10 @@ import { supabase } from './supabaseClient.js'
 
 export const EMPTY_CONTENT_BY_TYPE = {
   flashcards: [],
-  quiz: null,
+  // `quiz` es un array de cuestionarios (cada uno con su propio título y
+  // preguntas) — un temario/grupo puede tener más de uno, igual que
+  // Listening o Reading & Writing.
+  quiz: [],
   listening: [],
   reading_writing: [],
   fill_blank: [],
@@ -26,7 +29,18 @@ export function buildInfanciasScopeKey(groupSlug, contentType) {
 export async function fetchContent(scopeKey, contentType) {
   const { data, error } = await supabase.from('content_items').select('data').eq('scope_key', scopeKey).maybeSingle()
   if (error) throw error
-  return data ? data.data : EMPTY_CONTENT_BY_TYPE[contentType]
+  let value = data ? data.data : EMPTY_CONTENT_BY_TYPE[contentType]
+
+  // Migración: `quiz` guardaba antes un único objeto {title, questions} en
+  // vez de un array de cuestionarios. Si queda contenido viejo con esa
+  // forma, lo envolvemos acá para que tanto la página pública como el
+  // panel de edición (que ya esperan un array) lo sigan mostrando bien —
+  // se termina de migrar solo la próxima vez que se guarde desde el panel.
+  if (contentType === 'quiz' && value && !Array.isArray(value)) {
+    value = value.questions?.length ? [{ id: 'legacy', ...value }] : []
+  }
+
+  return value
 }
 
 // Trae los 4 tipos de contenido de un temario (Adultos) en paralelo.
@@ -59,8 +73,11 @@ export async function fetchAllContentStatus() {
   if (error) throw error
   const filled = new Set()
   for (const row of data) {
+    // `quiz` es un array de cuestionarios desde hace poco — pero puede
+    // quedar alguna fila vieja sin migrar todavía (guardada como un único
+    // objeto {title, questions}), así que soportamos las dos formas acá.
     const hasContent =
-      row.content_type === 'quiz'
+      row.content_type === 'quiz' && !Array.isArray(row.data)
         ? Boolean(row.data && row.data.questions && row.data.questions.length > 0)
         : Array.isArray(row.data) && row.data.length > 0
     if (hasContent) filled.add(row.scope_key)
