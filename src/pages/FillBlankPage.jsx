@@ -291,6 +291,30 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
   return (
     <div className="mb-10">
       {exercise.title && <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-4">{exercise.title}</h2>}
+
+      <div className="texture-card rounded-2xl p-5 mb-6 sticky top-3 z-10 shadow-md">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40 mb-3">Banco de palabras</p>
+        <div className="flex flex-wrap gap-2">
+          {bankChipIds.map((id) => {
+            const chipItem = chipsById[id]
+            const selected = selectedChipId === id
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => handleChipClick(id)}
+                className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors
+                  ${selected ? 'border-ink bg-ink text-cream' : 'border-ink/15 bg-paper text-ink hover:border-ink/40'}
+                `}
+              >
+                {chipItem.text}
+              </button>
+            )
+          })}
+          {bankChipIds.length === 0 && <p className="text-ink/40 text-xs">Usaste todas las palabras.</p>}
+        </div>
+      </div>
+
       <div className="flex flex-col gap-6">
         {items.map((item) => (
           <div key={item.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
@@ -333,29 +357,6 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
             </p>
           </div>
         ))}
-      </div>
-
-      <div className="texture-card rounded-2xl p-5 mt-4">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40 mb-3">Banco de palabras</p>
-        <div className="flex flex-wrap gap-2">
-          {bankChipIds.map((id) => {
-            const chipItem = chipsById[id]
-            const selected = selectedChipId === id
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => handleChipClick(id)}
-                className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-colors
-                  ${selected ? 'border-ink bg-ink text-cream' : 'border-ink/15 bg-paper text-ink hover:border-ink/40'}
-                `}
-              >
-                {chipItem.text}
-              </button>
-            )
-          })}
-          {bankChipIds.length === 0 && <p className="text-ink/40 text-xs">Usaste todas las palabras.</p>}
-        </div>
       </div>
 
       {!submitted ? (
