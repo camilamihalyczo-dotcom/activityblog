@@ -30,6 +30,8 @@ export default function AdminGlossaryPage() {
   const [importResult, setImportResult] = useState(null) // { added, updated, skipped } | null
   const [importError, setImportError] = useState('')
   const fileInputRef = useRef(null)
+  const formRef = useRef(null)
+  const wordInputRef = useRef(null)
 
   useEffect(() => {
     fetchTracks()
@@ -67,8 +69,17 @@ export default function AdminGlossaryPage() {
   }, [entries, scope, selectedLevelSlug, selectedTrackSlug, selectedGroupSlug])
 
   const startEdit = (entry) => {
-    setForm(entry)
+    // `example` puede venir null desde la base (se guarda así cuando
+    // queda vacío) — lo normalizamos a '' para que el input siga
+    // controlado (si no, React tira warning y el campo se comporta raro).
+    setForm({ ...entry, example: entry.example || '' })
     setError('')
+    // El form de edición está arriba de la lista — si tocás "Editar" en
+    // una palabra más abajo, sin esto no se nota que pasó nada porque
+    // queda fuera de la pantalla. Subimos hasta el form y enfocamos el
+    // campo para que se vea clarísimo que se cargó para editar.
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    wordInputRef.current?.focus()
   }
 
   const startNew = () => {
@@ -266,7 +277,7 @@ export default function AdminGlossaryPage() {
         {importError && <p className="text-stamp text-sm">{importError}</p>}
       </div>
 
-      <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
         <p className="font-mono text-xs uppercase tracking-widest text-ink/50">
           {form.id ? 'Editar palabra' : 'Nueva palabra'}
         </p>
@@ -275,6 +286,7 @@ export default function AdminGlossaryPage() {
           <label className="flex-1 min-w-[160px]">
             <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Palabra</span>
             <input
+              ref={wordInputRef}
               required
               value={form.word}
               onChange={(e) => setForm({ ...form, word: e.target.value })}

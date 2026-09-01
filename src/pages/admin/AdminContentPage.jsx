@@ -652,8 +652,8 @@ function ReadingWritingEditor({ data, onChange }) {
 // ignorando mayúsculas y tildes; se pueden separar varias respuestas
 // válidas con "/"). Con opciones, el alumno elige entre palabras dadas.
 
-function FillBlankItemEditor({ item, onChange, onRemove }) {
-  const hasOptions = (item.options || []).length > 0
+function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) {
+  const hasOptions = !hideOptions && (item.options || []).length > 0
 
   const toggleOptions = () => {
     onChange(hasOptions ? { ...item, options: [] } : { ...item, options: ['', ''] })
@@ -704,10 +704,12 @@ function FillBlankItemEditor({ item, onChange, onRemove }) {
         label="Imagen de contexto (opcional)"
       />
 
-      <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/50">
-        <input type="checkbox" checked={hasOptions} onChange={toggleOptions} className="accent-brand" />
-        Con opciones (multiple choice) en vez de texto libre
-      </label>
+      {!hideOptions && (
+        <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/50">
+          <input type="checkbox" checked={hasOptions} onChange={toggleOptions} className="accent-brand" />
+          Con opciones (multiple choice) en vez de texto libre
+        </label>
+      )}
 
       {hasOptions ? (
         <div className="flex flex-col gap-2">
@@ -743,12 +745,14 @@ function FillBlankItemEditor({ item, onChange, onRemove }) {
       ) : (
         <label>
           <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
-            Respuesta correcta (si hay más de una válida, separalas con /)
+            {hideOptions
+              ? 'Palabra que va en el banco compartido (una sola palabra o expresión corta)'
+              : 'Respuesta correcta (si hay más de una válida, separalas con /)'}
           </span>
           <input
             value={item.answer}
             onChange={(e) => onChange({ ...item, answer: e.target.value })}
-            placeholder="has / is having"
+            placeholder={hideOptions ? 'goes' : 'has / is having'}
             className={inputCls}
           />
         </label>
@@ -757,28 +761,87 @@ function FillBlankItemEditor({ item, onChange, onRemove }) {
   )
 }
 
+// Igual que Cuestionario: un temario/grupo puede tener varios ejercicios
+// de "completar oraciones" por separado (cada uno con su propio título y
+// varias oraciones), en vez de una sola lista larga con todas mezcladas.
+
 function FillBlankEditor({ data, onChange }) {
-  const items = data || []
-  const updateItem = (i, patch) => {
-    const next = [...items]
-    next[i] = patch
+  const exercises = data || []
+  const updateExercise = (ei, patch) => {
+    const next = [...exercises]
+    next[ei] = { ...next[ei], ...patch }
     onChange(next)
   }
-  const addItem = () => onChange([...items, { id: genId(), sentence: '', options: [], answer: '', image_url: null }])
-  const removeItem = (i) => {
-    deleteImage(items[i]?.image_url)
-    onChange(items.filter((_, idx) => idx !== i))
+  const addExercise = () => onChange([...exercises, { id: genId(), title: '', wordBank: false, sentences: [] }])
+  const removeExercise = (ei) => {
+    for (const s of exercises[ei]?.sentences || []) deleteImage(s.image_url)
+    onChange(exercises.filter((_, idx) => idx !== ei))
+  }
+  const toggleWordBank = (ei) => {
+    const exercise = exercises[ei]
+    const wordBank = !exercise.wordBank
+    // Al activar el banco compartido se limpian las opciones de cada
+    // oración, para que no queden mezcladas dos mecánicas distintas.
+    const sentences = wordBank ? exercise.sentences.map((s) => ({ ...s, options: [] })) : exercise.sentences
+    updateExercise(ei, { wordBank, sentences })
+  }
+  const updateSentence = (ei, si, patch) => {
+    const sentences = [...exercises[ei].sentences]
+    sentences[si] = patch
+    updateExercise(ei, { sentences })
+  }
+  const addSentence = (ei) =>
+    updateExercise(ei, {
+      sentences: [...exercises[ei].sentences, { id: genId(), sentence: '', options: [], answer: '', image_url: null }],
+    })
+  const removeSentence = (ei, si) => {
+    deleteImage(exercises[ei].sentences[si]?.image_url)
+    updateExercise(ei, { sentences: exercises[ei].sentences.filter((_, idx) => idx !== si) })
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {items.map((item, i) => (
-        <FillBlankItemEditor key={item.id} item={item} onChange={(patch) => updateItem(i, patch)} onRemove={() => removeItem(i)} />
+    <div className="flex flex-col gap-6">
+      {exercises.map((exercise, ei) => (
+        <div key={exercise.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
+          <div className="flex gap-3 items-start">
+            <label className="flex-1">
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Título del ejercicio</span>
+              <input
+                value={exercise.title}
+                onChange={(e) => updateExercise(ei, { title: e.target.value })}
+                placeholder="ej: Completar — Present Simple"
+                className={inputCls}
+              />
+            </label>
+            <button onClick={() => removeExercise(ei)} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
+              Borrar ejercicio
+            </button>
+          </div>
+          <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/50">
+            <input type="checkbox" checked={!!exercise.wordBank} onChange={() => toggleWordBank(ei)} className="accent-brand" />
+            Un solo banco de palabras compartido (en vez de opciones por oración)
+          </label>
+          {exercise.sentences.map((s, si) => (
+            <FillBlankItemEditor
+              key={s.id}
+              item={s}
+              onChange={(patch) => updateSentence(ei, si, patch)}
+              onRemove={() => removeSentence(ei, si)}
+              hideOptions={!!exercise.wordBank}
+            />
+          ))}
+          <button onClick={() => addSentence(ei)} className="text-brand hover:underline text-sm font-medium self-start">
+            + Agregar oración
+          </button>
+          {exercise.sentences.length === 0 && (
+            <p className="text-ink/50 text-xs">Sin oraciones, este ejercicio no aparece en el sitio.</p>
+          )}
+        </div>
       ))}
-      <button onClick={addItem} className="text-brand hover:underline text-sm font-medium self-start">
-        + Agregar oración
+      <button onClick={addExercise} className="text-brand hover:underline text-sm font-medium self-start">
+        + Agregar ejercicio
       </button>
-      {items.length === 0 && <p className="text-ink/50 text-xs">Sin oraciones todavía.</p>}
+      {exercises.length === 0 && <p className="text-ink/50 text-xs">Sin ejercicios todavía.</p>}
     </div>
   )
 }

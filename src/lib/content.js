@@ -40,6 +40,15 @@ export async function fetchContent(scopeKey, contentType) {
     value = value.questions?.length ? [{ id: 'legacy', ...value }] : []
   }
 
+  // Migración: `fill_blank` guardaba antes un array plano de oraciones
+  // sueltas (cada una con `sentence`/`answer` directo) en vez de un array
+  // de ejercicios con título + varias oraciones cada uno. Si el array
+  // trae oraciones sueltas (se nota porque tienen `sentence` en vez de
+  // `sentences`), las envolvemos en un solo ejercicio sin título.
+  if (contentType === 'fill_blank' && Array.isArray(value) && value.length > 0 && value[0].sentences === undefined) {
+    value = [{ id: 'legacy', title: '', sentences: value }]
+  }
+
   return value
 }
 
