@@ -15,7 +15,7 @@ export default function QuestionHint({ hint, kids = false }) {
           <button
             type="button"
             onClick={() => setShown(true)}
-            className="flex items-center gap-1.5 text-kidsInk/55 hover:text-kidsInk font-playful text-xs font-semibold underline"
+            className="flex items-center gap-1.5 text-kidsInk/70 hover:text-kidsInk font-playful text-xs font-semibold underline"
           >
             <Lightbulb size={14} /> Ver pista
           </button>
@@ -35,7 +35,7 @@ export default function QuestionHint({ hint, kids = false }) {
         <button
           type="button"
           onClick={() => setShown(true)}
-          className="flex items-center gap-1.5 text-ink/50 hover:text-ink text-xs font-medium underline"
+          className="flex items-center gap-1.5 text-ink/60 hover:text-ink text-xs font-medium underline"
         >
           <Lightbulb size={14} /> Ver pista
         </button>

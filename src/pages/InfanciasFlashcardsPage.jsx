@@ -54,7 +54,7 @@ export default function InfanciasFlashcardsPage() {
   }
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -74,13 +74,13 @@ export default function InfanciasFlashcardsPage() {
           Vocabulario 🃏
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Flashcards</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Tocá la tarjeta para dar vuelta y ver la traducción.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Tocá la tarjeta para dar vuelta y ver la traducción.</p>
 
         {flashcards.length === 0 ? (
           <KidsEmptyState label="flashcards" />
         ) : (
           <>
-            <p className="font-playful text-xs text-kidsInk/50 mb-3 uppercase tracking-wider font-semibold">
+            <p className="font-playful text-xs text-kidsInk/70 mb-3 uppercase tracking-wider font-semibold">
               Tarjeta {index + 1} de {order.length}
             </p>
             <button
@@ -123,7 +123,7 @@ export default function InfanciasFlashcardsPage() {
 
             <button
               onClick={shuffle}
-              className={`mt-8 flex items-center gap-2 mx-auto text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold transition-colors`}
+              className={`mt-8 flex items-center gap-2 mx-auto text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold transition-colors`}
             >
               <Shuffle size={15} /> Mezclar tarjetas
             </button>

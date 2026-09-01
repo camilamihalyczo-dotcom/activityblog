@@ -5,7 +5,7 @@ import { MARKETING_SITES } from '../lib/contact.js'
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-5 py-16 text-center">
-      <p className="font-mono text-xs uppercase tracking-[0.3em] text-ink/50 mb-4">Material de clase</p>
+      <p className="font-mono text-xs uppercase tracking-[0.3em] text-ink/60 mb-4">Material de clase</p>
       <h1 className="font-display text-4xl sm:text-6xl text-ink mb-3 leading-[0.95]">
         ACTIVITY
         <br />

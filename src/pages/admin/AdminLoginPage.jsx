@@ -48,11 +48,11 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-5">
       <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-8 w-full max-w-sm">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50 mb-2">Panel de administración</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60 mb-2">Panel de administración</p>
         <h1 className="font-display text-2xl font-semibold text-ink mb-6">Iniciar sesión</h1>
 
         <label className="block mb-4">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Email</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Email</span>
           <input
             type="email"
             required
@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
         </label>
 
         <label className="block mb-4">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Contraseña</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Contraseña</span>
           <input
             type="password"
             required
@@ -85,7 +85,7 @@ export default function AdminLoginPage() {
           {loading ? 'Entrando…' : 'Entrar'}
         </button>
 
-        <p className="text-ink/40 text-xs mt-5 leading-relaxed">
+        <p className="text-ink/60 text-xs mt-5 leading-relaxed">
           ¿Todavía no tenés usuario? Se crea desde el dashboard de Supabase, no acá — ver supabase/README.md.
         </p>
       </form>

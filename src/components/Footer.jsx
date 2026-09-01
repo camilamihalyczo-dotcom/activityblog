@@ -52,7 +52,7 @@ export default function Footer() {
         {open && (
           <div className="mt-4">
             {!suggestionsConfigured ? (
-              <p className="text-ink/50 text-sm">Este formulario todavía no está activado.</p>
+              <p className="text-ink/60 text-sm">Este formulario todavía no está activado.</p>
             ) : (
               <>
                 <p className="text-ink/60 text-sm mb-4">

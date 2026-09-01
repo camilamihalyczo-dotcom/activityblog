@@ -13,7 +13,7 @@ import { BookOpen, PenLine } from 'lucide-react'
 function ReadingItem({ item, c, answers, onChange, disabled }) {
   return (
     <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-ink/50">
+      <div className="flex items-center gap-2 mb-4 text-ink/60">
         <BookOpen size={18} />
         <span className="font-mono text-xs uppercase tracking-wider">Reading</span>
       </div>
@@ -26,7 +26,7 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
       <div className="flex flex-col gap-4">
         {item.questions.map((q, qi) => (
           <div key={q.id}>
-            <p className="font-mono text-xs text-ink/40 mb-1">Pregunta {qi + 1}</p>
+            <p className="font-mono text-xs text-ink/60 mb-1">Pregunta {qi + 1}</p>
             <p className="font-medium text-ink mb-2">{q.q}</p>
             <textarea
               rows={2}
@@ -47,7 +47,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
     <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-ink/50">
+      <div className="flex items-center gap-2 mb-4 text-ink/60">
         <PenLine size={18} />
         <span className="font-mono text-xs uppercase tracking-wider">Writing</span>
       </div>
@@ -64,7 +64,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
         placeholder="Escribí tu producción acá..."
         className={`w-full px-4 py-3 rounded-lg border-2 border-ink/15 bg-paper text-sm leading-relaxed ${c.focusBorder} outline-none transition-colors resize-y disabled:opacity-60`}
       />
-      <p className="text-right font-mono text-xs text-ink/40 mt-2">{words} palabras</p>
+      <p className="text-right font-mono text-xs text-ink/60 mt-2">{words} palabras</p>
     </div>
   )
 }
@@ -109,7 +109,7 @@ export default function ReadingWritingPage() {
   }, [slug, themeSlug, temarioSlug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error' || !theme || !temario) {
     return (
@@ -204,7 +204,7 @@ export default function ReadingWritingPage() {
                 >
                   {saving ? 'Guardando…' : 'Guardar mis respuestas'}
                 </button>
-                <p className="text-ink/40 text-xs mt-2">
+                <p className="text-ink/60 text-xs mt-2">
                   Esto no se autocorrige (no tiene una única respuesta correcta) — tu profe lo revisa directamente.
                 </p>
               </div>

@@ -11,7 +11,7 @@ export default function TicketHeader({ crumbs = [], backTo }) {
   return (
     <div className="border-b-2 border-dashed border-ink/25 bg-cream/70">
       <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-mono text-xs sm:text-sm uppercase tracking-wider text-ink/70">
+        <div className="flex items-center gap-2 font-mono text-xs sm:text-sm uppercase tracking-wider text-ink/70 min-w-0 overflow-x-auto">
           {backTo === -1 ? (
             <button
               type="button"
@@ -34,12 +34,12 @@ export default function TicketHeader({ crumbs = [], backTo }) {
           )}
           {crumbs.map((c, i) => (
             <span key={i} className="flex items-center gap-2">
-              {i > 0 && <span className="text-ink/30">/</span>}
+              {i > 0 && <span className="text-ink/60">/</span>}
               <span className={i === crumbs.length - 1 ? 'text-ink font-semibold' : ''}>{c}</span>
             </span>
           ))}
         </div>
-        <Link to="/" className="font-display font-bold text-ink text-sm sm:text-base whitespace-nowrap">
+        <Link to="/" className="font-display font-bold text-ink text-sm sm:text-base whitespace-nowrap shrink-0">
           Activity Blog
         </Link>
       </div>

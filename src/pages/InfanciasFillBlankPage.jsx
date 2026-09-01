@@ -69,7 +69,7 @@ function FillBlankItem({ item, c, value, onChange, submitted }) {
         <>
           <p className="font-playful text-kidsInk mb-3 leading-relaxed">
             {before}
-            <span className="font-semibold text-kidsInk/40">{value || '_____'}</span>
+            <span className="font-semibold text-kidsInk/70">{value || '_____'}</span>
             {after}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -114,7 +114,7 @@ function FillBlankItem({ item, c, value, onChange, submitted }) {
           {wrong && (
             <>
               <XCircle size={16} className="text-kidsRed shrink-0" />
-              <span className="font-playful text-xs text-kidsInk/45">→ {item.answer.split('/')[0].trim()}</span>
+              <span className="font-playful text-xs text-kidsInk/70">→ {item.answer.split('/')[0].trim()}</span>
             </>
           )}
         </p>
@@ -195,7 +195,7 @@ function FillBlankGroup({ exercise, c, groupSlug }) {
               setSubmitted(false)
               setAnswers({})
             }}
-            className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+            className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
           >
             Intentar de nuevo
           </button>
@@ -291,8 +291,8 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
         <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{exercise.title}</h2>
       )}
 
-      <div className="bg-white rounded-[22px] shadow-kids p-5 mb-6 sticky top-3 z-10">
-        <p className="font-playful text-[10px] uppercase tracking-widest font-semibold text-kidsInk/40 mb-3">Banco de palabras</p>
+      <div className="bg-white rounded-[22px] shadow-kids p-5 mb-6 sticky top-14 z-10">
+        <p className="font-playful text-[10px] uppercase tracking-widest font-semibold text-kidsInk/70 mb-3">Banco de palabras</p>
         <div className="flex flex-wrap gap-2">
           {bankChipIds.map((id) => {
             const chipItem = chipsById[id]
@@ -310,7 +310,7 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
               </button>
             )
           })}
-          {bankChipIds.length === 0 && <p className="font-playful text-kidsInk/40 text-xs">Usaste todas las palabras.</p>}
+          {bankChipIds.length === 0 && <p className="font-playful text-kidsInk/70 text-xs">Usaste todas las palabras.</p>}
         </div>
       </div>
 
@@ -325,7 +325,7 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
                   return (
                     <Fragment key={si}>
                       {seg && <span>{seg}</span>}
-                      {si < item.blanks.length && <span className="text-kidsInk/30">___</span>}
+                      {si < item.blanks.length && <span className="text-kidsInk/70">___</span>}
                     </Fragment>
                   )
                 }
@@ -341,7 +341,7 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
                       disabled={submitted}
                       onClick={() => handleSlotClick(slotId)}
                       className={`min-w-[96px] px-3 py-1.5 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
-                        ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
+                        ${!chip ? 'border-kidsInk/25 text-kidsInk/70' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
                         ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
                         ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
                       `}
@@ -376,7 +376,7 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
           </p>
           <button
             onClick={retry}
-            className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+            className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
           >
             Intentar de nuevo
           </button>
@@ -411,7 +411,7 @@ export default function InfanciasFillBlankPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -432,7 +432,7 @@ export default function InfanciasFillBlankPage() {
           Completar oraciones ✏️
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Completar oraciones</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Completá el espacio en cada oración.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Completá el espacio en cada oración.</p>
 
         {nonEmptyExercises.length === 0 ? (
           <KidsEmptyState label="oraciones para completar" />

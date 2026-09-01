@@ -34,7 +34,7 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
             allowFullScreen
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-ink/40 p-6 text-center">
+          <div className="flex flex-col items-center gap-2 text-ink/60 p-6 text-center">
             <Video size={28} />
             <p className="text-sm">Video de muestra — reemplazar por el ID de YouTube real en los datos de este nivel.</p>
           </div>
@@ -57,7 +57,7 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
       <div className="flex flex-col gap-4">
         {item.questions.map((q, qi) => (
           <div key={q.id}>
-            <p className="font-mono text-xs text-ink/40 mb-1">Pregunta {qi + 1}</p>
+            <p className="font-mono text-xs text-ink/60 mb-1">Pregunta {qi + 1}</p>
             {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-2" />}
             <p className="font-semibold text-ink mb-2">{q.q}</p>
             <div className="flex flex-col gap-2">
@@ -165,7 +165,7 @@ export default function ListeningPage() {
   }, [slug, themeSlug, temarioSlug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error' || !theme || !temario) {
     return (

@@ -167,7 +167,7 @@ export default function AdminGlossaryPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Glosario</h1>
@@ -195,7 +195,7 @@ export default function AdminGlossaryPage() {
         {scope === 'adultos' ? (
           <div className="flex gap-4 flex-wrap">
             <label className="flex-1 min-w-[160px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Nivel</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nivel</span>
               <select
                 value={selectedLevelSlug}
                 onChange={(e) => setSelectedLevelSlug(e.target.value)}
@@ -209,7 +209,7 @@ export default function AdminGlossaryPage() {
               </select>
             </label>
             <label className="flex-1 min-w-[160px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Track</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Track</span>
               <select
                 value={selectedTrackSlug}
                 onChange={(e) => setSelectedTrackSlug(e.target.value)}
@@ -225,7 +225,7 @@ export default function AdminGlossaryPage() {
           </div>
         ) : (
           <label>
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Grupo</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Grupo</span>
             <select
               value={selectedGroupSlug}
               onChange={(e) => setSelectedGroupSlug(e.target.value)}
@@ -242,7 +242,7 @@ export default function AdminGlossaryPage() {
       </div>
 
       <div className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-3">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">Importar desde CSV</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60">Importar desde CSV</p>
         <p className="text-ink/60 text-sm">
           Subí un archivo con una palabra por fila: <span className="font-mono text-xs">palabra,traducción</span> y
           opcionalmente <span className="font-mono text-xs">,ejemplo</span> como tercera columna. Podés incluir una
@@ -278,13 +278,13 @@ export default function AdminGlossaryPage() {
       </div>
 
       <form ref={formRef} onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
           {form.id ? 'Editar palabra' : 'Nueva palabra'}
         </p>
 
         <div className="flex gap-4 flex-wrap">
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Palabra</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Palabra</span>
             <input
               ref={wordInputRef}
               required
@@ -295,7 +295,7 @@ export default function AdminGlossaryPage() {
             />
           </label>
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Traducción</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Traducción</span>
             <input
               required
               value={form.translation}
@@ -307,7 +307,7 @@ export default function AdminGlossaryPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Ejemplo (opcional)</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Ejemplo (opcional)</span>
           <input
             value={form.example}
             onChange={(e) => setForm({ ...form, example: e.target.value })}
@@ -334,10 +334,10 @@ export default function AdminGlossaryPage() {
         </div>
       </form>
 
-      {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm">No pudimos cargar el glosario.</p>}
       {status === 'ready' && filtered.length === 0 && (
-        <p className="text-ink/50 text-sm">Todavía no cargaste palabras sueltas para esta selección.</p>
+        <p className="text-ink/60 text-sm">Todavía no cargaste palabras sueltas para esta selección.</p>
       )}
 
       <div className="flex flex-col gap-3">
@@ -345,9 +345,9 @@ export default function AdminGlossaryPage() {
           <div key={entry.id} className="texture-card rounded-xl p-4 flex items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="font-display font-semibold text-ink">
-                {entry.word} <span className="text-ink/40 font-normal">→</span> {entry.translation}
+                {entry.word} <span className="text-ink/60 font-normal">→</span> {entry.translation}
               </p>
-              {entry.example && <p className="text-ink/50 text-sm mt-0.5 italic">{entry.example}</p>}
+              {entry.example && <p className="text-ink/60 text-sm mt-0.5 italic">{entry.example}</p>}
             </div>
             <div className="flex gap-3 shrink-0">
               <button onClick={() => startEdit(entry)} className="text-brand hover:underline text-sm font-medium">

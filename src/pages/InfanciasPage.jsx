@@ -56,7 +56,7 @@ export default function InfanciasPage() {
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2 leading-tight">
           Elegí el grupo
         </h1>
-        <p className="font-playful text-kidsInk/65 mb-6 max-w-lg">
+        <p className="font-playful text-kidsInk/70 mb-6 max-w-lg">
           Como en un juego: cada grupo tiene su propio ritmo y su propio color. Vas a necesitar la clave que te compartió la profe para entrar.
         </p>
 
@@ -67,7 +67,7 @@ export default function InfanciasPage() {
           aria-hidden="true"
         />
 
-        {status === 'loading' && <p className="font-playful text-kidsInk/50 text-sm mb-6">Cargando…</p>}
+        {status === 'loading' && <p className="font-playful text-kidsInk/70 text-sm mb-6">Cargando…</p>}
         {status === 'error' && (
           <p className="font-playful text-kidsRed text-sm mb-6">No pudimos cargar los grupos ahora mismo. Probá de nuevo en un rato.</p>
         )}
@@ -86,7 +86,7 @@ export default function InfanciasPage() {
                 </div>
                 <p className="font-body font-extrabold uppercase tracking-wide text-lg text-kidsInk leading-tight mb-1">{group.name}</p>
                 <p className={`font-playful font-bold text-xs ${c.text} mb-3`}>{group.age_range}</p>
-                <p className="font-playful text-kidsInk/65 text-sm">{group.description}</p>
+                <p className="font-playful text-kidsInk/70 text-sm">{group.description}</p>
               </Link>
             )
           })}

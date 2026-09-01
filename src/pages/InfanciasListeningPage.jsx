@@ -33,7 +33,7 @@ function ListeningItem({ item, c, groupSlug }) {
             allowFullScreen
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-kidsInk/40 p-6 text-center">
+          <div className="flex flex-col items-center gap-2 text-kidsInk/70 p-6 text-center">
             <Video size={28} />
             <p className="font-playful text-sm">Video de muestra — reemplazar por el ID de YouTube real en los datos de este grupo.</p>
           </div>
@@ -56,7 +56,7 @@ function ListeningItem({ item, c, groupSlug }) {
       <div className="flex flex-col gap-4">
         {item.questions.map((q, qi) => (
           <div key={q.id}>
-            <p className="font-playful text-xs text-kidsInk/45 mb-1 font-semibold">Pregunta {qi + 1}</p>
+            <p className="font-playful text-xs text-kidsInk/70 mb-1 font-semibold">Pregunta {qi + 1}</p>
             {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-2" />}
             <p className="font-playful font-semibold text-kidsInk mb-2">{q.q}</p>
             <div className="flex flex-col gap-2">
@@ -121,7 +121,7 @@ function ListeningItem({ item, c, groupSlug }) {
             setSubmitted(false)
             setAnswers({})
           }}
-          className={`mt-6 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+          className={`mt-6 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
         >
           Intentar de nuevo
         </button>
@@ -155,7 +155,7 @@ export default function InfanciasListeningPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -175,7 +175,7 @@ export default function InfanciasListeningPage() {
           Listening 🎧
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Listening</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Mirá el video, leé la transcripción si la necesitás y respondé.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Mirá el video, leé la transcripción si la necesitás y respondé.</p>
 
         {listenings.length === 0 ? (
           <KidsEmptyState label="listenings" />

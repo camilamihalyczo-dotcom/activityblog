@@ -53,7 +53,7 @@ export default function PasswordGate({ target, onUnlock, title, subtitle }) {
           href={buildWhatsAppLink('Hola! No puedo entrar a Activity Blog con mi clave, ¿me ayudás?')}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ink/50 hover:text-ink transition-colors"
+          className="mt-6 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ink/60 hover:text-ink transition-colors"
         >
           <MessageCircle size={14} /> ¿No te funciona? Escribinos por WhatsApp
         </a>

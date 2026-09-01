@@ -45,7 +45,7 @@ function SortableRow({ id, children }) {
         type="button"
         {...attributes}
         {...listeners}
-        className="touch-none cursor-grab active:cursor-grabbing text-ink/25 hover:text-ink/60 shrink-0 p-1"
+        className="touch-none cursor-grab active:cursor-grabbing text-ink/60 hover:text-ink/60 shrink-0 p-1"
         title="Arrastrar para reordenar"
       >
         <GripVertical size={18} />
@@ -211,7 +211,7 @@ export default function AdminTracksPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Tracks y temarios</h1>
@@ -224,13 +224,13 @@ export default function AdminTracksPage() {
       {/* ─── Tracks ─────────────────────────────────────────────────── */}
 
       <form onSubmit={handleTrackSubmit} className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
           {trackForm.id ? 'Editar track' : 'Nuevo track'}
         </p>
 
         <div className="flex gap-4 flex-wrap">
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
               Slug {trackForm.id && '(no editable)'}
             </span>
             <input
@@ -243,7 +243,7 @@ export default function AdminTracksPage() {
             />
           </label>
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Color</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Color</span>
             <select
               value={trackForm.color_key}
               onChange={(e) => setTrackForm({ ...trackForm, color_key: e.target.value })}
@@ -259,7 +259,7 @@ export default function AdminTracksPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Nombre</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nombre</span>
           <input
             required
             value={trackForm.name}
@@ -270,7 +270,7 @@ export default function AdminTracksPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Progresión (texto corto, ej: "24 clases")
           </span>
           <input
@@ -282,7 +282,7 @@ export default function AdminTracksPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Descripción</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Descripción</span>
           <textarea
             required
             rows={2}
@@ -293,7 +293,7 @@ export default function AdminTracksPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Clave de acceso</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Clave de acceso</span>
           <input
             required
             value={trackForm.passcode}
@@ -320,7 +320,7 @@ export default function AdminTracksPage() {
         </div>
       </form>
 
-      {status === 'loading' && <p className="text-ink/50 text-sm mb-6">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm mb-6">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm mb-6">No pudimos cargar los tracks.</p>}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTrackDragEnd}>
@@ -332,7 +332,7 @@ export default function AdminTracksPage() {
                 <SortableRow key={track.id} id={track.id}>
                   <div className={`texture-card rounded-xl p-4 flex items-center justify-between gap-4 ${c?.borderL8 || ''}`}>
                     <div className="min-w-0">
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">{track.slug}</p>
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60">{track.slug}</p>
                       <p className="font-display font-semibold text-ink truncate">{track.name}</p>
                     </div>
                     <div className="flex gap-3 shrink-0">
@@ -367,12 +367,12 @@ export default function AdminTracksPage() {
           </p>
 
           <form onSubmit={handleTemarioSubmit} className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
-            <p className="font-mono text-xs uppercase tracking-widest text-ink/50">
+            <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
               {temarioForm.id ? 'Editar temario' : 'Nuevo temario'}
             </p>
 
             <label>
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
                 Slug {temarioForm.id && '(no editable)'}
               </span>
               <input
@@ -386,7 +386,7 @@ export default function AdminTracksPage() {
             </label>
 
             <label>
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Nombre</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nombre</span>
               <input
                 required
                 value={temarioForm.name}
@@ -396,7 +396,7 @@ export default function AdminTracksPage() {
             </label>
 
             <label>
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Descripción</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Descripción</span>
               <textarea
                 required
                 rows={2}
@@ -428,7 +428,7 @@ export default function AdminTracksPage() {
             </div>
           </form>
 
-          {temarioStatus === 'loading' && <p className="text-ink/50 text-sm mb-6">Cargando…</p>}
+          {temarioStatus === 'loading' && <p className="text-ink/60 text-sm mb-6">Cargando…</p>}
           {temarioStatus === 'error' && <p className="text-stamp text-sm mb-6">No pudimos cargar los temarios.</p>}
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleTemarioDragEnd}>
@@ -438,7 +438,7 @@ export default function AdminTracksPage() {
                   <SortableRow key={temario.id} id={temario.id}>
                     <div className="texture-card rounded-xl p-4 flex items-center justify-between gap-4">
                       <div className="min-w-0">
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">{temario.slug}</p>
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60">{temario.slug}</p>
                         <p className="font-display font-semibold text-ink truncate">{temario.name}</p>
                       </div>
                       <div className="flex gap-3 shrink-0">

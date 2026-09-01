@@ -87,7 +87,7 @@ export default function AdminContentStatusPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Qué falta</h1>
@@ -106,21 +106,21 @@ export default function AdminContentStatusPage() {
         Mostrar solo lo incompleto
       </label>
 
-      {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm">No pudimos cargar este panel.</p>}
 
       {status === 'ready' && (
         <>
           <h2 className="font-display text-xl font-semibold text-ink mb-3">Adultos</h2>
           {visibleAdultos.length === 0 ? (
-            <p className="text-ink/50 text-sm mb-10">
+            <p className="text-ink/60 text-sm mb-10">
               {onlyMissing ? 'Todo cargado ✓ (o todavía no hay tracks/temarios creados).' : 'Sin tracks/temarios creados.'}
             </p>
           ) : (
             <div className="texture-card rounded-2xl overflow-hidden mb-10 overflow-x-auto">
               <table className="w-full text-sm min-w-[720px]">
                 <thead>
-                  <tr className="border-b-2 border-ink/10 text-left text-ink/50 font-mono text-xs uppercase tracking-wide">
+                  <tr className="border-b-2 border-ink/10 text-left text-ink/60 font-mono text-xs uppercase tracking-wide">
                     <th className="px-4 py-3">Nivel</th>
                     <th className="px-4 py-3">Track</th>
                     <th className="px-4 py-3">Temario</th>
@@ -154,14 +154,14 @@ export default function AdminContentStatusPage() {
 
           <h2 className="font-display text-xl font-semibold text-ink mb-3">Infancias</h2>
           {visibleInfancias.length === 0 ? (
-            <p className="text-ink/50 text-sm">
+            <p className="text-ink/60 text-sm">
               {onlyMissing ? 'Todo cargado ✓ (o todavía no hay grupos creados).' : 'Sin grupos creados.'}
             </p>
           ) : (
             <div className="texture-card rounded-2xl overflow-hidden overflow-x-auto">
               <table className="w-full text-sm min-w-[560px]">
                 <thead>
-                  <tr className="border-b-2 border-ink/10 text-left text-ink/50 font-mono text-xs uppercase tracking-wide">
+                  <tr className="border-b-2 border-ink/10 text-left text-ink/60 font-mono text-xs uppercase tracking-wide">
                     <th className="px-4 py-3">Grupo</th>
                     {CONTENT_TYPES.map((ct) => (
                       <th key={ct.key} className="px-2 py-3 text-center">

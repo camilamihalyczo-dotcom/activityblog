@@ -76,7 +76,7 @@ function ImageField({ url, folder, onUpload, onRemove, label = 'Imagen (opcional
 
   return (
     <div>
-      <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">{label}</span>
+      <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">{label}</span>
       {url ? (
         <div className="flex items-center gap-3">
           <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg border-2 border-ink/15" />
@@ -85,7 +85,7 @@ function ImageField({ url, folder, onUpload, onRemove, label = 'Imagen (opcional
           </button>
         </div>
       ) : (
-        <div className="text-xs text-ink/50">
+        <div className="text-xs text-ink/60">
           <input type="file" accept="image/*" onChange={handleChange} disabled={uploading} className="text-xs" />
           {uploading && <span className="ml-2">Subiendo…</span>}
         </div>
@@ -186,7 +186,7 @@ function FlashcardsEditor({ data, onChange }) {
       <input type="file" accept=".csv,text/csv" ref={csvInputRef} onChange={handleCsvFile} className="hidden" />
       {bulkMode && (
         <div className="texture-card rounded-xl p-4 flex flex-col gap-2">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60">
             {bulkFormat === 'csv'
               ? `CSV importado${csvFileName ? ` (${csvFileName})` : ''} — 2 columnas sin encabezado: pregunta/término y respuesta/traducción. Revisá abajo y confirmá.`
               : 'Pegá una lista, una tarjeta por línea: "palabra - traducción"'}
@@ -207,7 +207,7 @@ function FlashcardsEditor({ data, onChange }) {
                 </p>
               ))}
               {parsedPreview.length > 50 && (
-                <p className="text-xs text-ink/40">…y {parsedPreview.length - 50} más</p>
+                <p className="text-xs text-ink/60">…y {parsedPreview.length - 50} más</p>
               )}
             </div>
           )}
@@ -326,7 +326,7 @@ function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false 
       />
       {withHint && (
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Pista (opcional — dejala vacía si no querés que esta pregunta tenga)
           </span>
           <input
@@ -338,7 +338,7 @@ function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false 
         </label>
       )}
       <div className="flex flex-col gap-2">
-        <span className="text-xs font-mono uppercase tracking-wide text-ink/50">
+        <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
           Opciones (marcá la correcta)
         </span>
         {question.options.map((opt, oi) => (
@@ -405,7 +405,7 @@ function QuizEditor({ data, onChange }) {
         <div key={quiz.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
           <div className="flex gap-3 items-start">
             <label className="flex-1">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Título del cuestionario</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título del cuestionario</span>
               <input
                 value={quiz.title}
                 onChange={(e) => updateQuiz(qi, { title: e.target.value })}
@@ -430,14 +430,14 @@ function QuizEditor({ data, onChange }) {
             + Agregar pregunta
           </button>
           {quiz.questions.length === 0 && (
-            <p className="text-ink/50 text-xs">Sin preguntas, este cuestionario no aparece en el sitio.</p>
+            <p className="text-ink/60 text-xs">Sin preguntas, este cuestionario no aparece en el sitio.</p>
           )}
         </div>
       ))}
       <button onClick={addQuiz} className="text-brand hover:underline text-sm font-medium self-start">
         + Agregar cuestionario
       </button>
-      {quizzes.length === 0 && <p className="text-ink/50 text-xs">Sin cuestionarios todavía.</p>}
+      {quizzes.length === 0 && <p className="text-ink/60 text-xs">Sin cuestionarios todavía.</p>}
     </div>
   )
 }
@@ -484,7 +484,7 @@ function ListeningEditor({ data, onChange }) {
             </button>
           </div>
           <label>
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
               ID de YouTube (lo que va después de "v=" en la URL)
             </span>
             <input
@@ -495,7 +495,7 @@ function ListeningEditor({ data, onChange }) {
             />
           </label>
           <label>
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Transcripción</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Transcripción</span>
             <textarea
               rows={4}
               value={item.transcript}
@@ -514,7 +514,7 @@ function ListeningEditor({ data, onChange }) {
             label="Imagen de contexto (opcional, además del video)"
           />
           <div className="flex flex-col gap-3">
-            <span className="text-xs font-mono uppercase tracking-wide text-ink/50">Preguntas</span>
+            <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Preguntas</span>
             {item.questions.map((q, qi) => (
               <OptionsQuestionEditor
                 key={q.id}
@@ -565,7 +565,7 @@ function ReadingWritingEditor({ data, onChange }) {
       {items.map((item, i) => (
         <div key={item.id} className="texture-card rounded-xl p-5 flex flex-col gap-3">
           <div className="flex gap-3 items-center justify-between">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-ink/60">
               {item.type === 'reading' ? 'Reading' : 'Writing'}
             </span>
             <button onClick={() => removeItem(i)} className={`${smallBtn} text-stamp shrink-0`}>
@@ -591,7 +591,7 @@ function ReadingWritingEditor({ data, onChange }) {
           {item.type === 'reading' ? (
             <>
               <label>
-                <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Texto de lectura</span>
+                <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Texto de lectura</span>
                 <textarea
                   rows={6}
                   value={item.text}
@@ -600,7 +600,7 @@ function ReadingWritingEditor({ data, onChange }) {
                 />
               </label>
               <div className="flex flex-col gap-2">
-                <span className="text-xs font-mono uppercase tracking-wide text-ink/50">
+                <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
                   Preguntas (el alumno responde en texto libre, sin corrección automática)
                 </span>
                 {item.questions.map((q, qi) => (
@@ -623,7 +623,7 @@ function ReadingWritingEditor({ data, onChange }) {
             </>
           ) : (
             <label>
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Consigna de escritura</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Consigna de escritura</span>
               <textarea
                 rows={3}
                 value={item.prompt}
@@ -678,7 +678,7 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
     <div className="texture-card rounded-xl p-5 flex flex-col gap-3">
       <div className="flex gap-3 items-start">
         <label className="flex-1">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             {hideOptions
               ? 'Oración (marcá cada espacio con ___ — podés usar más de uno en la misma oración)'
               : 'Oración (marcá el espacio con ___, tres guiones bajos)'}
@@ -707,7 +707,7 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
       />
 
       {!hideOptions && (
-        <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/50">
+        <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/60">
           <input type="checkbox" checked={hasOptions} onChange={toggleOptions} className="accent-brand" />
           Con opciones (multiple choice) en vez de texto libre
         </label>
@@ -715,7 +715,7 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
 
       {hasOptions ? (
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-mono uppercase tracking-wide text-ink/50">
+          <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
             Opciones (marcá la correcta)
           </span>
           {item.options.map((opt, oi) => (
@@ -746,7 +746,7 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
         </div>
       ) : (
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             {hideOptions
               ? 'Palabra(s) que van en el banco compartido — si la oración tiene más de un espacio, escribí una palabra por espacio separadas por |'
               : 'Respuesta correcta (si hay más de una válida, separalas con /)'}
@@ -807,7 +807,7 @@ function FillBlankEditor({ data, onChange }) {
         <div key={exercise.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
           <div className="flex gap-3 items-start">
             <label className="flex-1">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Título del ejercicio</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título del ejercicio</span>
               <input
                 value={exercise.title}
                 onChange={(e) => updateExercise(ei, { title: e.target.value })}
@@ -819,7 +819,7 @@ function FillBlankEditor({ data, onChange }) {
               Borrar ejercicio
             </button>
           </div>
-          <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/50">
+          <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/60">
             <input type="checkbox" checked={!!exercise.wordBank} onChange={() => toggleWordBank(ei)} className="accent-brand" />
             Un solo banco de palabras compartido (en vez de opciones por oración)
           </label>
@@ -836,14 +836,14 @@ function FillBlankEditor({ data, onChange }) {
             + Agregar oración
           </button>
           {exercise.sentences.length === 0 && (
-            <p className="text-ink/50 text-xs">Sin oraciones, este ejercicio no aparece en el sitio.</p>
+            <p className="text-ink/60 text-xs">Sin oraciones, este ejercicio no aparece en el sitio.</p>
           )}
         </div>
       ))}
       <button onClick={addExercise} className="text-brand hover:underline text-sm font-medium self-start">
         + Agregar ejercicio
       </button>
-      {exercises.length === 0 && <p className="text-ink/50 text-xs">Sin ejercicios todavía.</p>}
+      {exercises.length === 0 && <p className="text-ink/60 text-xs">Sin ejercicios todavía.</p>}
     </div>
   )
 }
@@ -872,7 +872,7 @@ function SynonymsAntonymsEditor({ data, onChange }) {
         <div key={item.id} className="texture-card rounded-xl p-4 flex flex-col gap-3">
           <div className="flex gap-3 items-start flex-wrap">
             <label className="flex-1 min-w-[160px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Palabra</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Palabra</span>
               <input
                 value={item.word}
                 onChange={(e) => updateItem(i, { word: e.target.value })}
@@ -881,7 +881,7 @@ function SynonymsAntonymsEditor({ data, onChange }) {
               />
             </label>
             <label className="min-w-[140px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Relación</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Relación</span>
               <select
                 value={item.relation}
                 onChange={(e) => updateItem(i, { relation: e.target.value })}
@@ -892,7 +892,7 @@ function SynonymsAntonymsEditor({ data, onChange }) {
               </select>
             </label>
             <label className="flex-1 min-w-[160px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
                 {item.relation === 'antonym' ? 'Antónimo correcto' : 'Sinónimo correcto'}
               </span>
               <input
@@ -921,7 +921,7 @@ function SynonymsAntonymsEditor({ data, onChange }) {
       <button onClick={addItem} className="text-brand hover:underline text-sm font-medium self-start">
         + Agregar par
       </button>
-      {items.length === 0 && <p className="text-ink/50 text-xs">Sin pares todavía.</p>}
+      {items.length === 0 && <p className="text-ink/60 text-xs">Sin pares todavía.</p>}
     </div>
   )
 }
@@ -954,7 +954,7 @@ function PronunciationEditor({ data, onChange }) {
       {groups.map((group, gi) => (
         <div key={group.id} className="texture-card rounded-xl p-4 flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-mono uppercase tracking-wide text-ink/50">
+            <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
               Grupo {gi + 1} (palabras que suenan parecido)
             </span>
             <button onClick={() => removeGroup(gi)} className={`${smallBtn} text-stamp`}>
@@ -993,7 +993,7 @@ function PronunciationEditor({ data, onChange }) {
         + Agregar grupo
       </button>
       {groups.length === 0 && (
-        <p className="text-ink/50 text-xs">
+        <p className="text-ink/60 text-xs">
           Sin grupos todavía. Cada grupo son 2 o más palabras que suenan parecido (ej: ship / sheep). La primera
           palabra que cargues queda fija como consigna; el resto son las que el alumno tiene que emparejar.
         </p>
@@ -1140,7 +1140,7 @@ export default function AdminContentPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Contenido</h1>
@@ -1169,7 +1169,7 @@ export default function AdminContentPage() {
         {scope === 'adultos' ? (
           <div className="flex gap-4 flex-wrap">
             <label className="flex-1 min-w-[200px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Nivel</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nivel</span>
               <select
                 value={selectedLevelSlug}
                 onChange={(e) => setSelectedLevelSlug(e.target.value)}
@@ -1184,7 +1184,7 @@ export default function AdminContentPage() {
               </select>
             </label>
             <label className="flex-1 min-w-[200px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Track</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Track</span>
               <select
                 value={selectedTrackSlug}
                 onChange={(e) => setSelectedTrackSlug(e.target.value)}
@@ -1199,7 +1199,7 @@ export default function AdminContentPage() {
               </select>
             </label>
             <label className="flex-1 min-w-[200px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Temario</span>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Temario</span>
               <select
                 value={selectedTemarioSlug}
                 onChange={(e) => setSelectedTemarioSlug(e.target.value)}
@@ -1217,7 +1217,7 @@ export default function AdminContentPage() {
           </div>
         ) : (
           <label>
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Grupo</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Grupo</span>
             <select
               value={selectedGroupSlug}
               onChange={(e) => setSelectedGroupSlug(e.target.value)}
@@ -1248,8 +1248,8 @@ export default function AdminContentPage() {
         </div>
       </div>
 
-      {!scopeKey && <p className="text-ink/50 text-sm">Elegí dónde vive el contenido para empezar a editar.</p>}
-      {scopeKey && contentStatus === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {!scopeKey && <p className="text-ink/60 text-sm">Elegí dónde vive el contenido para empezar a editar.</p>}
+      {scopeKey && contentStatus === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {scopeKey && contentStatus === 'error' && <p className="text-stamp text-sm">No pudimos cargar este contenido.</p>}
 
       {scopeKey && editorReady && (

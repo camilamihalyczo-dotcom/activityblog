@@ -41,12 +41,12 @@ export default function AdultosBlogPage() {
           Un espacio aparte de las clases: novedades del curso, tips para practicar y alguna reflexión sobre aprender inglés.
         </p>
 
-        {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+        {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
         {status === 'error' && (
           <p className="text-stamp text-sm">No pudimos cargar el blog ahora mismo. Probá de nuevo en un rato.</p>
         )}
         {status === 'ready' && posts.length === 0 && (
-          <p className="text-ink/50 text-sm">Todavía no hay posts publicados.</p>
+          <p className="text-ink/60 text-sm">Todavía no hay posts publicados.</p>
         )}
 
         <div className="flex flex-col gap-8">
@@ -60,7 +60,7 @@ export default function AdultosBlogPage() {
                   loading="lazy"
                 />
               )}
-              <p className="font-mono text-xs text-ink/40 mb-2 uppercase tracking-wider">{formatPostDate(post.date)}</p>
+              <p className="font-mono text-xs text-ink/60 mb-2 uppercase tracking-wider">{formatPostDate(post.date)}</p>
               <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-3">{post.title}</h2>
               <div
                 className="post-body text-ink/80 leading-relaxed"

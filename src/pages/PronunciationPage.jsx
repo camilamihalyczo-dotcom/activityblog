@@ -79,7 +79,7 @@ export default function PronunciationPage() {
   }, [slug, themeSlug, temarioSlug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error' || !theme || !temario) {
     return (
@@ -199,7 +199,7 @@ export default function PronunciationPage() {
                         disabled={submitted}
                         onClick={() => handleSlotClick(slot.id)}
                         className={`min-w-[96px] px-3 py-2 rounded-lg border-2 border-dashed text-sm font-medium transition-colors text-center
-                          ${!chip ? 'border-ink/25 text-ink/30' : 'border-solid border-ink bg-ink/5 text-ink'}
+                          ${!chip ? 'border-ink/25 text-ink/60' : 'border-solid border-ink bg-ink/5 text-ink'}
                           ${correct ? 'border-solid border-olive bg-olive/10 text-ink' : ''}
                           ${wrong ? 'border-solid border-stamp bg-stamp/10 text-ink' : ''}
                         `}
@@ -215,7 +215,7 @@ export default function PronunciationPage() {
         </div>
 
         <div className="texture-card rounded-2xl p-5 mt-4">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40 mb-3">Banco de palabras</p>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60 mb-3">Banco de palabras</p>
           <div className="flex flex-wrap gap-2">
             {bankChipIds.map((id) => {
               const chip = chipsById[id]
@@ -233,7 +233,7 @@ export default function PronunciationPage() {
                 </button>
               )
             })}
-            {bankChipIds.length === 0 && <p className="text-ink/40 text-xs">Usaste todas las palabras.</p>}
+            {bankChipIds.length === 0 && <p className="text-ink/60 text-xs">Usaste todas las palabras.</p>}
           </div>
         </div>
 

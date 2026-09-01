@@ -41,16 +41,16 @@ export default function InfanciasBlogPage() {
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2 leading-tight">
           Novedades del club
         </h1>
-        <p className="font-playful text-kidsInk/65 mb-10 max-w-lg">
+        <p className="font-playful text-kidsInk/70 mb-10 max-w-lg">
           Noticias, ideas para reforzar el inglés en casa y alguna reflexión, para las familias de English Kids Club.
         </p>
 
-        {status === 'loading' && <p className="font-playful text-kidsInk/50 text-sm">Cargando…</p>}
+        {status === 'loading' && <p className="font-playful text-kidsInk/70 text-sm">Cargando…</p>}
         {status === 'error' && (
           <p className="font-playful text-kidsRed text-sm">No pudimos cargar el blog ahora mismo. Probá de nuevo en un rato.</p>
         )}
         {status === 'ready' && posts.length === 0 && (
-          <p className="font-playful text-kidsInk/50 text-sm">Todavía no hay posts publicados.</p>
+          <p className="font-playful text-kidsInk/70 text-sm">Todavía no hay posts publicados.</p>
         )}
 
         <div className="relative flex flex-col gap-6">
@@ -64,7 +64,7 @@ export default function InfanciasBlogPage() {
                   loading="lazy"
                 />
               )}
-              <p className="font-playful text-xs text-kidsInk/45 mb-2 font-semibold uppercase tracking-wide">{formatPostDate(post.date)}</p>
+              <p className="font-playful text-xs text-kidsInk/70 mb-2 font-semibold uppercase tracking-wide">{formatPostDate(post.date)}</p>
               <h2 className="font-body font-extrabold uppercase tracking-wide text-lg sm:text-xl text-kidsInk mb-3">{post.title}</h2>
               <div
                 className="post-body font-playful text-kidsInk/80 leading-relaxed"

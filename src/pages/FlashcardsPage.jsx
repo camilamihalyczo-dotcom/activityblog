@@ -62,7 +62,7 @@ export default function FlashcardsPage() {
   }
 
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error' || !theme || !temario) {
     return (
@@ -88,7 +88,7 @@ export default function FlashcardsPage() {
           <EmptyState label="flashcards" />
         ) : (
           <>
-            <p className="font-mono text-xs text-ink/50 mb-3 uppercase tracking-wider">
+            <p className="font-mono text-xs text-ink/60 mb-3 uppercase tracking-wider">
               Tarjeta {index + 1} de {order.length}
             </p>
             <button

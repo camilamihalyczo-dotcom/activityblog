@@ -8,7 +8,7 @@ export default function KidsHeader({ crumbs = [], backTo }) {
   return (
     <div className="sticky top-0 z-50 bg-kidsCream/90 backdrop-blur-sm border-b-2 border-kidsInk/[0.06]">
       <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-playful text-xs sm:text-sm font-semibold text-kidsInk/70">
+        <div className="flex items-center gap-2 font-playful text-xs sm:text-sm font-semibold text-kidsInk/70 min-w-0 overflow-x-auto">
           {backTo && (
             <Link
               to={backTo}
@@ -20,12 +20,12 @@ export default function KidsHeader({ crumbs = [], backTo }) {
           )}
           {crumbs.map((c, i) => (
             <span key={i} className="flex items-center gap-2">
-              {i > 0 && <span className="text-kidsInk/30">/</span>}
+              {i > 0 && <span className="text-kidsInk/70">/</span>}
               <span className={i === crumbs.length - 1 ? 'text-kidsInk font-bold' : ''}>{c}</span>
             </span>
           ))}
         </div>
-        <Link to="/" className="font-playful font-extrabold text-kidsInk text-sm sm:text-base whitespace-nowrap">
+        <Link to="/" className="font-playful font-extrabold text-kidsInk text-sm sm:text-base whitespace-nowrap shrink-0">
           Activity<span className="text-kidsPurpleDeep">·</span>Blog
         </Link>
       </div>

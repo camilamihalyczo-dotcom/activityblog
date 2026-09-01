@@ -37,7 +37,7 @@ function BankChip({ id, text, selected, onClick, disabled }) {
       {...listeners}
       {...attributes}
     >
-      <GripVertical size={14} className="text-ink/30 shrink-0" />
+      <GripVertical size={14} className="text-ink/60 shrink-0" />
       {text}
     </button>
   )
@@ -115,7 +115,7 @@ export default function MatchingPage() {
   }, [slug, themeSlug, temarioSlug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error' || !theme || !temario) {
     return (
@@ -200,11 +200,11 @@ export default function MatchingPage() {
 
           {!submitted && (
             <div className="mt-6 texture-card rounded-2xl p-5">
-              <p className="font-mono text-xs uppercase tracking-wide text-ink/50 mb-3">
+              <p className="font-mono text-xs uppercase tracking-wide text-ink/60 mb-3">
                 Coincidencias {bankChips.length === 0 ? '(todas ubicadas)' : `(${bankChips.length} sin ubicar)`}
               </p>
               <div className="flex flex-wrap gap-2">
-                {bankChips.length === 0 && <p className="text-ink/40 text-sm">¡Listo! Apretá "Corregir".</p>}
+                {bankChips.length === 0 && <p className="text-ink/60 text-sm">¡Listo! Apretá "Corregir".</p>}
                 {bankChips.map((id) => (
                   <BankChip
                     key={id}

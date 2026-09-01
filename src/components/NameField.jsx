@@ -9,7 +9,7 @@ export default function NameField({ value, onChange, kids = false, c }) {
   if (kids) {
     return (
       <label className="block mb-5">
-        <span className="block font-playful text-xs font-semibold uppercase tracking-wide text-kidsInk/50 mb-1">
+        <span className="block font-playful text-xs font-semibold uppercase tracking-wide text-kidsInk/70 mb-1">
           Tu nombre
         </span>
         <input
@@ -25,7 +25,7 @@ export default function NameField({ value, onChange, kids = false, c }) {
 
   return (
     <label className="block mb-5">
-      <span className="block font-mono text-xs uppercase tracking-wide text-ink/50 mb-1">Tu nombre</span>
+      <span className="block font-mono text-xs uppercase tracking-wide text-ink/60 mb-1">Tu nombre</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}

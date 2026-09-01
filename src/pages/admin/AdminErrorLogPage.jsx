@@ -113,7 +113,7 @@ export default function AdminErrorLogPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Registro de errores</h1>
@@ -123,13 +123,13 @@ export default function AdminErrorLogPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
           {form.id ? 'Editar nota' : 'Nueva nota'}
         </p>
 
         <div className="flex gap-4 flex-wrap">
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
               Alumno / grupo
             </span>
             <input
@@ -147,7 +147,7 @@ export default function AdminErrorLogPage() {
             </datalist>
           </label>
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Fecha</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Fecha</span>
             <input
               type="date"
               required
@@ -159,7 +159,7 @@ export default function AdminErrorLogPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Categoría (ej: Present Perfect, preposiciones, pronunciación /th/)
           </span>
           <input
@@ -171,7 +171,7 @@ export default function AdminErrorLogPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Ejemplo textual del error (opcional)
           </span>
           <input
@@ -183,7 +183,7 @@ export default function AdminErrorLogPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Corrección (opcional)
           </span>
           <input
@@ -195,7 +195,7 @@ export default function AdminErrorLogPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Notas adicionales (opcional)
           </span>
           <textarea
@@ -226,7 +226,7 @@ export default function AdminErrorLogPage() {
 
       <div className="flex gap-4 flex-wrap items-end mb-6">
         <label className="min-w-[180px]">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Filtrar por alumno</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Filtrar por alumno</span>
           <select
             value={studentFilter}
             onChange={(e) => setStudentFilter(e.target.value)}
@@ -248,31 +248,31 @@ export default function AdminErrorLogPage() {
 
       {categoryCounts.length > 0 && (
         <div className="texture-card rounded-2xl p-6 mb-10">
-          <p className="font-mono text-xs uppercase tracking-widest text-ink/50 mb-3">
+          <p className="font-mono text-xs uppercase tracking-widest text-ink/60 mb-3">
             Categorías más repetidas {studentFilter !== 'todos' ? `— ${studentFilter}` : ''}
           </p>
           <div className="flex flex-col gap-2">
             {categoryCounts.map(({ category, count }) => (
               <div key={category} className="flex items-center gap-3">
                 <span className="text-sm text-ink flex-1">{category}</span>
-                <span className="font-mono text-xs text-ink/50">{count}×</span>
+                <span className="font-mono text-xs text-ink/60">{count}×</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm">No pudimos cargar las notas.</p>}
       {status === 'ready' && filtered.length === 0 && (
-        <p className="text-ink/50 text-sm">Todavía no hay notas cargadas para este filtro.</p>
+        <p className="text-ink/60 text-sm">Todavía no hay notas cargadas para este filtro.</p>
       )}
 
       <div className="flex flex-col gap-3">
         {filtered.map((entry) => (
           <div key={entry.id} className="texture-card rounded-xl p-4 flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60">
                 {entry.student} · {entry.note_date}
               </p>
               <p className="font-display font-semibold text-ink">{entry.category}</p>
@@ -287,7 +287,7 @@ export default function AdminErrorLogPage() {
                   )}
                 </p>
               )}
-              {entry.notes && <p className="text-ink/50 text-sm mt-1">{entry.notes}</p>}
+              {entry.notes && <p className="text-ink/60 text-sm mt-1">{entry.notes}</p>}
             </div>
             <div className="flex gap-3 shrink-0">
               <button onClick={() => startEdit(entry)} className="text-brand hover:underline text-sm font-medium">

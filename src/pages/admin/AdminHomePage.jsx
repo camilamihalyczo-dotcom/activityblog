@@ -75,7 +75,7 @@ export default function AdminHomePage() {
             <div key={s.label} className="texture-card rounded-2xl p-6 opacity-50">
               <p className="font-display text-lg font-semibold text-ink mb-1">{s.label}</p>
               <p className="text-ink/60 text-sm mb-3">{s.desc}</p>
-              <span className="inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 text-ink/40 border-ink/20">
+              <span className="inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 text-ink/60 border-ink/20">
                 Próximamente
               </span>
             </div>

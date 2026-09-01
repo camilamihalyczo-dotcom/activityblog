@@ -71,7 +71,7 @@ export default function InfanciasPronunciationPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -166,7 +166,7 @@ export default function InfanciasPronunciationPage() {
           Pronunciación 🔊
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Pronunciación</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">
+        <p className="font-playful text-kidsInk/70 mb-8">
           Tocá una palabra del banco de abajo y después tocá el casillero de la palabra con la que suena parecido.
         </p>
 
@@ -189,7 +189,7 @@ export default function InfanciasPronunciationPage() {
                         disabled={submitted}
                         onClick={() => handleSlotClick(slot.id)}
                         className={`min-w-[96px] px-3 py-2 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
-                          ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
+                          ${!chip ? 'border-kidsInk/25 text-kidsInk/70' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
                           ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
                           ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
                         `}
@@ -205,7 +205,7 @@ export default function InfanciasPronunciationPage() {
         </div>
 
         <div className="bg-white rounded-[22px] shadow-kids p-5 mt-4">
-          <p className="font-playful text-[10px] uppercase tracking-widest font-semibold text-kidsInk/40 mb-3">Banco de palabras</p>
+          <p className="font-playful text-[10px] uppercase tracking-widest font-semibold text-kidsInk/70 mb-3">Banco de palabras</p>
           <div className="flex flex-wrap gap-2">
             {bankChipIds.map((id) => {
               const chip = chipsById[id]
@@ -223,7 +223,7 @@ export default function InfanciasPronunciationPage() {
                 </button>
               )
             })}
-            {bankChipIds.length === 0 && <p className="font-playful text-kidsInk/40 text-xs">Usaste todas las palabras.</p>}
+            {bankChipIds.length === 0 && <p className="font-playful text-kidsInk/70 text-xs">Usaste todas las palabras.</p>}
           </div>
         </div>
 
@@ -245,7 +245,7 @@ export default function InfanciasPronunciationPage() {
             </p>
             <button
               onClick={retry}
-              className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+              className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
             >
               Intentar de nuevo
             </button>

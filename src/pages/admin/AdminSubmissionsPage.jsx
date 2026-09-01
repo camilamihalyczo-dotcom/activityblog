@@ -22,7 +22,7 @@ function SubmissionRow({ entry, onDelete }) {
     <div className="texture-card rounded-xl p-4">
       <button onClick={() => setOpen((o) => !o)} className="w-full flex items-start justify-between gap-4 text-left">
         <div className="min-w-0">
-          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60">
             {entry.scope === 'adultos' ? 'Adultos' : 'Infancias'} · {where}
             {entry.label ? ` · ${entry.label}` : ''} · {new Date(entry.created_at).toLocaleDateString('es-AR')}
           </p>
@@ -36,7 +36,7 @@ function SubmissionRow({ entry, onDelete }) {
             </p>
           )}
         </div>
-        <span className="shrink-0 text-ink/40">{open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
+        <span className="shrink-0 text-ink/60">{open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
       </button>
 
       {open && (
@@ -52,9 +52,9 @@ function SubmissionRow({ entry, onDelete }) {
                     ) : (
                       <XCircle size={14} className="text-stamp shrink-0" />
                     )}
-                    <span>{d.given ?? <span className="italic text-ink/40">(sin responder)</span>}</span>
+                    <span>{d.given ?? <span className="italic text-ink/60">(sin responder)</span>}</span>
                     {!d.is_correct && (
-                      <span className="font-mono text-xs text-ink/50">→ {d.correct}</span>
+                      <span className="font-mono text-xs text-ink/60">→ {d.correct}</span>
                     )}
                   </p>
                 </>
@@ -62,7 +62,7 @@ function SubmissionRow({ entry, onDelete }) {
                 <>
                   {d.prompt && <p className="text-ink/60 italic mb-1">{d.prompt}</p>}
                   <p className="text-ink/85 whitespace-pre-line bg-paper rounded-lg p-3">
-                    {d.answer || <span className="italic text-ink/40">(sin responder)</span>}
+                    {d.answer || <span className="italic text-ink/60">(sin responder)</span>}
                   </p>
                 </>
               )}
@@ -128,7 +128,7 @@ export default function AdminSubmissionsPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Respuestas de los alumnos</h1>
@@ -139,7 +139,7 @@ export default function AdminSubmissionsPage() {
 
       <div className="flex gap-4 flex-wrap items-end mb-6">
         <label className="min-w-[140px]">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Adultos/Infancias</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Adultos/Infancias</span>
           <select
             value={scopeFilter}
             onChange={(e) => setScopeFilter(e.target.value)}
@@ -151,7 +151,7 @@ export default function AdminSubmissionsPage() {
           </select>
         </label>
         <label className="min-w-[180px]">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Tipo de ejercicio</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Tipo de ejercicio</span>
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value)}
@@ -166,7 +166,7 @@ export default function AdminSubmissionsPage() {
           </select>
         </label>
         <label className="min-w-[180px]">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Alumno</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Alumno</span>
           <select
             value={studentFilter}
             onChange={(e) => setStudentFilter(e.target.value)}
@@ -186,7 +186,7 @@ export default function AdminSubmissionsPage() {
         </label>
       </div>
 
-      {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {status === 'error' && (
         <p className="text-stamp text-sm">
           No pudimos cargar las respuestas. Si todavía no corriste{' '}
@@ -195,7 +195,7 @@ export default function AdminSubmissionsPage() {
         </p>
       )}
       {status === 'ready' && filtered.length === 0 && (
-        <p className="text-ink/50 text-sm">Todavía no hay respuestas guardadas para este filtro.</p>
+        <p className="text-ink/60 text-sm">Todavía no hay respuestas guardadas para este filtro.</p>
       )}
 
       <div className="flex flex-col gap-3">

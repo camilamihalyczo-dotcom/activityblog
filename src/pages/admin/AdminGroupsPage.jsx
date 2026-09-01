@@ -20,7 +20,7 @@ function SortableRow({ id, children }) {
         type="button"
         {...attributes}
         {...listeners}
-        className="touch-none cursor-grab active:cursor-grabbing text-ink/25 hover:text-ink/60 shrink-0 p-1"
+        className="touch-none cursor-grab active:cursor-grabbing text-ink/60 hover:text-ink/60 shrink-0 p-1"
         title="Arrastrar para reordenar"
       >
         <GripVertical size={18} />
@@ -131,7 +131,7 @@ export default function AdminGroupsPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Grupos (Infancias)</h1>
@@ -140,11 +140,11 @@ export default function AdminGroupsPage() {
       </p>
 
       <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">{form.id ? 'Editar grupo' : 'Nuevo grupo'}</p>
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60">{form.id ? 'Editar grupo' : 'Nuevo grupo'}</p>
 
         <div className="flex gap-4 flex-wrap">
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
               Slug {form.id && '(no editable)'}
             </span>
             <input
@@ -157,7 +157,7 @@ export default function AdminGroupsPage() {
             />
           </label>
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Color</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Color</span>
             <select
               value={form.color_key}
               onChange={(e) => setForm({ ...form, color_key: e.target.value })}
@@ -173,7 +173,7 @@ export default function AdminGroupsPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Nombre</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nombre</span>
           <input
             required
             value={form.name}
@@ -185,7 +185,7 @@ export default function AdminGroupsPage() {
 
         <div className="flex gap-4 flex-wrap">
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Rango de edad</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Rango de edad</span>
             <input
               required
               value={form.age_range}
@@ -195,7 +195,7 @@ export default function AdminGroupsPage() {
             />
           </label>
           <label className="w-40">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Nivel (1 a 4)</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nivel (1 a 4)</span>
             <input
               type="number"
               min={1}
@@ -208,7 +208,7 @@ export default function AdminGroupsPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Descripción</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Descripción</span>
           <textarea
             required
             rows={2}
@@ -219,7 +219,7 @@ export default function AdminGroupsPage() {
         </label>
 
         <div>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-2">Actividades disponibles</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-2">Actividades disponibles</span>
           <div className="flex gap-4 flex-wrap">
             {ALL_TOPICS.map((topic) => (
               <label key={topic.slug} className="flex items-center gap-2 text-sm text-ink">
@@ -236,7 +236,7 @@ export default function AdminGroupsPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Clave de acceso</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Clave de acceso</span>
           <input
             required
             value={form.passcode}
@@ -263,10 +263,10 @@ export default function AdminGroupsPage() {
         </div>
       </form>
 
-      {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm">No pudimos cargar los grupos.</p>}
       {status === 'ready' && (
-        <p className="text-ink/40 text-xs mb-3">Arrastrá del ícono de la izquierda para cambiar el orden en que se muestran.</p>
+        <p className="text-ink/60 text-xs mb-3">Arrastrá del ícono de la izquierda para cambiar el orden en que se muestran.</p>
       )}
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -278,7 +278,7 @@ export default function AdminGroupsPage() {
                 <SortableRow key={group.id} id={group.id}>
                   <div className={`texture-card rounded-xl p-4 flex items-center justify-between gap-4 ${c?.borderT8 || ''}`}>
                     <div className="min-w-0">
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60">
                         {group.slug} · nivel {group.milestone} · {group.age_range}
                       </p>
                       <p className="font-display font-semibold text-ink truncate">{group.name}</p>

@@ -46,7 +46,7 @@ export default function GlossaryPage() {
 
   if (!level) return <Navigate to="/adultos" replace />
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error') {
     return (
@@ -86,7 +86,7 @@ export default function GlossaryPage() {
         ) : (
           <>
             <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/60" size={16} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -96,7 +96,7 @@ export default function GlossaryPage() {
             </div>
 
             {filtered.length === 0 ? (
-              <p className="text-ink/50 text-sm text-center py-8">No encontramos ninguna palabra con eso.</p>
+              <p className="text-ink/60 text-sm text-center py-8">No encontramos ninguna palabra con eso.</p>
             ) : (
               <div className="flex flex-col divide-y-2 divide-dashed divide-ink/10">
                 {filtered.map((w, i) => (
@@ -105,7 +105,7 @@ export default function GlossaryPage() {
                       <span className="font-display font-semibold text-ink">{w.word}</span>
                       <span className="text-ink/60 text-sm text-right">{w.translation}</span>
                     </div>
-                    {w.example && <p className="text-ink/45 text-xs mt-1 italic">{w.example}</p>}
+                    {w.example && <p className="text-ink/60 text-xs mt-1 italic">{w.example}</p>}
                   </div>
                 ))}
               </div>

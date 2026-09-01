@@ -29,7 +29,7 @@ function QuizGroup({ quiz, c, groupSlug }) {
       <div className="flex flex-col gap-6">
         {quiz.questions.map((q, qi) => (
           <div key={q.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
-            <p className="font-playful text-xs text-kidsInk/45 mb-2 font-semibold">Pregunta {qi + 1}</p>
+            <p className="font-playful text-xs text-kidsInk/70 mb-2 font-semibold">Pregunta {qi + 1}</p>
             {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
             <p className="font-playful font-semibold text-kidsInk mb-2">{q.q}</p>
             <QuestionHint hint={q.hint} kids />
@@ -99,7 +99,7 @@ function QuizGroup({ quiz, c, groupSlug }) {
               setSubmitted(false)
               setAnswers({})
             }}
-            className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+            className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
           >
             Intentar de nuevo
           </button>
@@ -134,7 +134,7 @@ export default function InfanciasQuizPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -155,7 +155,7 @@ export default function InfanciasQuizPage() {
           Cuestionario ✅
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Cuestionario</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Elegí la opción correcta en cada pregunta.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Elegí la opción correcta en cada pregunta.</p>
 
         {nonEmptyQuizzes.length === 0 ? (
           <KidsEmptyState label="cuestionarios" />

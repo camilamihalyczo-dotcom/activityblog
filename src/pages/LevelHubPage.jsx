@@ -54,7 +54,7 @@ export default function LevelHubPage() {
           Nivel {level.code} · {level.name} — cada track es una especialización en paralelo, con sus propias flashcards, cuestionario, listening y reading &amp; writing.
         </p>
 
-        {status === 'loading' && <p className="text-ink/50 text-sm mb-6">Cargando…</p>}
+        {status === 'loading' && <p className="text-ink/60 text-sm mb-6">Cargando…</p>}
         {status === 'error' && (
           <p className="text-stamp text-sm mb-6">No pudimos cargar los tracks ahora mismo. Probá de nuevo en un rato.</p>
         )}

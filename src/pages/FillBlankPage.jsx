@@ -70,7 +70,7 @@ function FillBlankItem({ item, c, value, onChange, submitted }) {
         <>
           <p className="text-ink mb-3 leading-relaxed">
             {before}
-            <span className="font-semibold text-ink/40">{value || '_____'}</span>
+            <span className="font-semibold text-ink/60">{value || '_____'}</span>
             {after}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -115,7 +115,7 @@ function FillBlankItem({ item, c, value, onChange, submitted }) {
           {wrong && (
             <>
               <XCircle size={16} className="text-stamp shrink-0" />
-              <span className="font-mono text-xs text-ink/50">→ {item.answer.split('/')[0].trim()}</span>
+              <span className="font-mono text-xs text-ink/60">→ {item.answer.split('/')[0].trim()}</span>
             </>
           )}
         </p>
@@ -293,7 +293,7 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
       {exercise.title && <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-4">{exercise.title}</h2>}
 
       <div className="texture-card rounded-2xl p-5 mb-6 sticky top-3 z-10 shadow-md">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40 mb-3">Banco de palabras</p>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60 mb-3">Banco de palabras</p>
         <div className="flex flex-wrap gap-2">
           {bankChipIds.map((id) => {
             const chipItem = chipsById[id]
@@ -311,7 +311,7 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
               </button>
             )
           })}
-          {bankChipIds.length === 0 && <p className="text-ink/40 text-xs">Usaste todas las palabras.</p>}
+          {bankChipIds.length === 0 && <p className="text-ink/60 text-xs">Usaste todas las palabras.</p>}
         </div>
       </div>
 
@@ -326,7 +326,7 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
                   return (
                     <Fragment key={si}>
                       {seg && <span>{seg}</span>}
-                      {si < item.blanks.length && <span className="text-ink/30">___</span>}
+                      {si < item.blanks.length && <span className="text-ink/60">___</span>}
                     </Fragment>
                   )
                 }
@@ -342,7 +342,7 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
                       disabled={submitted}
                       onClick={() => handleSlotClick(slotId)}
                       className={`min-w-[96px] px-3 py-1.5 rounded-lg border-2 border-dashed text-sm font-medium transition-colors text-center
-                        ${!chip ? 'border-ink/25 text-ink/30' : 'border-solid border-ink bg-ink/5 text-ink'}
+                        ${!chip ? 'border-ink/25 text-ink/60' : 'border-solid border-ink bg-ink/5 text-ink'}
                         ${correct ? 'border-solid border-olive bg-olive/10 text-ink' : ''}
                         ${wrong ? 'border-solid border-stamp bg-stamp/10 text-ink' : ''}
                       `}
@@ -416,7 +416,7 @@ export default function FillBlankPage() {
   }, [slug, themeSlug, temarioSlug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error' || !theme || !temario) {
     return (

@@ -36,7 +36,7 @@ function BankChip({ id, text, selected, onClick, disabled }) {
       {...listeners}
       {...attributes}
     >
-      <GripVertical size={14} className="text-kidsInk/30 shrink-0" />
+      <GripVertical size={14} className="text-kidsInk/70 shrink-0" />
       {text}
     </button>
   )
@@ -107,7 +107,7 @@ export default function InfanciasMatchingPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -170,7 +170,7 @@ export default function InfanciasMatchingPage() {
           Sinónimos y antónimos 🔄
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Sinónimos y antónimos</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Tocá una palabra y después la tarjeta a la que corresponde.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Tocá una palabra y después la tarjeta a la que corresponde.</p>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div className="flex flex-col gap-6">
@@ -190,11 +190,11 @@ export default function InfanciasMatchingPage() {
 
           {!submitted && (
             <div className="mt-6 bg-white rounded-[22px] shadow-kids p-5">
-              <p className="font-playful text-xs uppercase tracking-wide text-kidsInk/45 font-semibold mb-3">
+              <p className="font-playful text-xs uppercase tracking-wide text-kidsInk/70 font-semibold mb-3">
                 Palabras {bankChips.length === 0 ? '(todas ubicadas)' : `(${bankChips.length} sin ubicar)`}
               </p>
               <div className="flex flex-wrap gap-2">
-                {bankChips.length === 0 && <p className="text-kidsInk/40 font-playful text-sm">¡Listo! Apretá "Corregir".</p>}
+                {bankChips.length === 0 && <p className="text-kidsInk/70 font-playful text-sm">¡Listo! Apretá "Corregir".</p>}
                 {bankChips.map((id) => (
                   <BankChip
                     key={id}
@@ -243,7 +243,7 @@ export default function InfanciasMatchingPage() {
             <p className="font-body font-extrabold text-2xl text-kidsInk">
               {score} / {items.length} correctas
             </p>
-            <button onClick={retry} className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}>
+            <button onClick={retry} className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}>
               Intentar de nuevo
             </button>
           </div>

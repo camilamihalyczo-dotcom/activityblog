@@ -43,7 +43,7 @@ export default function InfanciasGlossaryPage() {
   }, [words, query])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error') {
     return (
@@ -68,14 +68,14 @@ export default function InfanciasGlossaryPage() {
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">
           Glosario
         </h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Todas las palabras nuevas que fuimos aprendiendo, juntas acá.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Todas las palabras nuevas que fuimos aprendiendo, juntas acá.</p>
 
         {words.length === 0 ? (
           <EmptyState label="palabras" />
         ) : (
           <>
             <div className="relative z-10 mb-6">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-kidsInk/30" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-kidsInk/70" size={16} />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
@@ -85,16 +85,16 @@ export default function InfanciasGlossaryPage() {
             </div>
 
             {filtered.length === 0 ? (
-              <p className="font-playful text-kidsInk/50 text-sm text-center py-8">No encontramos ninguna palabra con eso.</p>
+              <p className="font-playful text-kidsInk/70 text-sm text-center py-8">No encontramos ninguna palabra con eso.</p>
             ) : (
               <div className="relative z-10 flex flex-col gap-2.5">
                 {filtered.map((w, i) => (
                   <div key={`${w.word}-${i}`} className="bg-white rounded-xl shadow-kids p-4">
                     <div className="flex items-baseline justify-between gap-4">
                       <span className="font-body font-extrabold text-kidsInk">{w.word}</span>
-                      <span className="font-playful text-kidsInk/60 text-sm text-right">{w.translation}</span>
+                      <span className="font-playful text-kidsInk/70 text-sm text-right">{w.translation}</span>
                     </div>
-                    {w.example && <p className="font-playful text-kidsInk/45 text-xs mt-1 italic">{w.example}</p>}
+                    {w.example && <p className="font-playful text-kidsInk/70 text-xs mt-1 italic">{w.example}</p>}
                   </div>
                 ))}
               </div>

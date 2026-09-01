@@ -42,7 +42,7 @@ export default function InfanciasGroupHubPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error') {
     return (
@@ -89,7 +89,7 @@ export default function InfanciasGroupHubPage() {
         </div>
 
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Temas generales</h1>
-        <p className="font-playful text-kidsInk/65 mb-10">{group.name} · {group.description}</p>
+        <p className="font-playful text-kidsInk/70 mb-10">{group.name} · {group.description}</p>
 
         <div className="relative grid sm:grid-cols-2 gap-5">
           {topics.map(({ slug: tSlug, label, desc, icon: Icon }) => (
@@ -100,7 +100,7 @@ export default function InfanciasGroupHubPage() {
             >
               <Icon className={`${c.text} mb-4`} size={26} />
               <p className="font-body font-extrabold uppercase tracking-wide text-base text-kidsInk mb-1">{label}</p>
-              <p className="font-playful text-kidsInk/65 text-sm">{desc}</p>
+              <p className="font-playful text-kidsInk/70 text-sm">{desc}</p>
             </Link>
           ))}
         </div>

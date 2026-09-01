@@ -29,7 +29,7 @@ export default function KidsPasswordGate({ group, onUnlock }) {
         <h1 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-2">
           {group.name} · {group.age_range}
         </h1>
-        <p className="font-playful text-kidsInk/65 text-sm mb-8">
+        <p className="font-playful text-kidsInk/70 text-sm mb-8">
           Ingresá la clave que te compartió la profe para entrar a este grupo.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
@@ -57,7 +57,7 @@ export default function KidsPasswordGate({ group, onUnlock }) {
           href={buildWhatsAppLink('Hola! No puedo entrar a Activity Blog con la clave de mi grupo, ¿me ayudás?')}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-6 inline-flex items-center gap-2 font-playful text-xs text-kidsInk/50 hover:text-kidsInk transition-colors"
+          className="mt-6 inline-flex items-center gap-2 font-playful text-xs text-kidsInk/70 hover:text-kidsInk transition-colors"
         >
           <MessageCircle size={14} /> ¿No funciona? Escribinos por WhatsApp
         </a>

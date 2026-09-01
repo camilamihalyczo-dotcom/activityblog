@@ -12,7 +12,7 @@ import { BookOpen, PenLine } from 'lucide-react'
 function ReadingItem({ item, c, answers, onChange, disabled }) {
   return (
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-kidsInk/50">
+      <div className="flex items-center gap-2 mb-4 text-kidsInk/70">
         <BookOpen size={18} />
         <span className="font-playful text-xs uppercase tracking-wider font-semibold">Reading</span>
       </div>
@@ -25,7 +25,7 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
       <div className="flex flex-col gap-4">
         {item.questions.map((q, qi) => (
           <div key={q.id}>
-            <p className="font-playful text-xs text-kidsInk/45 mb-1 font-semibold">Pregunta {qi + 1}</p>
+            <p className="font-playful text-xs text-kidsInk/70 mb-1 font-semibold">Pregunta {qi + 1}</p>
             <p className="font-playful font-medium text-kidsInk mb-2">{q.q}</p>
             <textarea
               rows={2}
@@ -46,7 +46,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-kidsInk/50">
+      <div className="flex items-center gap-2 mb-4 text-kidsInk/70">
         <PenLine size={18} />
         <span className="font-playful text-xs uppercase tracking-wider font-semibold">Writing</span>
       </div>
@@ -63,7 +63,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
         placeholder="Escribí tu producción acá..."
         className={`w-full px-4 py-3 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm leading-relaxed focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-y disabled:opacity-60`}
       />
-      <p className="text-right font-playful text-xs text-kidsInk/45 mt-2 font-semibold">{words} palabras</p>
+      <p className="text-right font-playful text-xs text-kidsInk/70 mt-2 font-semibold">{words} palabras</p>
     </div>
   )
 }
@@ -101,7 +101,7 @@ export default function InfanciasReadingWritingPage() {
   }, [slug])
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/50 font-playful text-sm">Cargando…</div>
+    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
   }
   if (status === 'error' || !group) {
     return (
@@ -154,7 +154,7 @@ export default function InfanciasReadingWritingPage() {
           Reading & Writing 📚
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Reading & Writing</h1>
-        <p className="font-playful text-kidsInk/65 mb-8">Leé, respondé y practicá tu producción escrita.</p>
+        <p className="font-playful text-kidsInk/70 mb-8">Leé, respondé y practicá tu producción escrita.</p>
 
         {readingWriting.length === 0 ? (
           <KidsEmptyState label="ejercicios de reading/writing" />
@@ -194,7 +194,7 @@ export default function InfanciasReadingWritingPage() {
                 >
                   {saving ? 'Guardando…' : 'Guardar mis respuestas'}
                 </button>
-                <p className="font-playful text-kidsInk/40 text-xs mt-2">
+                <p className="font-playful text-kidsInk/70 text-xs mt-2">
                   Esto no se corrige solo — tu profe lo lee directamente.
                 </p>
               </div>
@@ -203,7 +203,7 @@ export default function InfanciasReadingWritingPage() {
                 <p className="font-body font-extrabold text-xl text-kidsInk">¡Guardado! Tu profe ya lo puede ver.</p>
                 <button
                   onClick={() => setSaved(false)}
-                  className={`mt-4 text-kidsInk/60 ${c.hoverText} font-playful text-sm font-semibold underline`}
+                  className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
                 >
                   Seguir editando
                 </button>

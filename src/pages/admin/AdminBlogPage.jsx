@@ -144,20 +144,20 @@ export default function AdminBlogPage() {
 
   return (
     <div>
-      <Link to="/notas-profe" className="text-ink/50 hover:text-ink text-sm font-medium mb-4 inline-block">
+      <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Blog</h1>
       <p className="text-ink/60 mb-8">Un post por fila. La fecha define el orden (más nueva arriba).</p>
 
       <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink/50">
+        <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
           {form.id ? 'Editar post' : 'Nuevo post'}
         </p>
 
         <div className="flex gap-4 flex-wrap">
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Público</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Público</span>
             <select
               value={form.audience}
               onChange={(e) => setForm({ ...form, audience: e.target.value })}
@@ -168,7 +168,7 @@ export default function AdminBlogPage() {
             </select>
           </label>
           <label className="flex-1 min-w-[160px]">
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Fecha</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Fecha</span>
             <input
               type="date"
               required
@@ -180,7 +180,7 @@ export default function AdminBlogPage() {
         </div>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Slug (identificador único, sin espacios ni tildes)
           </span>
           <input
@@ -193,7 +193,7 @@ export default function AdminBlogPage() {
         </label>
 
         <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">Título</span>
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título</span>
           <input
             required
             value={form.title}
@@ -203,7 +203,7 @@ export default function AdminBlogPage() {
         </label>
 
         <div>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
+          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
             Imagen de portada (opcional)
           </span>
           {form.image_url ? (
@@ -222,13 +222,13 @@ export default function AdminBlogPage() {
               className="text-sm text-ink/70"
             />
           )}
-          {uploadingImage && <p className="text-ink/50 text-xs mt-1">Subiendo…</p>}
+          {uploadingImage && <p className="text-ink/60 text-xs mt-1">Subiendo…</p>}
           {imageError && <p className="text-stamp text-xs mt-1">{imageError}</p>}
         </div>
 
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-mono uppercase tracking-wide text-ink/50 mr-1">Texto</span>
+            <span className="text-xs font-mono uppercase tracking-wide text-ink/60 mr-1">Texto</span>
             <button
               type="button"
               disabled={preview}
@@ -268,7 +268,7 @@ export default function AdminBlogPage() {
           {preview ? (
             <div
               className="post-body w-full min-h-[150px] px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm text-ink/80"
-              dangerouslySetInnerHTML={{ __html: renderMarkdown(form.body) || '<p class="text-ink/40">Nada para mostrar todavía.</p>' }}
+              dangerouslySetInnerHTML={{ __html: renderMarkdown(form.body) || '<p class="text-ink/60">Nada para mostrar todavía.</p>' }}
             />
           ) : (
             <textarea
@@ -280,7 +280,7 @@ export default function AdminBlogPage() {
               className="w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm resize-y font-mono"
             />
           )}
-          <p className="text-ink/40 text-xs mt-1.5">
+          <p className="text-ink/60 text-xs mt-1.5">
             Seleccioná texto y usá los botones, o escribí directo: **negrita**, *cursiva*, una línea que empiece con
             "- " para hacer una lista.
           </p>
@@ -304,14 +304,14 @@ export default function AdminBlogPage() {
         </div>
       </form>
 
-      {status === 'loading' && <p className="text-ink/50 text-sm">Cargando…</p>}
+      {status === 'loading' && <p className="text-ink/60 text-sm">Cargando…</p>}
       {status === 'error' && <p className="text-stamp text-sm">No pudimos cargar los posts.</p>}
 
       <div className="flex flex-col gap-3">
         {posts.map((post) => (
           <div key={post.id} className="texture-card rounded-xl p-4 flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-ink/40">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60">
                 {post.audience} · {post.date}
               </p>
               <p className="font-display font-semibold text-ink truncate">{post.title}</p>

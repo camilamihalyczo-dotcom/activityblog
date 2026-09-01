@@ -7,7 +7,7 @@ export default function AdminLayout() {
   const navigate = useNavigate()
 
   if (session === undefined) {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (session === null) {
     return <Navigate to="/notas-profe/login" replace />
@@ -26,7 +26,7 @@ export default function AdminLayout() {
             <Link to="/notas-profe" className="font-display font-bold text-ink text-sm sm:text-base normal-case tracking-normal">
               Activity Blog
             </Link>
-            <span className="text-ink/30">/</span>
+            <span className="text-ink/60">/</span>
             <span className="text-ink font-semibold">Admin</span>
           </div>
           <button

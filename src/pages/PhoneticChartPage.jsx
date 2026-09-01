@@ -78,7 +78,7 @@ function PhonemeChip({ ipa, word, active, disabled, onClick }) {
       `}
     >
       <span className="font-display text-xl font-semibold text-ink">{ipa}</span>
-      <span className="text-[10px] text-ink/45">{word}</span>
+      <span className="text-[10px] text-ink/60">{word}</span>
     </button>
   )
 }
@@ -87,7 +87,7 @@ function Section({ title, note, children }) {
   return (
     <div className="mb-8">
       <h2 className="font-display text-lg font-semibold text-ink mb-1">{title}</h2>
-      {note && <p className="text-ink/50 text-xs mb-3">{note}</p>}
+      {note && <p className="text-ink/60 text-xs mb-3">{note}</p>}
       <div className="flex flex-wrap gap-2.5">{children}</div>
     </div>
   )
@@ -180,7 +180,7 @@ export default function PhoneticChartPage() {
 
           <div className="mb-8">
             <h2 className="font-display text-lg font-semibold text-ink mb-1">Consonantes en pares</h2>
-            <p className="text-ink/50 text-xs mb-3">
+            <p className="text-ink/60 text-xs mb-3">
               Arriba: sin vibrar las cuerdas vocales (sordas). Abajo: vibrando las cuerdas vocales (sonoras).
             </p>
             <div className="flex flex-wrap gap-4">

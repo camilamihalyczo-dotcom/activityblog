@@ -39,7 +39,7 @@ export default function ThemeHubPage() {
 
   if (!level) return <Navigate to="/adultos" replace />
   if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/50 text-sm">Cargando…</div>
+    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
   }
   if (status === 'error') {
     return (
