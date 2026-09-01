@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getLevel } from '../data/levels.js'
 import { fetchTrack, fetchTemario } from '../lib/tracks.js'
@@ -298,38 +298,36 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
             <p className="text-ink leading-relaxed flex flex-wrap items-center gap-2">
               {item.segments.map((seg, si) => {
                 const slotId = item.blanks[si]
+                if (!slotId) {
+                  return (
+                    <Fragment key={si}>
+                      {seg && <span>{seg}</span>}
+                      {si < item.blanks.length && <span className="text-ink/30">___</span>}
+                    </Fragment>
+                  )
+                }
+                const chip = chipsById[placements[slotId]]
+                const slot = { id: slotId, sentenceId: item.id, blankIndex: si }
+                const correct = submitted && isSlotCorrect(slot)
+                const wrong = submitted && !isSlotCorrect(slot)
                 return (
-                  <span key={si} className="inline-flex items-center gap-1">
+                  <Fragment key={si}>
                     {seg && <span>{seg}</span>}
-                    {slotId ? (
-                      (() => {
-                        const chip = chipsById[placements[slotId]]
-                        const slot = { id: slotId, sentenceId: item.id, blankIndex: si }
-                        const correct = submitted && isSlotCorrect(slot)
-                        const wrong = submitted && !isSlotCorrect(slot)
-                        return (
-                          <span className="inline-flex items-center gap-1">
-                            <button
-                              type="button"
-                              disabled={submitted}
-                              onClick={() => handleSlotClick(slotId)}
-                              className={`min-w-[96px] px-3 py-1.5 rounded-lg border-2 border-dashed text-sm font-medium transition-colors text-center
-                                ${!chip ? 'border-ink/25 text-ink/30' : 'border-solid border-ink bg-ink/5 text-ink'}
-                                ${correct ? 'border-solid border-olive bg-olive/10 text-ink' : ''}
-                                ${wrong ? 'border-solid border-stamp bg-stamp/10 text-ink' : ''}
-                              `}
-                            >
-                              {chip ? chip.text : '···'}
-                            </button>
-                            {correct && <CheckCircle2 size={16} className="text-olive shrink-0" />}
-                            {wrong && <XCircle size={16} className="text-stamp shrink-0" />}
-                          </span>
-                        )
-                      })()
-                    ) : (
-                      si < item.blanks.length && <span className="text-ink/30">___</span>
-                    )}
-                  </span>
+                    <button
+                      type="button"
+                      disabled={submitted}
+                      onClick={() => handleSlotClick(slotId)}
+                      className={`min-w-[96px] px-3 py-1.5 rounded-lg border-2 border-dashed text-sm font-medium transition-colors text-center
+                        ${!chip ? 'border-ink/25 text-ink/30' : 'border-solid border-ink bg-ink/5 text-ink'}
+                        ${correct ? 'border-solid border-olive bg-olive/10 text-ink' : ''}
+                        ${wrong ? 'border-solid border-stamp bg-stamp/10 text-ink' : ''}
+                      `}
+                    >
+                      {chip ? chip.text : '···'}
+                    </button>
+                    {correct && <CheckCircle2 size={16} className="text-olive shrink-0" />}
+                    {wrong && <XCircle size={16} className="text-stamp shrink-0" />}
+                  </Fragment>
                 )
               })}
             </p>

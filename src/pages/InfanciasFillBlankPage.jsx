@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
@@ -297,38 +297,36 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
             <p className="font-playful text-kidsInk leading-relaxed flex flex-wrap items-center gap-2">
               {item.segments.map((seg, si) => {
                 const slotId = item.blanks[si]
+                if (!slotId) {
+                  return (
+                    <Fragment key={si}>
+                      {seg && <span>{seg}</span>}
+                      {si < item.blanks.length && <span className="text-kidsInk/30">___</span>}
+                    </Fragment>
+                  )
+                }
+                const chip = chipsById[placements[slotId]]
+                const slot = { id: slotId, sentenceId: item.id, blankIndex: si }
+                const correct = submitted && isSlotCorrect(slot)
+                const wrong = submitted && !isSlotCorrect(slot)
                 return (
-                  <span key={si} className="inline-flex items-center gap-1">
+                  <Fragment key={si}>
                     {seg && <span>{seg}</span>}
-                    {slotId ? (
-                      (() => {
-                        const chip = chipsById[placements[slotId]]
-                        const slot = { id: slotId, sentenceId: item.id, blankIndex: si }
-                        const correct = submitted && isSlotCorrect(slot)
-                        const wrong = submitted && !isSlotCorrect(slot)
-                        return (
-                          <span className="inline-flex items-center gap-1">
-                            <button
-                              type="button"
-                              disabled={submitted}
-                              onClick={() => handleSlotClick(slotId)}
-                              className={`min-w-[96px] px-3 py-1.5 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
-                                ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
-                                ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
-                                ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
-                              `}
-                            >
-                              {chip ? chip.text : '···'}
-                            </button>
-                            {correct && <CheckCircle2 size={16} className="text-kidsGreenDeep shrink-0" />}
-                            {wrong && <XCircle size={16} className="text-kidsRed shrink-0" />}
-                          </span>
-                        )
-                      })()
-                    ) : (
-                      si < item.blanks.length && <span className="text-kidsInk/30">___</span>
-                    )}
-                  </span>
+                    <button
+                      type="button"
+                      disabled={submitted}
+                      onClick={() => handleSlotClick(slotId)}
+                      className={`min-w-[96px] px-3 py-1.5 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
+                        ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
+                        ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
+                        ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
+                      `}
+                    >
+                      {chip ? chip.text : '···'}
+                    </button>
+                    {correct && <CheckCircle2 size={16} className="text-kidsGreenDeep shrink-0" />}
+                    {wrong && <XCircle size={16} className="text-kidsRed shrink-0" />}
+                  </Fragment>
                 )
               })}
             </p>
