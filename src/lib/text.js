@@ -31,3 +31,13 @@ export function splitSentenceAtBlank(sentence) {
   if (!match) return { before: text, after: '' }
   return { before: text.slice(0, match.index), after: text.slice(match.index + match[0].length) }
 }
+
+// Como splitSentenceAtBlank, pero soporta más de un espacio en la misma
+// oración (se usa en el modo de banco de palabras compartido, donde una
+// oración puede tener varias palabras para completar). Para N espacios
+// devuelve N+1 pedazos de texto: el que va antes del primero, entre cada
+// par, y el que va después del último.
+export function splitSentenceAtBlanks(sentence) {
+  const text = sentence || ''
+  return text.split(/_{3,}/)
+}

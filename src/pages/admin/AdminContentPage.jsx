@@ -679,12 +679,14 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
       <div className="flex gap-3 items-start">
         <label className="flex-1">
           <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
-            Oración (marcá el espacio con ___, tres guiones bajos)
+            {hideOptions
+              ? 'Oración (marcá cada espacio con ___ — podés usar más de uno en la misma oración)'
+              : 'Oración (marcá el espacio con ___, tres guiones bajos)'}
           </span>
           <input
             value={item.sentence}
             onChange={(e) => onChange({ ...item, sentence: e.target.value })}
-            placeholder="Every day, our team ___ (have) a standup."
+            placeholder={hideOptions ? 'In my current ___, I work in the ___.' : 'Every day, our team ___ (have) a standup.'}
             className={inputCls}
           />
         </label>
@@ -746,13 +748,13 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
         <label>
           <span className="block text-xs font-mono uppercase tracking-wide text-ink/50 mb-1">
             {hideOptions
-              ? 'Palabra que va en el banco compartido (una sola palabra o expresión corta)'
+              ? 'Palabra(s) que van en el banco compartido — si la oración tiene más de un espacio, escribí una palabra por espacio separadas por |'
               : 'Respuesta correcta (si hay más de una válida, separalas con /)'}
           </span>
           <input
             value={item.answer}
             onChange={(e) => onChange({ ...item, answer: e.target.value })}
-            placeholder={hideOptions ? 'goes' : 'has / is having'}
+            placeholder={hideOptions ? 'role | agricultural sector' : 'has / is having'}
             className={inputCls}
           />
         </label>

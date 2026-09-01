@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
-import { isAnswerCorrect, splitSentenceAtBlank } from '../lib/text.js'
+import { isAnswerCorrect, splitSentenceAtBlank, splitSentenceAtBlanks } from '../lib/text.js'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
@@ -24,14 +24,35 @@ function shuffle(arr) {
   return next
 }
 
-// Para el modo "banco de palabras compartido": cada oración con respuesta
-// aporta una ficha al banco. La corrección se fija por la oración de
-// origen de la ficha (no por comparar texto), igual que en Pronunciación.
+// Para el modo "banco de palabras compartido": cada oración aporta una
+// ficha al banco por cada espacio que tenga (puede haber más de uno,
+// separando las palabras con "|" en la respuesta). La corrección se fija
+// por la oración + posición del espacio de origen de la ficha (no por
+// comparar texto), igual que en Pronunciación.
 function buildWordBankData(sentences) {
-  const valid = (sentences || []).filter((s) => (s.answer || '').trim())
-  const chips = valid.map((s) => ({ id: `${s.id}-c`, text: s.answer.trim(), sentenceId: s.id }))
-  const slots = valid.map((s) => ({ id: `${s.id}-s`, sentenceId: s.id }))
-  return { sentences: valid, chips, slots }
+  const items = []
+  const chips = []
+  const slots = []
+  for (const s of sentences || []) {
+    const segments = splitSentenceAtBlanks(s.sentence)
+    const blankCount = segments.length - 1
+    const words = (s.answer || '').split('|').map((w) => w.trim()).filter(Boolean)
+    if (blankCount === 0 || words.length === 0) continue
+    const blanks = []
+    for (let bi = 0; bi < blankCount; bi++) {
+      const word = words[bi]
+      if (!word) {
+        blanks.push(null)
+        continue
+      }
+      const slotId = `${s.id}-s${bi}`
+      chips.push({ id: `${s.id}-c${bi}`, text: word, sentenceId: s.id, blankIndex: bi })
+      slots.push({ id: slotId, sentenceId: s.id, blankIndex: bi })
+      blanks.push(slotId)
+    }
+    items.push({ id: s.id, sentence: s.sentence, answer: s.answer, image_url: s.image_url, segments, blanks })
+  }
+  return { items, chips, slots }
 }
 
 function FillBlankItem({ item, c, value, onChange, submitted }) {
@@ -189,20 +210,24 @@ function FillBlankGroup({ exercise, c, groupSlug }) {
 // y el alumno toca una palabra y después el casillero donde cree que va —
 // misma mecánica que Pronunciación.
 function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
-  const { sentences, chips, slots } = buildWordBankData(exercise.sentences)
+  const { items, chips, slots } = buildWordBankData(exercise.sentences)
   const [bankOrder, setBankOrder] = useState(() => shuffle(chips.map((chip) => chip.id)))
   const [placements, setPlacements] = useState({})
   const [selectedChipId, setSelectedChipId] = useState(null)
   const [submitted, setSubmitted] = useState(false)
   const [studentName, setStudentName] = useStudentName()
 
-  if (sentences.length === 0) return null
+  if (items.length === 0) return null
 
   const chipsById = Object.fromEntries(chips.map((chip) => [chip.id, chip]))
   const placedChipIds = new Set(Object.values(placements))
   const bankChipIds = bankOrder.filter((id) => !placedChipIds.has(id))
   const allPlaced = Object.keys(placements).length === slots.length
-  const score = slots.filter((s) => chipsById[placements[s.id]]?.sentenceId === s.sentenceId).length
+  const isSlotCorrect = (slot) => {
+    const chip = chipsById[placements[slot.id]]
+    return chip?.sentenceId === slot.sentenceId && chip?.blankIndex === slot.blankIndex
+  }
+  const score = slots.filter(isSlotCorrect).length
 
   const handleChipClick = (chipId) => {
     if (submitted) return
@@ -239,14 +264,15 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
       studentName,
       score,
       total: slots.length,
-      detail: sentences.map((item) => {
-        const chip = chipsById[placements[`${item.id}-s`]]
+      detail: slots.map((slot) => {
+        const item = items.find((it) => it.id === slot.sentenceId)
+        const chip = chipsById[placements[slot.id]]
         return {
-          id: item.id,
-          sentence: item.sentence,
+          sentence: item?.sentence,
+          blank_index: slot.blankIndex,
           given: chip?.text ?? null,
-          correct: item.answer,
-          is_correct: chip?.sentenceId === item.id,
+          correct: chipsById[`${slot.sentenceId}-c${slot.blankIndex}`]?.text,
+          is_correct: isSlotCorrect(slot),
         }
       }),
     })
@@ -265,41 +291,49 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
         <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{exercise.title}</h2>
       )}
       <div className="flex flex-col gap-6">
-        {sentences.map((item) => {
-          const { before, after } = splitSentenceAtBlank(item.sentence)
-          const slotId = `${item.id}-s`
-          const chip = chipsById[placements[slotId]]
-          const correct = submitted && chip && chip.sentenceId === item.id
-          const wrong = submitted && (!chip || chip.sentenceId !== item.id)
-          return (
-            <div key={item.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
-              {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
-              <p className="font-playful text-kidsInk leading-relaxed flex flex-wrap items-center gap-2">
-                <span>{before}</span>
-                <button
-                  type="button"
-                  disabled={submitted}
-                  onClick={() => handleSlotClick(slotId)}
-                  className={`min-w-[96px] px-3 py-1.5 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
-                    ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
-                    ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
-                    ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
-                  `}
-                >
-                  {chip ? chip.text : '···'}
-                </button>
-                <span>{after}</span>
-                {correct && <CheckCircle2 size={16} className="text-kidsGreenDeep shrink-0" />}
-                {wrong && (
-                  <>
-                    <XCircle size={16} className="text-kidsRed shrink-0" />
-                    <span className="font-playful text-xs text-kidsInk/45">→ {item.answer}</span>
-                  </>
-                )}
-              </p>
-            </div>
-          )
-        })}
+        {items.map((item) => (
+          <div key={item.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
+            {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
+            <p className="font-playful text-kidsInk leading-relaxed flex flex-wrap items-center gap-2">
+              {item.segments.map((seg, si) => {
+                const slotId = item.blanks[si]
+                return (
+                  <span key={si} className="inline-flex items-center gap-1">
+                    {seg && <span>{seg}</span>}
+                    {slotId ? (
+                      (() => {
+                        const chip = chipsById[placements[slotId]]
+                        const slot = { id: slotId, sentenceId: item.id, blankIndex: si }
+                        const correct = submitted && isSlotCorrect(slot)
+                        const wrong = submitted && !isSlotCorrect(slot)
+                        return (
+                          <span className="inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={submitted}
+                              onClick={() => handleSlotClick(slotId)}
+                              className={`min-w-[96px] px-3 py-1.5 rounded-xl border-2 border-dashed font-playful text-sm font-medium transition-colors text-center
+                                ${!chip ? 'border-kidsInk/25 text-kidsInk/30' : 'border-solid border-kidsInk bg-kidsInk/5 text-kidsInk'}
+                                ${correct ? 'border-solid border-kidsGreenDeep bg-kidsGreen/15 text-kidsInk' : ''}
+                                ${wrong ? 'border-solid border-kidsRed bg-kidsRed/10 text-kidsInk' : ''}
+                              `}
+                            >
+                              {chip ? chip.text : '···'}
+                            </button>
+                            {correct && <CheckCircle2 size={16} className="text-kidsGreenDeep shrink-0" />}
+                            {wrong && <XCircle size={16} className="text-kidsRed shrink-0" />}
+                          </span>
+                        )
+                      })()
+                    ) : (
+                      si < item.blanks.length && <span className="text-kidsInk/30">___</span>
+                    )}
+                  </span>
+                )
+              })}
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="bg-white rounded-[22px] shadow-kids p-5 mt-4">
