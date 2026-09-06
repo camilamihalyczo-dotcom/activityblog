@@ -15,7 +15,7 @@
 -- ---------- 1. Los dos grupos ----------
 insert into groups (slug, name, age_range, description, color_key, milestone, passcode, topics, sort_order)
 values ('nivelacion-aventureros', 'Nivelación · Aventureros', '10–12 años', 'Actividad de la clase de nivelación. No es un examen: sirve para ver desde dónde arrancamos.',
-        'kidsBlue', 0, 'hello10', '["quiz"]'::jsonb, 90)
+        'kidsBlue', 0, 'hello10', '{quiz}'::text[], 90)
 on conflict (slug) do update set
   name = excluded.name, age_range = excluded.age_range, description = excluded.description,
   color_key = excluded.color_key, passcode = excluded.passcode, topics = excluded.topics,
@@ -23,7 +23,7 @@ on conflict (slug) do update set
 
 insert into groups (slug, name, age_range, description, color_key, milestone, passcode, topics, sort_order)
 values ('nivelacion-teens', 'Nivelación · Teens', '13–17 años', 'Actividad de la clase de nivelación. No es un examen: sirve para ver desde dónde arrancamos.',
-        'kidsPurple', 0, 'hello13', '["quiz"]'::jsonb, 91)
+        'kidsPurple', 0, 'hello13', '{quiz}'::text[], 91)
 on conflict (slug) do update set
   name = excluded.name, age_range = excluded.age_range, description = excluded.description,
   color_key = excluded.color_key, passcode = excluded.passcode, topics = excluded.topics,
@@ -54,6 +54,9 @@ on conflict (scope_key) do update set data = excluded.data, updated_at = now();
 --
 -- OJO: el puntaje mide Reading y gramática. NO mide Speaking, que es
 -- lo que más pesa en el informe. Ese sigue saliendo del Meet.
+--
+-- Nota: `topics` es text[] en la tabla, por eso va '{quiz}'::text[]
+-- y no un array JSON.
 --
 -- SI FALLA EL `on conflict (slug)` de la parte 1: la tabla `groups` no
 -- tiene índice único en slug. En ese caso creá los dos grupos a mano

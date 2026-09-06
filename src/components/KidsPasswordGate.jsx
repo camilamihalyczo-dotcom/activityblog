@@ -24,7 +24,7 @@ export default function KidsPasswordGate({ group, onUnlock }) {
     <div className="relative min-h-screen bg-kidsCream flex items-center justify-center px-5 py-16">
       <KidsBlobs />
       <div className="relative bg-white rounded-[28px] shadow-kids p-8 sm:p-10 text-center max-w-md w-full">
-        <KidsSpeechBubbles className="w-36 h-36 mx-auto -mt-2 mb-1" />
+        <KidsSpeechBubbles variant="single" className="w-44 h-auto mx-auto mb-4" />
         <div className={`w-16 h-16 mx-auto rounded-full ${c.bg} flex items-center justify-center mb-5`}>
           <Lock className="text-white" size={24} />
         </div>
