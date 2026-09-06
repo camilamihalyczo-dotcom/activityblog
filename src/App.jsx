@@ -27,6 +27,7 @@ import InfanciasFillBlankPage from './pages/InfanciasFillBlankPage.jsx'
 import InfanciasMatchingPage from './pages/InfanciasMatchingPage.jsx'
 import InfanciasPronunciationPage from './pages/InfanciasPronunciationPage.jsx'
 import InfanciasGlossaryPage from './pages/InfanciasGlossaryPage.jsx'
+import InfanciasPhoneticChartPage from './pages/InfanciasPhoneticChartPage.jsx'
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
 import AdminLayout from './pages/admin/AdminLayout.jsx'
 import AdminHomePage from './pages/admin/AdminHomePage.jsx'
@@ -61,6 +62,7 @@ export default function App() {
         <Route path="/adultos/:level/:theme/glosario" element={<GlossaryPage />} />
         <Route path="/infancias" element={<InfanciasPage />} />
         <Route path="/infancias/blog" element={<InfanciasBlogPage />} />
+        <Route path="/infancias/tabla-fonetica" element={<InfanciasPhoneticChartPage />} />
         <Route path="/infancias/:group" element={<InfanciasGroupHubPage />} />
         <Route path="/infancias/:group/flashcards" element={<InfanciasFlashcardsPage />} />
         <Route path="/infancias/:group/cuestionario" element={<InfanciasQuizPage />} />

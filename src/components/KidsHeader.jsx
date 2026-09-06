@@ -1,23 +1,40 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
-import KidsLogo from './KidsLogo.jsx'
 
 // Header de navegación específico del bloque Infancias y adolescentes —
 // look propio de la landing de English Kids Club (Poppins, fondo claro
 // con blur, sin la franja tipo boarding-pass de Adultos).
+//
+// `backTo` acepta una ruta fija (string) o -1, que en vez de un link a una
+// ruta puntual vuelve a la página anterior del historial — igual que en
+// TicketHeader, útil para páginas a las que se puede llegar desde varios
+// lugares distintos (ej: la tabla fonética, que se linkea desde cualquier
+// grupo).
 export default function KidsHeader({ crumbs = [], backTo }) {
+  const navigate = useNavigate()
   return (
     <div className="sticky top-0 z-50 bg-kidsCream/90 backdrop-blur-sm border-b-2 border-kidsInk/[0.06]">
       <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 font-playful text-xs sm:text-sm font-semibold text-kidsInk/70 min-w-0 overflow-x-auto">
-          {backTo && (
-            <Link
-              to={backTo}
+          {backTo === -1 ? (
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
               className="flex items-center gap-1 -m-2 p-2 text-kidsInk hover:text-kidsPurpleDeep transition-colors mr-1"
             >
               <ChevronLeft size={16} />
               <span className="hidden sm:inline">Volver</span>
-            </Link>
+            </button>
+          ) : (
+            backTo && (
+              <Link
+                to={backTo}
+                className="flex items-center gap-1 -m-2 p-2 text-kidsInk hover:text-kidsPurpleDeep transition-colors mr-1"
+              >
+                <ChevronLeft size={16} />
+                <span className="hidden sm:inline">Volver</span>
+              </Link>
+            )
           )}
           {crumbs.map((c, i) => (
             <span key={i} className="flex items-center gap-2">
@@ -26,16 +43,8 @@ export default function KidsHeader({ crumbs = [], backTo }) {
             </span>
           ))}
         </div>
-        <Link
-          to="/"
-          className="flex items-center gap-2.5 shrink-0"
-          aria-label="English Kids Club — Activity Blog"
-        >
-          <KidsLogo className="h-5 sm:h-6 w-auto" />
-          <span className="hidden sm:block h-5 w-px bg-kidsInk/15" aria-hidden="true" />
-          <span className="hidden sm:inline font-playful font-extrabold text-kidsInk text-sm whitespace-nowrap">
-            Activity<span className="text-kidsPurpleDeep">·</span>Blog
-          </span>
+        <Link to="/" className="font-playful font-extrabold text-kidsInk text-sm sm:text-base whitespace-nowrap shrink-0">
+          Activity<span className="text-kidsPurpleDeep">·</span>Blog
         </Link>
       </div>
     </div>

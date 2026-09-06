@@ -17,6 +17,12 @@ export default function Footer() {
   // formulario de cara al público.
   if (location.pathname.startsWith('/notas-profe')) return null
 
+  // Este footer se muestra en TODAS las páginas públicas (va afuera de
+  // <Routes>, en App.jsx) — incluidas las de Infancias, así que necesita
+  // su propia versión con los tokens de ese bloque en vez de mostrar
+  // siempre la estética de Adultos al pie de una pantalla de kids.
+  const isKids = location.pathname.startsWith('/infancias')
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!message.trim()) return
@@ -33,6 +39,76 @@ export default function Footer() {
     } finally {
       setSending(false)
     }
+  }
+
+  if (isKids) {
+    return (
+      <footer className="border-t-2 border-dashed border-kidsInk/15 bg-kidsCream/60 mt-16">
+        <div className="max-w-2xl mx-auto px-5 py-6">
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="w-full flex items-center justify-between gap-3 text-kidsInk/70 hover:text-kidsInk transition-colors"
+          >
+            <span className="flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide">
+              <MessageSquarePlus size={15} /> Sugerencias
+            </span>
+            {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+
+          {open && (
+            <div className="mt-4">
+              {!suggestionsConfigured ? (
+                <p className="font-playful text-kidsInk/70 text-sm">Este formulario todavía no está activado.</p>
+              ) : (
+                <>
+                  <p className="font-playful text-kidsInk/70 text-sm mb-4">
+                    ¿Algo que mejorarías de la página o de las actividades? Contanos, nos llega directo por mail.
+                  </p>
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+                    <textarea
+                      required
+                      rows={3}
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Tu sugerencia o comentario…"
+                      className="w-full px-3 py-2 rounded-xl border-2 border-kidsInk/15 bg-white font-playful text-sm resize-y focus:border-kidsPurpleDeep outline-none transition-colors"
+                    />
+                    <div className="flex gap-3 flex-wrap">
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Tu nombre (opcional)"
+                        className="flex-1 min-w-[160px] px-3 py-2 rounded-xl border-2 border-kidsInk/15 bg-white font-playful text-sm focus:border-kidsPurpleDeep outline-none transition-colors"
+                      />
+                      <input
+                        value={contact}
+                        onChange={(e) => setContact(e.target.value)}
+                        placeholder="Mail o WhatsApp (opcional, por si querés respuesta)"
+                        className="flex-1 min-w-[160px] px-3 py-2 rounded-xl border-2 border-kidsInk/15 bg-white font-playful text-sm focus:border-kidsPurpleDeep outline-none transition-colors"
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="submit"
+                        disabled={sending || !message.trim()}
+                        className="inline-flex items-center gap-2 bg-kidsInk text-white font-playful font-semibold px-5 py-2.5 rounded-full hover:bg-kidsPurpleDeep transition-colors disabled:opacity-50"
+                      >
+                        <Send size={15} /> {sending ? 'Enviando…' : 'Enviar'}
+                      </button>
+                      {result === 'ok' && <p className="font-playful text-kidsGreenDeep text-sm">¡Gracias! Ya nos llegó.</p>}
+                      {result === 'error' && (
+                        <p className="font-playful text-kidsRed text-sm">No se pudo enviar. Probá de nuevo en un rato.</p>
+                      )}
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </footer>
+    )
   }
 
   return (

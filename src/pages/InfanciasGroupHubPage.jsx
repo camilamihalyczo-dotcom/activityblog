@@ -80,7 +80,7 @@ export default function InfanciasGroupHubPage() {
               <BookMarked size={14} /> Glosario
             </Link>
             <Link
-              to="/tabla-fonetica"
+              to="/infancias/tabla-fonetica"
               className="inline-flex items-center gap-2 font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk bg-white border-2 border-kidsInk/10 rounded-full px-4 py-1.5 hover:border-kidsPurpleDeep hover:text-kidsPurpleDeep transition-colors"
             >
               <Volume2 size={14} /> Tabla fonética
