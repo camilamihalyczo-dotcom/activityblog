@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import KidsLogo from './KidsLogo.jsx'
 
 // Header de navegación específico del bloque Infancias y adolescentes —
 // look propio de la landing de English Kids Club (Poppins, fondo claro
@@ -25,8 +26,16 @@ export default function KidsHeader({ crumbs = [], backTo }) {
             </span>
           ))}
         </div>
-        <Link to="/" className="font-playful font-extrabold text-kidsInk text-sm sm:text-base whitespace-nowrap shrink-0">
-          Activity<span className="text-kidsPurpleDeep">·</span>Blog
+        <Link
+          to="/"
+          className="flex items-center gap-2.5 shrink-0"
+          aria-label="English Kids Club — Activity Blog"
+        >
+          <KidsLogo className="h-5 sm:h-6 w-auto" />
+          <span className="hidden sm:block h-5 w-px bg-kidsInk/15" aria-hidden="true" />
+          <span className="hidden sm:inline font-playful font-extrabold text-kidsInk text-sm whitespace-nowrap">
+            Activity<span className="text-kidsPurpleDeep">·</span>Blog
+          </span>
         </Link>
       </div>
     </div>

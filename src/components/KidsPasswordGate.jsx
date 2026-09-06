@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Lock, MessageCircle } from 'lucide-react'
 import KidsBlobs from './KidsBlobs.jsx'
+import KidsSpeechBubbles from './KidsSpeechBubbles.jsx'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { buildWhatsAppLink } from '../lib/contact.js'
 
@@ -23,6 +24,7 @@ export default function KidsPasswordGate({ group, onUnlock }) {
     <div className="relative min-h-screen bg-kidsCream flex items-center justify-center px-5 py-16">
       <KidsBlobs />
       <div className="relative bg-white rounded-[28px] shadow-kids p-8 sm:p-10 text-center max-w-md w-full">
+        <KidsSpeechBubbles className="w-36 h-36 mx-auto -mt-2 mb-1" />
         <div className={`w-16 h-16 mx-auto rounded-full ${c.bg} flex items-center justify-center mb-5`}>
           <Lock className="text-white" size={24} />
         </div>
@@ -59,7 +61,7 @@ export default function KidsPasswordGate({ group, onUnlock }) {
           rel="noopener noreferrer"
           className="mt-6 inline-flex items-center gap-2 font-playful text-xs text-kidsInk/70 hover:text-kidsInk transition-colors"
         >
-          <MessageCircle size={14} /> ¿No funciona? Escribinos por WhatsApp
+          <MessageCircle size={14} /> ¿No funciona? Escribime por WhatsApp
         </a>
       </div>
     </div>
