@@ -15,7 +15,17 @@ export default function KidsHeader({ crumbs = [], backTo }) {
   return (
     <div className="sticky top-0 z-50 bg-kidsCream/90 backdrop-blur-sm border-b-2 border-kidsInk/[0.06]">
       <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-playful text-xs sm:text-sm font-semibold text-kidsInk/70 min-w-0 overflow-x-auto">
+        {/* overflow-y-hidden es necesario acá y no es cosmético: al poner
+            overflow-x-auto sin fijar el otro eje, la spec de CSS convierte
+            "overflow-y: visible" en "auto" también — así que un desajuste
+            de un par de píxeles entre el peso normal y el font-bold del
+            último crumb (algo que pasa siempre, por el hinting de la
+            fuente) alcanza para que el navegador dibuje una scrollbar
+            vertical minúscula ahí adentro. En Windows con scrollbars
+            clásicas eso se ve como dos flechitas ▲▼ pegadas al texto, sin
+            hacer nada (rango de scroll de ~1px) — el bug que reportó
+            Agustín. */}
+        <div className="flex items-center gap-2 font-playful text-xs sm:text-sm font-semibold text-kidsInk/70 min-w-0 overflow-x-auto overflow-y-hidden">
           {backTo === -1 ? (
             <button
               type="button"
@@ -23,7 +33,13 @@ export default function KidsHeader({ crumbs = [], backTo }) {
               className="flex items-center gap-1 -m-2 p-2 text-kidsInk hover:text-kidsPurpleDeep transition-colors mr-1"
             >
               <ChevronLeft size={16} />
-              <span className="hidden sm:inline">Volver</span>
+              {/* Solo el ícono, en cualquier ancho — antes el texto "Volver"
+                  se mostraba a partir de sm, que quedaba inconsistente con
+                  la versión mobile (solo ícono) sin necesidad real: el
+                  ícono solo ya es un patrón de navegación reconocible, y
+                  así el header queda igual de compacto en desktop. sr-only
+                  para que lectores de pantalla lo sigan anunciando. */}
+              <span className="sr-only">Volver</span>
             </button>
           ) : (
             backTo && (
@@ -32,7 +48,7 @@ export default function KidsHeader({ crumbs = [], backTo }) {
                 className="flex items-center gap-1 -m-2 p-2 text-kidsInk hover:text-kidsPurpleDeep transition-colors mr-1"
               >
                 <ChevronLeft size={16} />
-                <span className="hidden sm:inline">Volver</span>
+                <span className="sr-only">Volver</span>
               </Link>
             )
           )}
