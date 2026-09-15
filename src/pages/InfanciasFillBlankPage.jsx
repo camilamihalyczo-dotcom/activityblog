@@ -8,6 +8,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 function isItemCorrect(item, userAnswer) {
@@ -139,10 +140,7 @@ function FillBlankGroup({ exercise, c, groupSlug }) {
   })
 
   return (
-    <div className="mb-10">
-      {exercise.title && (
-        <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{exercise.title}</h2>
-      )}
+    <CollapsibleExercise title={exercise.title || 'Completar oraciones'} label="Actividad" className="mb-10 text-kidsInk">
       <div className="flex flex-col gap-6">
         {exercise.sentences.map((item) => (
           <FillBlankItem
@@ -201,7 +199,7 @@ function FillBlankGroup({ exercise, c, groupSlug }) {
           </button>
         </div>
       )}
-    </div>
+    </CollapsibleExercise>
   )
 }
 

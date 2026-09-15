@@ -8,6 +8,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { FileText, CheckCircle2, XCircle, Video } from 'lucide-react'
 
 function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
@@ -18,8 +19,7 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
   const score = item.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
-    <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
-      <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-4">{item.title}</h2>
+    <CollapsibleExercise title={item.title} label="Listening" icon={Video} className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}>
 
       {item.image_url && (
         <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />
@@ -129,7 +129,7 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
           Intentar de nuevo
         </button>
       )}
-    </div>
+    </CollapsibleExercise>
   )
 }
 

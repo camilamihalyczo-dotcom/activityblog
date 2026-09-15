@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import FloatingBackButton from './FloatingBackButton.jsx'
 
 // Header de navegación específico del bloque Infancias y adolescentes —
 // look propio de la landing de English Kids Club (Poppins, fondo claro
@@ -13,6 +14,7 @@ import { ChevronLeft } from 'lucide-react'
 export default function KidsHeader({ crumbs = [], backTo }) {
   const navigate = useNavigate()
   return (
+    <>
     <div className="sticky top-0 z-50 bg-kidsCream/90 backdrop-blur-sm border-b-2 border-kidsInk/[0.06]">
       <div className="max-w-5xl mx-auto px-5 py-3 flex items-center justify-between gap-4">
         {/* overflow-y-hidden es necesario acá y no es cosmético: al poner
@@ -64,5 +66,7 @@ export default function KidsHeader({ crumbs = [], backTo }) {
         </Link>
       </div>
     </div>
+    <FloatingBackButton backTo={backTo} kids />
+    </>
   )
 }

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft } from 'lucide-react'
+import FloatingBackButton from './FloatingBackButton.jsx'
 
 // Franja tipo "boarding pass" usada como header de navegación en las páginas internas.
 // `backTo` puede ser una ruta fija (string) o -1, que en vez de un link a
@@ -9,6 +10,7 @@ import { ChevronLeft } from 'lucide-react'
 export default function TicketHeader({ crumbs = [], backTo }) {
   const navigate = useNavigate()
   return (
+    <>
     <div className="border-b-2 border-dashed border-ink/25 bg-cream/70">
       <div className="max-w-5xl mx-auto px-5 py-4 flex items-center justify-between gap-4">
         {/* overflow-y-hidden es necesario acá y no es cosmético: al poner
@@ -60,5 +62,7 @@ export default function TicketHeader({ crumbs = [], backTo }) {
         </Link>
       </div>
     </div>
+    <FloatingBackButton backTo={backTo} />
+    </>
   )
 }

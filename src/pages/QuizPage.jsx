@@ -9,6 +9,7 @@ import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import NameField from '../components/NameField.jsx'
 import QuestionHint from '../components/QuestionHint.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 // Cada temario puede tener más de un cuestionario (ej: uno por unidad
@@ -24,8 +25,7 @@ function QuizGroup({ quiz, c, levelSlug, themeSlug, temarioSlug }) {
   const score = quiz.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
-    <div className="mb-10">
-      {quiz.title && <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-4">{quiz.title}</h2>}
+    <CollapsibleExercise title={quiz.title || 'Cuestionario'} label="Actividad" className="mb-10 text-ink">
       <div className="flex flex-col gap-6">
         {quiz.questions.map((q, qi) => (
           <div key={q.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
@@ -107,7 +107,7 @@ function QuizGroup({ quiz, c, levelSlug, themeSlug, temarioSlug }) {
           </button>
         </div>
       )}
-    </div>
+    </CollapsibleExercise>
   )
 }
 

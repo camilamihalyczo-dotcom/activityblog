@@ -9,6 +9,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { CheckCircle2, XCircle, GripVertical } from 'lucide-react'
 
 function shuffle(arr) {
@@ -46,14 +47,12 @@ function BankChip({ id, text, selected, onClick, disabled }) {
 function DropZone({ id, item, chipText, c, submitted, correct, onClickZone }) {
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div className={`texture-card rounded-2xl ${c.borderT4} p-5 flex flex-col gap-3`}>
+    <CollapsibleExercise
+      title={item.word}
+      label={item.relation === 'antonym' ? 'Antónimo' : 'Sinónimo'}
+      className={`texture-card rounded-2xl ${c.borderT4} p-5 text-ink`}
+    >
       {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-40 object-cover rounded-lg" />}
-      <div className="flex items-center gap-2">
-        <span className={`font-mono text-[10px] uppercase tracking-widest border rounded-full px-2.5 py-0.5 ${c.tag}`}>
-          {item.relation === 'antonym' ? 'Antónimo' : 'Sinónimo'}
-        </span>
-        <span className="font-semibold text-ink">{item.word}</span>
-      </div>
       <button
         ref={setNodeRef}
         onClick={() => !submitted && onClickZone(id)}
@@ -67,7 +66,7 @@ function DropZone({ id, item, chipText, c, submitted, correct, onClickZone }) {
         {submitted && correct && <CheckCircle2 size={16} className="text-olive shrink-0" />}
         {submitted && !correct && chipText && <XCircle size={16} className="text-stamp shrink-0" />}
       </button>
-    </div>
+    </CollapsibleExercise>
   )
 }
 

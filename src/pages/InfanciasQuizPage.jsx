@@ -8,6 +8,7 @@ import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
 import QuestionHint from '../components/QuestionHint.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 // Cada grupo puede tener más de un cuestionario — por eso cada uno corrige
@@ -22,10 +23,7 @@ function QuizGroup({ quiz, c, groupSlug }) {
   const score = quiz.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
-    <div className="mb-10">
-      {quiz.title && (
-        <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{quiz.title}</h2>
-      )}
+    <CollapsibleExercise title={quiz.title || 'Cuestionario'} label="Actividad" className="mb-10 text-kidsInk">
       <div className="flex flex-col gap-6">
         {quiz.questions.map((q, qi) => (
           <div key={q.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
@@ -105,7 +103,7 @@ function QuizGroup({ quiz, c, groupSlug }) {
           </button>
         </div>
       )}
-    </div>
+    </CollapsibleExercise>
   )
 }
 

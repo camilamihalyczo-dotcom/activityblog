@@ -4,6 +4,12 @@
 
 html { scroll-behavior: smooth; }
 
+/* Reserva espacio para que el botón de navegación fijo no tape el último
+   control de una actividad en pantallas pequeñas. */
+main, body {
+  padding-bottom: 2rem;
+}
+
 body {
   background-color: #F3EDE3;
   background-image:

@@ -7,16 +7,17 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { BookOpen, PenLine } from 'lucide-react'
 
 function ReadingItem({ item, c, answers, onChange, disabled }) {
   return (
-    <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-kidsInk/70">
-        <BookOpen size={18} />
-        <span className="font-playful text-xs uppercase tracking-wider font-semibold">Reading</span>
-      </div>
-      <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{item.title}</h2>
+    <CollapsibleExercise
+      title={item.title}
+      label="Reading"
+      icon={BookOpen}
+      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
+    >
       {item.image_url && (
         <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
       )}
@@ -38,19 +39,19 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
           </div>
         ))}
       </div>
-    </div>
+    </CollapsibleExercise>
   )
 }
 
 function WritingItem({ item, c, text, onChange, disabled }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
-    <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-kidsInk/70">
-        <PenLine size={18} />
-        <span className="font-playful text-xs uppercase tracking-wider font-semibold">Writing</span>
-      </div>
-      <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-3">{item.title}</h2>
+    <CollapsibleExercise
+      title={item.title}
+      label="Writing"
+      icon={PenLine}
+      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
+    >
       {item.image_url && (
         <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
       )}
@@ -64,7 +65,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
         className={`w-full px-4 py-3 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm leading-relaxed focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-y disabled:opacity-60`}
       />
       <p className="text-right font-playful text-xs text-kidsInk/70 mt-2 font-semibold">{words} palabras</p>
-    </div>
+    </CollapsibleExercise>
   )
 }
 

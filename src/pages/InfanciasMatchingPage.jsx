@@ -8,6 +8,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { CheckCircle2, XCircle, GripVertical } from 'lucide-react'
 
 function shuffle(arr) {
@@ -45,14 +46,12 @@ function BankChip({ id, text, selected, onClick, disabled }) {
 function DropZone({ id, item, chipText, c, submitted, correct, onClickZone }) {
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-5 flex flex-col gap-3`}>
+    <CollapsibleExercise
+      title={item.word}
+      label={item.relation === 'antonym' ? 'Antónimo' : 'Sinónimo'}
+      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-5 text-kidsInk`}
+    >
       {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-40 object-cover rounded-xl" />}
-      <div className="flex items-center gap-2">
-        <span className={`font-playful font-semibold text-[10px] uppercase tracking-widest ${c.bgLight} text-kidsInk rounded-full px-2.5 py-0.5`}>
-          {item.relation === 'antonym' ? 'Antónimo' : 'Sinónimo'}
-        </span>
-        <span className="font-playful font-bold text-kidsInk">{item.word}</span>
-      </div>
       <button
         ref={setNodeRef}
         onClick={() => !submitted && onClickZone(id)}
@@ -66,7 +65,7 @@ function DropZone({ id, item, chipText, c, submitted, correct, onClickZone }) {
         {submitted && correct && <CheckCircle2 size={16} className="text-kidsGreenDeep shrink-0" />}
         {submitted && !correct && chipText && <XCircle size={16} className="text-kidsRed shrink-0" />}
       </button>
-    </div>
+    </CollapsibleExercise>
   )
 }
 

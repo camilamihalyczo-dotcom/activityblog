@@ -8,16 +8,17 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import NameField from '../components/NameField.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { BookOpen, PenLine } from 'lucide-react'
 
 function ReadingItem({ item, c, answers, onChange, disabled }) {
   return (
-    <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-ink/60">
-        <BookOpen size={18} />
-        <span className="font-mono text-xs uppercase tracking-wider">Reading</span>
-      </div>
-      <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-4">{item.title}</h2>
+    <CollapsibleExercise
+      title={item.title}
+      label="Reading"
+      icon={BookOpen}
+      className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}
+    >
       {item.image_url && (
         <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-xl mb-4" />
       )}
@@ -39,19 +40,19 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
           </div>
         ))}
       </div>
-    </div>
+    </CollapsibleExercise>
   )
 }
 
 function WritingItem({ item, c, text, onChange, disabled }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
-    <div className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8`}>
-      <div className="flex items-center gap-2 mb-4 text-ink/60">
-        <PenLine size={18} />
-        <span className="font-mono text-xs uppercase tracking-wider">Writing</span>
-      </div>
-      <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-3">{item.title}</h2>
+    <CollapsibleExercise
+      title={item.title}
+      label="Writing"
+      icon={PenLine}
+      className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}
+    >
       {item.image_url && (
         <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-xl mb-4" />
       )}
@@ -65,7 +66,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
         className={`w-full px-4 py-3 rounded-lg border-2 border-ink/15 bg-paper text-sm leading-relaxed ${c.focusBorder} outline-none transition-colors resize-y disabled:opacity-60`}
       />
       <p className="text-right font-mono text-xs text-ink/60 mt-2">{words} palabras</p>
-    </div>
+    </CollapsibleExercise>
   )
 }
 
