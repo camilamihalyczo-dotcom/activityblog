@@ -140,7 +140,11 @@ function FillBlankGroup({ exercise, c, groupSlug }) {
   })
 
   return (
-    <CollapsibleExercise title={exercise.title || 'Completar oraciones'} label="Actividad" className="mb-10 text-kidsInk">
+    <CollapsibleExercise
+      title={exercise.title || 'Completar oraciones'}
+      label="Actividad"
+      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
+    >
       <div className="flex flex-col gap-6">
         {exercise.sentences.map((item) => (
           <FillBlankItem
@@ -284,11 +288,11 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
   }
 
   return (
-    <div className="mb-10">
-      {exercise.title && (
-        <h2 className="font-body font-extrabold uppercase tracking-wide text-xl sm:text-2xl text-kidsInk mb-4">{exercise.title}</h2>
-      )}
-
+    <CollapsibleExercise
+      title={exercise.title || 'Completar oraciones'}
+      label="Actividad"
+      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
+    >
       <div className="bg-white rounded-[22px] shadow-kids p-5 mb-6 sticky top-14 z-10">
         <p className="font-playful text-[10px] uppercase tracking-widest font-semibold text-kidsInk/70 mb-3">Banco de palabras</p>
         <div className="flex flex-wrap gap-2">
@@ -380,7 +384,7 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
           </button>
         </div>
       )}
-    </div>
+    </CollapsibleExercise>
   )
 }
 
@@ -424,7 +428,7 @@ export default function InfanciasFillBlankPage() {
 
   return (
     <div className="min-h-screen bg-kidsCream">
-      <KidsHeader crumbs={[group.name, 'Completar oraciones']} backTo={`/infancias/${slug}`} />
+      <KidsHeader crumbs={[group.name, 'Completar oraciones']} backTo={`/infancias/${slug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
           Completar oraciones ✏️

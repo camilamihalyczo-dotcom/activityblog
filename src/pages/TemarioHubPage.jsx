@@ -6,6 +6,7 @@ import { THEME_COLORS } from '../lib/colorMaps.js'
 import { useLevelAccess } from '../hooks.js'
 import PasswordGate from '../components/PasswordGate.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
+import TrackResources from '../components/TrackResources.jsx'
 import { Layers, ListChecks, Headphones, BookOpenText, SpellCheck2, ArrowLeftRight, AudioLines } from 'lucide-react'
 
 // Las 7 actividades, iguales para cualquier nivel/track/temario. Se
@@ -82,6 +83,9 @@ export default function TemarioHubPage() {
         </span>
         <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mb-2">{temario.name}</h1>
         <p className="text-ink/60 mb-10">Nivel {level.code} · {level.name} — {temario.description}</p>
+        <div className="mb-8">
+          <TrackResources glossaryTo={`/adultos/${slug}/${themeSlug}/glosario`} />
+        </div>
 
         <div className="grid sm:grid-cols-2 gap-5">
           {TOPICS.map(({ slug: tSlug, label, desc, icon: Icon }) => (

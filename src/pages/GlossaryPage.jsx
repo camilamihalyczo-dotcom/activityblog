@@ -8,6 +8,7 @@ import { useLevelAccess } from '../hooks.js'
 import PasswordGate from '../components/PasswordGate.jsx'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import TrackResources from '../components/TrackResources.jsx'
 import { Search } from 'lucide-react'
 
 export default function GlossaryPage() {
@@ -80,6 +81,9 @@ export default function GlossaryPage() {
         <p className="text-ink/60 mb-8">
           Todo el vocabulario que fuimos viendo en este track, en un solo lugar.
         </p>
+        <div className="mb-8">
+          <TrackResources glossaryTo={`/adultos/${slug}/${themeSlug}/glosario`} showGlossary={false} />
+        </div>
 
         {words.length === 0 ? (
           <EmptyState label="palabras" />

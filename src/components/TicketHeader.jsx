@@ -7,7 +7,7 @@ import FloatingBackButton from './FloatingBackButton.jsx'
 // una ruta puntual vuelve a la página anterior del historial — útil para
 // páginas a las que se puede llegar desde varios lugares distintos (ej:
 // la tabla fonética, que se linkea desde cualquier track o grupo).
-export default function TicketHeader({ crumbs = [], backTo }) {
+export default function TicketHeader({ crumbs = [], backTo, showFloatingBack = false }) {
   const navigate = useNavigate()
   return (
     <>
@@ -28,25 +28,19 @@ export default function TicketHeader({ crumbs = [], backTo }) {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="flex items-center gap-1 -m-2 p-2 text-ink hover:text-brand transition-colors mr-1"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-cream shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand mr-1"
             >
               <ChevronLeft size={16} />
-              {/* Solo el ícono, en cualquier ancho — antes el texto "Volver"
-                  se mostraba a partir de sm, que quedaba inconsistente con
-                  la versión mobile (solo ícono) sin necesidad real: el
-                  ícono solo ya es un patrón de navegación reconocible, y
-                  así el header queda igual de compacto en desktop. sr-only
-                  para que lectores de pantalla lo sigan anunciando. */}
-              <span className="sr-only">Volver</span>
+              <span>Volver</span>
             </button>
           ) : (
             backTo && (
               <Link
                 to={backTo}
-                className="flex items-center gap-1 -m-2 p-2 text-ink hover:text-brand transition-colors mr-1"
+                className="inline-flex shrink-0 items-center gap-2 rounded-full bg-ink px-3 py-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-cream shadow-sm transition-transform hover:-translate-y-0.5 hover:bg-brand focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand mr-1"
               >
                 <ChevronLeft size={16} />
-                <span className="sr-only">Volver</span>
+                <span>Volver</span>
               </Link>
             )
           )}
@@ -62,7 +56,7 @@ export default function TicketHeader({ crumbs = [], backTo }) {
         </Link>
       </div>
     </div>
-    <FloatingBackButton backTo={backTo} />
+    {showFloatingBack && <FloatingBackButton backTo={backTo} />}
     </>
   )
 }

@@ -129,7 +129,7 @@ export default function MatchingPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen">
-        <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Sinónimos y antónimos']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} />
+        <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Sinónimos y antónimos']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} showFloatingBack />
         <div className="max-w-2xl mx-auto px-5 py-16">
           <EmptyState label="pares de sinónimos/antónimos" />
         </div>
@@ -171,7 +171,7 @@ export default function MatchingPage() {
 
   return (
     <div className="min-h-screen">
-      <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Sinónimos y antónimos']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} />
+      <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Sinónimos y antónimos']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 ${c.tag}`}>
           Sinónimos y antónimos

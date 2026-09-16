@@ -68,7 +68,7 @@ export default function InfanciasFlashcardsPage() {
 
   return (
     <div className="min-h-screen bg-kidsCream">
-      <KidsHeader crumbs={[group.name, 'Flashcards']} backTo={`/infancias/${slug}`} />
+      <KidsHeader crumbs={[group.name, 'Flashcards']} backTo={`/infancias/${slug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
           Vocabulario 🃏

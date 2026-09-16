@@ -147,7 +147,7 @@ export default function InfanciasQuizPage() {
 
   return (
     <div className="min-h-screen bg-kidsCream">
-      <KidsHeader crumbs={[group.name, 'Cuestionario']} backTo={`/infancias/${slug}`} />
+      <KidsHeader crumbs={[group.name, 'Cuestionario']} backTo={`/infancias/${slug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
           Cuestionario ✅

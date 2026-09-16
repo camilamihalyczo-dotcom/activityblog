@@ -86,7 +86,7 @@ export default function InfanciasPronunciationPage() {
   if (groups.length === 0) {
     return (
       <div className="min-h-screen bg-kidsCream">
-        <KidsHeader crumbs={[group.name, 'Pronunciación']} backTo={`/infancias/${slug}`} />
+        <KidsHeader crumbs={[group.name, 'Pronunciación']} backTo={`/infancias/${slug}`} showFloatingBack />
         <div className="max-w-2xl mx-auto px-5 py-16">
           <KidsEmptyState label="grupos de pronunciación" />
         </div>
@@ -160,7 +160,7 @@ export default function InfanciasPronunciationPage() {
 
   return (
     <div className="min-h-screen bg-kidsCream">
-      <KidsHeader crumbs={[group.name, 'Pronunciación']} backTo={`/infancias/${slug}`} />
+      <KidsHeader crumbs={[group.name, 'Pronunciación']} backTo={`/infancias/${slug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
           Pronunciación 🔊

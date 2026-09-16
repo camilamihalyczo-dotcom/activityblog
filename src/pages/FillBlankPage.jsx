@@ -141,7 +141,11 @@ function FillBlankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug }) {
   })
 
   return (
-    <CollapsibleExercise title={exercise.title || 'Completar oraciones'} label="Actividad" className="mb-10 text-ink">
+    <CollapsibleExercise
+      title={exercise.title || 'Completar oraciones'}
+      label="Actividad"
+      className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}
+    >
       <div className="flex flex-col gap-6">
         {exercise.sentences.map((item) => (
           <FillBlankItem
@@ -289,9 +293,11 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
   }
 
   return (
-    <div className="mb-10">
-      {exercise.title && <h2 className="font-display text-xl sm:text-2xl font-semibold text-ink mb-4">{exercise.title}</h2>}
-
+    <CollapsibleExercise
+      title={exercise.title || 'Completar oraciones'}
+      label="Actividad"
+      className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}
+    >
       <div className="texture-card rounded-2xl p-5 mb-6 sticky top-3 z-10 shadow-md">
         <p className="font-mono text-[10px] uppercase tracking-widest text-ink/60 mb-3">Banco de palabras</p>
         <div className="flex flex-wrap gap-2">
@@ -380,7 +386,7 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
           </button>
         </div>
       )}
-    </div>
+    </CollapsibleExercise>
   )
 }
 
@@ -431,7 +437,7 @@ export default function FillBlankPage() {
 
   return (
     <div className="min-h-screen">
-      <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Completar oraciones']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} />
+      <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Completar oraciones']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 ${c.tag}`}>
           Completar oraciones

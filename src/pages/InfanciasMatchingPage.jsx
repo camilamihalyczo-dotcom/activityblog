@@ -121,7 +121,7 @@ export default function InfanciasMatchingPage() {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-kidsCream">
-        <KidsHeader crumbs={[group.name, 'Sinónimos y antónimos']} backTo={`/infancias/${slug}`} />
+        <KidsHeader crumbs={[group.name, 'Sinónimos y antónimos']} backTo={`/infancias/${slug}`} showFloatingBack />
         <div className="max-w-2xl mx-auto px-5 py-16">
           <KidsEmptyState label="pares de sinónimos/antónimos" />
         </div>
@@ -163,7 +163,7 @@ export default function InfanciasMatchingPage() {
 
   return (
     <div className="min-h-screen bg-kidsCream">
-      <KidsHeader crumbs={[group.name, 'Sinónimos y antónimos']} backTo={`/infancias/${slug}`} />
+      <KidsHeader crumbs={[group.name, 'Sinónimos y antónimos']} backTo={`/infancias/${slug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
         <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
           Sinónimos y antónimos 🔄
