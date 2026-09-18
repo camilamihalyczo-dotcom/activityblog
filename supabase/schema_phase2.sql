@@ -84,6 +84,25 @@ alter table temarios enable row level security;
 alter table groups enable row level security;
 alter table content_items enable row level security;
 
+-- Las policies no soportan `if not exists`; eliminarlas permite volver a
+-- ejecutar este esquema sin duplicar policies existentes.
+drop policy if exists "public_read_tracks" on tracks;
+drop policy if exists "authenticated_write_tracks" on tracks;
+drop policy if exists "authenticated_update_tracks" on tracks;
+drop policy if exists "authenticated_delete_tracks" on tracks;
+drop policy if exists "public_read_temarios" on temarios;
+drop policy if exists "authenticated_write_temarios" on temarios;
+drop policy if exists "authenticated_update_temarios" on temarios;
+drop policy if exists "authenticated_delete_temarios" on temarios;
+drop policy if exists "public_read_groups" on groups;
+drop policy if exists "authenticated_write_groups" on groups;
+drop policy if exists "authenticated_update_groups" on groups;
+drop policy if exists "authenticated_delete_groups" on groups;
+drop policy if exists "public_read_content_items" on content_items;
+drop policy if exists "authenticated_write_content_items" on content_items;
+drop policy if exists "authenticated_update_content_items" on content_items;
+drop policy if exists "authenticated_delete_content_items" on content_items;
+
 create policy "public_read_tracks" on tracks for select to anon, authenticated using (true);
 create policy "authenticated_write_tracks" on tracks for insert to authenticated with check (true);
 create policy "authenticated_update_tracks" on tracks for update to authenticated using (true) with check (true);

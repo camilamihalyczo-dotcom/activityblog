@@ -49,6 +49,12 @@ create table if not exists submissions (
 
 alter table submissions enable row level security;
 
+-- Las policies no admiten `if not exists`. Se eliminan antes de recrearlas
+-- para que este script se pueda volver a ejecutar sin errores.
+drop policy if exists "public_insert_submissions" on submissions;
+drop policy if exists "authenticated_select_submissions" on submissions;
+drop policy if exists "authenticated_delete_submissions" on submissions;
+
 -- Cualquiera puede insertar (lo hacen los alumnos, sin login) — igual
 -- patrón que un formulario de contacto público.
 create policy "public_insert_submissions"

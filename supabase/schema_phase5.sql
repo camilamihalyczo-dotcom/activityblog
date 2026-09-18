@@ -20,6 +20,13 @@ create table if not exists error_notes (
 
 alter table error_notes enable row level security;
 
+-- Las policies no admiten `if not exists`; se eliminan antes de recrearlas
+-- para que este script pueda ejecutarse nuevamente sin errores.
+drop policy if exists "authenticated_select_error_notes" on error_notes;
+drop policy if exists "authenticated_insert_error_notes" on error_notes;
+drop policy if exists "authenticated_update_error_notes" on error_notes;
+drop policy if exists "authenticated_delete_error_notes" on error_notes;
+
 create policy "authenticated_select_error_notes"
   on error_notes for select
   to authenticated
