@@ -75,6 +75,19 @@ export const THEMES = [
     ],
   },
   {
+    slug: 'english-for-hr-recruiting',
+    name: 'English for HR & Recruiting',
+    description: 'Entrevistas laborales internacionales: screening calls, negociación de ofertas, redacción de job descriptions y feedback constructivo.',
+    progression: 'Screening Calls → Job Descriptions → Offer Negotiation',
+    color: 'pink', // #A0396B
+    passcode: 'talento24',
+    temarios: [
+      { slug: 'screening-calls', name: 'Screening Calls', description: 'Reuniones iniciales de selección, preguntas clave y evaluación de fit.' },
+      { slug: 'job-descriptions', name: 'Job Descriptions', description: 'Redactar descripciones claras, responsabilidades y requisitos de cada puesto.' },
+      { slug: 'offer-negotiation', name: 'Offer Negotiation', description: 'Negociación de ofertas, feedback y cierre de contratación internacional.' },
+    ],
+  },
+  {
     slug: 'english-for-creatives',
     name: 'English for Creatives',
     description: 'Inglés para diseñadores y creativos: vocabulario de proceso, comunicación con clientes y networking de industria.',
