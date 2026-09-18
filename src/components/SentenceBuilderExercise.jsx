@@ -35,21 +35,34 @@ function Block({ id, text, selected, disabled, onClick, kids }) {
   )
 }
 
-function Sentence({ sentence, c, kids, onResult }) {
+function Sentence({ sentence, c, kids, onChange, submitted }) {
   const [order, setOrder] = useState([])
   const [blockOrder] = useState(() => shuffle(sentence.blocks.map((_, index) => index)))
   const [selected, setSelected] = useState(null)
-  const [submitted, setSubmitted] = useState(false)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }), useSensor(KeyboardSensor))
-  const correct = order.every((index, position) => index === position)
   const blocks = sentence.blocks.map((text, index) => ({ id: `${sentence.id}-${index}`, text, index }))
   const available = order.map((index) => blocks[index])
+  const correctOrder = Array.isArray(sentence.correctOrder) && sentence.correctOrder.length === blocks.length
+    ? sentence.correctOrder
+    : blocks.map((block) => block.index)
+  const correct = order.length === blocks.length && order.every((index, position) => index === correctOrder[position])
 
   const place = (targetIndex, sourceId) => {
     const sourceIndex = Number(sourceId.split('-').pop())
     setOrder((current) => {
       const next = current.filter((index) => index !== sourceIndex)
       next.splice(targetIndex, 0, sourceIndex)
+      onChange(next)
+      return next
+    })
+    setSelected(null)
+  }
+
+  const remove = (sourceId) => {
+    const sourceIndex = Number(sourceId.split('-').pop())
+    setOrder((current) => {
+      const next = current.filter((index) => index !== sourceIndex)
+      onChange(next)
       return next
     })
     setSelected(null)
@@ -73,7 +86,7 @@ function Sentence({ sentence, c, kids, onResult }) {
               block={available[position]}
               submitted={submitted}
               correct={correct}
-              onClick={() => selected && place(position, selected)}
+              onClick={() => (selected ? place(position, selected) : remove(available[position].id))}
               kids={kids}
             />
             ) : (
@@ -95,11 +108,6 @@ function Sentence({ sentence, c, kids, onResult }) {
           {order.length === blocks.length && <p className={kids ? 'font-playful text-kidsInk/60 text-xs' : 'text-ink/60 text-xs'}>Todos los bloques están colocados.</p>}
         </div>
         {submitted && (correct ? <CheckCircle2 className="text-olive mt-3" size={18} /> : <XCircle className="text-stamp mt-3" size={18} />)}
-        {!submitted && (
-          <button type="button" onClick={() => { setSubmitted(true); onResult({ order: order.map((index) => blocks[index].text), correct }) }} className={`${kids ? 'bg-kidsInk rounded-full font-playful' : 'bg-ink rounded-lg'} mt-4 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40`} disabled={order.length !== blocks.length}>
-            Comprobar
-          </button>
-        )}
       </div>
     </DndContext>
   )
@@ -108,7 +116,7 @@ function Sentence({ sentence, c, kids, onResult }) {
 function Slot({ id, block, submitted, correct, onClick, kids }) {
   const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <button ref={setNodeRef} type="button" onClick={onClick} disabled={submitted} className={`${kids ? 'rounded-xl font-playful' : 'rounded-lg'} min-h-10 border-2 border-dashed px-3 py-2 text-sm font-medium ${isOver ? 'border-brand bg-brand/10' : 'border-ink/25'} ${submitted && (correct ? 'border-olive bg-olive/10' : 'border-stamp bg-stamp/10')}`}>
+    <button ref={setNodeRef} type="button" onClick={onClick} disabled={submitted} title={block ? 'Clic para devolver al banco' : undefined} className={`${kids ? 'rounded-xl font-playful' : 'rounded-lg'} min-h-10 border-2 border-dashed px-3 py-2 text-sm font-medium ${isOver ? 'border-brand bg-brand/10' : 'border-ink/25'} ${submitted && (correct ? 'border-olive bg-olive/10' : 'border-stamp bg-stamp/10')}`}>
       {block?.text || 'Soltá un bloque acá'}
     </button>
   )
@@ -122,16 +130,28 @@ export default function SentenceBuilderExercise({ exercise, c, kids = false, sco
   return (
     <CollapsibleExercise title={exercise.title || 'Sentence Builder'} label="Actividad" className={`${c.card} mb-8`}>
       <div>
-        {exercise.sentences.map((sentence) => <Sentence key={sentence.id} sentence={sentence} c={c} kids={kids} onResult={(result) => setResults((current) => ({ ...current, [sentence.id]: result }))} />)}
+        {exercise.sentences.map((sentence) => <Sentence key={sentence.id} sentence={sentence} c={c} kids={kids} onChange={(indices) => setResults((current) => ({ ...current, [sentence.id]: { indices } }))} submitted={submitted} />)}
         {!submitted ? (
           <div className="mt-6">
             <NameField value={studentName} onChange={setStudentName} kids={kids} c={c} />
             <button
               type="button"
-              disabled={!studentName.trim() || Object.keys(results).length !== exercise.sentences.length}
+              disabled={!studentName.trim() || exercise.sentences.some((sentence) => (results[sentence.id]?.indices || []).length !== sentence.blocks.length)}
               onClick={() => {
+                const evaluated = exercise.sentences.map((sentence) => {
+                  const indices = results[sentence.id]?.indices || []
+                  const correctOrder = sentence.correctOrder || sentence.blocks.map((_, index) => index)
+                  return {
+                    id: sentence.id,
+                    indices,
+                    correct: indices.length === sentence.blocks.length && indices.every((index, position) => index === correctOrder[position]),
+                    given: indices.map((index) => sentence.blocks[index]),
+                    expected: correctOrder.map((index) => sentence.blocks[index]),
+                  }
+                })
                 setSubmitted(true)
-                recordSubmission({ scope, levelSlug, groupSlug, trackSlug, temarioSlug, contentType: 'sentence_builder', label: exercise.title, studentName, score: Object.values(results).filter((result) => result.correct).length, total: exercise.sentences.length, detail: exercise.sentences.map((sentence) => ({ id: sentence.id, given: results[sentence.id]?.order || [], correct: sentence.blocks, is_correct: results[sentence.id]?.correct || false })) })
+                setResults(Object.fromEntries(evaluated.map((result) => [result.id, result])))
+                recordSubmission({ scope, levelSlug, groupSlug, trackSlug, temarioSlug, contentType: 'sentence_builder', label: exercise.title, studentName, score: evaluated.filter((result) => result.correct).length, total: exercise.sentences.length, detail: evaluated.map(({ id, given, expected, correct }) => ({ id, given, correct: expected, is_correct: correct })) })
               }}
               className={`${kids ? 'bg-kidsInk rounded-full font-playful' : 'bg-ink rounded-lg'} w-full py-3 font-semibold text-white disabled:opacity-40`}
             >

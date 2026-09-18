@@ -9,7 +9,7 @@ values (
   'Data Foundations & Standups → Technical Storytelling & Metrics → System Design & Interview Readiness',
   'violet',
   'datos24',
-  6
+  1
 )
 on conflict (slug) do nothing;
 

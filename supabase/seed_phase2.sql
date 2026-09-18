@@ -7,12 +7,13 @@
 -- ─── Tracks (Adultos) ────────────────────────────────────────────────────
 
 insert into tracks (slug, name, description, progression, color_key, passcode, sort_order) values
-  ('business-english', 'Business English', 'Reuniones, mails y comunicación profesional en el trabajo — de cero a liderar reuniones y hacer networking internacional.', 'Foundations → Professional Communication → Advanced Business', 'brand', 'oficina24', 0),
-  ('english-for-creatives', 'English for Creatives', 'Inglés para diseñadores y creativos: vocabulario de proceso, comunicación con clientes y networking de industria.', 'Creative Basics → Client Communication → Industry English', 'stamp', 'estudio24', 1),
-  ('exam-prep', 'Exam Preparation', 'Preparación para un examen internacional, con la intensidad ajustada al tiempo que te queda: desde 3 meses antes hasta modo emergencia.', '3 months before → 1 month (Sprint) → Emergency mode', 'olive', 'examen24', 2),
-  ('special-courses', 'Special Courses', 'Cursos cortos y puntuales: entrevistas técnicas en inglés y contenido para redes sociales/creadores.', 'English for Tech Interviews · English for Creators', 'pink', 'especial24', 3),
-  ('english-for-developers', 'English for Developers', 'Inglés de uso cotidiano en equipos de desarrollo: code reviews, standups y comunicación async con el equipo.', 'Code Reviews & PRs → Standups & Meetings → Docs & Async Comms', 'violet', 'codigo24', 4),
-  ('english-for-travel', 'English for Travel', 'Inglés práctico para viajar: aeropuertos, alojamiento, moverte y resolver imprevistos en otro país.', 'Airports & Check-in → Hotels & Getting Around → Eating Out & Emergencies', 'gold', 'viaje24', 5)
+  ('english-for-developers', 'English for Developers', 'Inglés de uso cotidiano en equipos de desarrollo: code reviews, standups y comunicación async con el equipo.', 'Code Reviews & PRs → Standups & Meetings → Docs & Async Comms', 'violet', 'codigo24', 0),
+  ('english-for-data-ai', 'English for Data & AI', 'Inglés para daily updates, pipelines, model reviews, dashboards y entrevistas técnicas.', 'Data Foundations & Standups → Technical Storytelling & Metrics → System Design & Interview Readiness', 'violet', 'datos24', 1),
+  ('business-english', 'Business English', 'Reuniones, mails y comunicación profesional en el trabajo — de cero a liderar reuniones y hacer networking internacional.', 'Foundations → Professional Communication → Advanced Business', 'brand', 'oficina24', 2),
+  ('english-for-creatives', 'English for Creatives', 'Inglés para diseñadores y creativos: vocabulario de proceso, comunicación con clientes y networking de industria.', 'Creative Basics → Client Communication → Industry English', 'stamp', 'estudio24', 3),
+  ('english-for-travel', 'English for Travel', 'Inglés práctico para viajar: aeropuertos, alojamiento, moverte y resolver imprevistos en otro país.', 'Airports & Check-in → Hotels & Getting Around → Eating Out & Emergencies', 'gold', 'viaje24', 4),
+  ('exam-prep', 'Exam Preparation', 'Preparación para un examen internacional, con la intensidad ajustada al tiempo que te queda: desde 3 meses antes hasta modo emergencia.', '3 months before → 1 month (Sprint) → Emergency mode', 'olive', 'examen24', 5),
+  ('special-courses', 'Special Courses', 'Cursos cortos y puntuales: entrevistas técnicas en inglés y contenido para redes sociales/creadores.', 'English for Tech Interviews · English for Creators', 'pink', 'especial24', 6)
 on conflict (slug) do nothing;
 
 -- ─── Temarios ────────────────────────────────────────────────────────────
