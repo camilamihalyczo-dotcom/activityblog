@@ -5,6 +5,7 @@ import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { RotateCw, ArrowLeft, ArrowRight, Shuffle } from 'lucide-react'
 
 export default function InfanciasFlashcardsPage() {
@@ -79,7 +80,11 @@ export default function InfanciasFlashcardsPage() {
         {flashcards.length === 0 ? (
           <KidsEmptyState label="flashcards" />
         ) : (
-          <>
+          <CollapsibleExercise
+            title="Flashcards"
+            label="Actividad"
+            className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 text-kidsInk`}
+          >
             <p className="font-playful text-xs text-kidsInk/70 mb-3 uppercase tracking-wider font-semibold">
               Tarjeta {index + 1} de {order.length}
             </p>
@@ -127,7 +132,7 @@ export default function InfanciasFlashcardsPage() {
             >
               <Shuffle size={15} /> Mezclar tarjetas
             </button>
-          </>
+          </CollapsibleExercise>
         )}
       </div>
     </div>

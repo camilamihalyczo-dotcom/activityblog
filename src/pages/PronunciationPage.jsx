@@ -9,6 +9,7 @@ import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
 import NameField from '../components/NameField.jsx'
 import QuestionHint from '../components/QuestionHint.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 
 function shuffle(arr) {
   const next = [...arr]
@@ -171,7 +172,12 @@ export default function PronunciationPage() {
   return (
     <div className="min-h-screen">
       <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Pronunciación']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} showFloatingBack />
-      <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
+      <CollapsibleExercise
+        title="Pronunciación"
+        label="Actividad"
+        className={`max-w-2xl mx-auto mt-12 mb-16 px-5 py-12 sm:py-16 texture-card rounded-2xl ${c.borderT4} text-ink`}
+      >
+      <div className="max-w-2xl mx-auto">
         <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 ${c.tag}`}>
           Pronunciación
         </span>
@@ -259,6 +265,7 @@ export default function PronunciationPage() {
           </div>
         )}
       </div>
+      </CollapsibleExercise>
     </div>
   )
 }

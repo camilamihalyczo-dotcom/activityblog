@@ -25,7 +25,11 @@ function QuizGroup({ quiz, c, levelSlug, themeSlug, temarioSlug }) {
   const score = quiz.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
-    <CollapsibleExercise title={quiz.title || 'Cuestionario'} label="Actividad" className="mb-10 text-ink">
+    <CollapsibleExercise
+      title={quiz.title || 'Cuestionario'}
+      label="Actividad"
+      className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}
+    >
       <div className="flex flex-col gap-6">
         {quiz.questions.map((q, qi) => (
           <div key={q.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>

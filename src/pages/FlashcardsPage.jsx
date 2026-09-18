@@ -6,6 +6,7 @@ import { THEME_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 import { RotateCw, ArrowLeft, ArrowRight, Shuffle } from 'lucide-react'
 
 export default function FlashcardsPage() {
@@ -87,7 +88,11 @@ export default function FlashcardsPage() {
         {flashcards.length === 0 ? (
           <EmptyState label="flashcards" />
         ) : (
-          <>
+          <CollapsibleExercise
+            title="Flashcards"
+            label="Actividad"
+            className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 text-ink`}
+          >
             <p className="font-mono text-xs text-ink/60 mb-3 uppercase tracking-wider">
               Tarjeta {index + 1} de {order.length}
             </p>
@@ -135,7 +140,7 @@ export default function FlashcardsPage() {
             >
               <Shuffle size={15} /> Mezclar tarjetas
             </button>
-          </>
+          </CollapsibleExercise>
         )}
       </div>
     </div>

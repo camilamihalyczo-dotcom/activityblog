@@ -8,6 +8,7 @@ import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
 import QuestionHint from '../components/QuestionHint.jsx'
+import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
 
 function shuffle(arr) {
   const next = [...arr]
@@ -161,7 +162,12 @@ export default function InfanciasPronunciationPage() {
   return (
     <div className="min-h-screen bg-kidsCream">
       <KidsHeader crumbs={[group.name, 'Pronunciación']} backTo={`/infancias/${slug}`} showFloatingBack />
-      <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
+      <CollapsibleExercise
+        title="Pronunciación"
+        label="Actividad"
+        className={`max-w-2xl mx-auto mt-12 mb-16 px-5 py-12 sm:py-16 bg-white rounded-[22px] shadow-kids ${c.borderT8} text-kidsInk`}
+      >
+      <div className="max-w-2xl mx-auto">
         <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
           Pronunciación 🔊
         </span>
@@ -252,6 +258,7 @@ export default function InfanciasPronunciationPage() {
           </div>
         )}
       </div>
+      </CollapsibleExercise>
     </div>
   )
 }
