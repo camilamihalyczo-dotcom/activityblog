@@ -14,6 +14,8 @@ import ReadingWritingPage from './pages/ReadingWritingPage.jsx'
 import FillBlankPage from './pages/FillBlankPage.jsx'
 import MatchingPage from './pages/MatchingPage.jsx'
 import PronunciationPage from './pages/PronunciationPage.jsx'
+import SentenceBuilderPage from './pages/SentenceBuilderPage.jsx'
+import VoiceLabPage from './pages/VoiceLabPage.jsx'
 import GlossaryPage from './pages/GlossaryPage.jsx'
 import PhoneticChartPage from './pages/PhoneticChartPage.jsx'
 import InfanciasPage from './pages/InfanciasPage.jsx'
@@ -26,6 +28,8 @@ import InfanciasReadingWritingPage from './pages/InfanciasReadingWritingPage.jsx
 import InfanciasFillBlankPage from './pages/InfanciasFillBlankPage.jsx'
 import InfanciasMatchingPage from './pages/InfanciasMatchingPage.jsx'
 import InfanciasPronunciationPage from './pages/InfanciasPronunciationPage.jsx'
+import InfanciasSentenceBuilderPage from './pages/InfanciasSentenceBuilderPage.jsx'
+import InfanciasVoiceLabPage from './pages/InfanciasVoiceLabPage.jsx'
 import InfanciasGlossaryPage from './pages/InfanciasGlossaryPage.jsx'
 import InfanciasPhoneticChartPage from './pages/InfanciasPhoneticChartPage.jsx'
 import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
@@ -59,6 +63,8 @@ export default function App() {
         <Route path="/adultos/:level/:theme/:temario/completar" element={<FillBlankPage />} />
         <Route path="/adultos/:level/:theme/:temario/sinonimos-antonimos" element={<MatchingPage />} />
         <Route path="/adultos/:level/:theme/:temario/pronunciacion" element={<PronunciationPage />} />
+        <Route path="/adultos/:level/:theme/:temario/sentence-builder" element={<SentenceBuilderPage />} />
+        <Route path="/adultos/:level/:theme/:temario/voice-lab" element={<VoiceLabPage />} />
         <Route path="/adultos/:level/:theme/glosario" element={<GlossaryPage />} />
         <Route path="/infancias" element={<InfanciasPage />} />
         <Route path="/infancias/blog" element={<InfanciasBlogPage />} />
@@ -71,6 +77,8 @@ export default function App() {
         <Route path="/infancias/:group/completar" element={<InfanciasFillBlankPage />} />
         <Route path="/infancias/:group/sinonimos-antonimos" element={<InfanciasMatchingPage />} />
         <Route path="/infancias/:group/pronunciacion" element={<InfanciasPronunciationPage />} />
+        <Route path="/infancias/:group/sentence-builder" element={<InfanciasSentenceBuilderPage />} />
+        <Route path="/infancias/:group/voice-lab" element={<InfanciasVoiceLabPage />} />
         <Route path="/infancias/:group/glosario" element={<InfanciasGlossaryPage />} />
         {/* Ruta del panel de administración a propósito no obvia (no "/admin"):
             no está linkeada desde ningún lado del sitio público, así que

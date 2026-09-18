@@ -25,7 +25,16 @@ create table if not exists submissions (
   temario_slug text,
   group_slug text,
   content_type text not null check (
-    content_type in ('fill_blank', 'quiz', 'synonyms_antonyms', 'listening', 'reading_writing')
+    content_type in (
+      'fill_blank',
+      'quiz',
+      'synonyms_antonyms',
+      'listening',
+      'reading_writing',
+      'pronunciation',
+      'sentence_builder',
+      'voice_lab'
+    )
   ),
   -- Contexto extra para cuando un mismo temario/grupo tiene más de un ítem
   -- del mismo tipo (varios videos de Listening, varias consignas de

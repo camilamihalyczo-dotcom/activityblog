@@ -38,6 +38,8 @@ const ALL_TOPICS = [
   { slug: 'completar', label: 'Completar oraciones' },
   { slug: 'sinonimos-antonimos', label: 'Sinónimos y antónimos' },
   { slug: 'pronunciacion', label: 'Pronunciación' },
+  { slug: 'sentence-builder', label: 'Sentence Builder' },
+  { slug: 'voice-lab', label: 'Voice Lab' },
 ]
 
 const EMPTY_FORM = {

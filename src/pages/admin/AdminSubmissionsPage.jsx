@@ -10,6 +10,8 @@ const CONTENT_TYPE_LABELS = {
   listening: 'Listening',
   reading_writing: 'Reading & Writing',
   pronunciation: 'Pronunciación',
+  sentence_builder: 'Sentence Builder',
+  voice_lab: 'Voice Lab',
 }
 
 const FOUR_WEEKS_MS = 28 * 24 * 60 * 60 * 1000
