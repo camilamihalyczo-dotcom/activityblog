@@ -25,7 +25,7 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
       <p className="whitespace-pre-line text-ink/85 leading-relaxed mb-6">{item.text}</p>
 
       <div className="flex flex-col gap-4">
-        {item.questions.map((q, qi) => (
+        {(item.questions || []).map((q, qi) => (
           <div key={q.id}>
             <p className="font-mono text-xs text-ink/60 mb-1">Pregunta {qi + 1}</p>
             <p className="font-medium text-ink mb-2">{q.q}</p>
@@ -162,7 +162,12 @@ export default function ReadingWritingPage() {
           return recordSubmission({
             ...common,
             label: `Reading — ${item.title}`,
-            detail: item.questions.map((q) => ({ id: q.id, question: q.q, answer: answers[q.id] || '' })),
+            detail: (item.questions || []).map((q) => ({
+              id: q.id,
+              question: q.q,
+              answer: answers[q.id] || '',
+              manual_review: true,
+            })),
           })
         }
         return recordSubmission({

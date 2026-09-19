@@ -24,7 +24,7 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
       <p className="font-playful whitespace-pre-line text-kidsInk/85 leading-relaxed mb-6">{item.text}</p>
 
       <div className="flex flex-col gap-4">
-        {item.questions.map((q, qi) => (
+        {(item.questions || []).map((q, qi) => (
           <div key={q.id}>
             <p className="font-playful text-xs text-kidsInk/70 mb-1 font-semibold">Pregunta {qi + 1}</p>
             <p className="font-playful font-medium text-kidsInk mb-2">{q.q}</p>
@@ -152,7 +152,12 @@ export default function InfanciasReadingWritingPage() {
           return recordSubmission({
             ...common,
             label: `Reading — ${item.title}`,
-            detail: item.questions.map((q) => ({ id: q.id, question: q.q, answer: answers[q.id] || '' })),
+            detail: (item.questions || []).map((q) => ({
+              id: q.id,
+              question: q.q,
+              answer: answers[q.id] || '',
+              manual_review: true,
+            })),
           })
         }
         return recordSubmission({

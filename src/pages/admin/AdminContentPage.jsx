@@ -563,7 +563,25 @@ function ReadingWritingEditor({ data, onChange }) {
     questions[qi] = { ...questions[qi], ...patch }
     updateItem(i, { questions })
   }
-  const addQuestion = (i) => updateItem(i, { questions: [...items[i].questions, { id: genId(), q: '' }] })
+  const updateOption = (i, qi, oi, value) => {
+    const question = items[i].questions[qi]
+    const options = [...(question.options || [])]
+    const wasCorrect = question.answer === options[oi]
+    options[oi] = value
+    updateQuestion(i, qi, { options, answer: wasCorrect ? value : question.answer })
+  }
+  const removeOption = (i, qi, oi) => {
+    const question = items[i].questions[qi]
+    const option = question.options[oi]
+    updateQuestion(i, qi, {
+      options: question.options.filter((_, idx) => idx !== oi),
+      answer: question.answer === option ? '' : question.answer,
+    })
+  }
+  const addQuestion = (i) =>
+    updateItem(i, {
+      questions: [...(items[i].questions || []), { id: genId(), q: '', type: 'text', options: [], answer: '' }],
+    })
   const removeQuestion = (i, qi) => updateItem(i, { questions: items[i].questions.filter((_, idx) => idx !== qi) })
 
   return (
@@ -609,7 +627,7 @@ function ReadingWritingEditor({ data, onChange }) {
                 <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
                   Preguntas (texto libre o multiple choice)
                 </span>
-                {item.questions.map((q, qi) => (
+                {(item.questions || []).map((q, qi) => (
                   <div key={q.id} className="flex flex-col gap-2 border-b border-ink/10 pb-3 last:border-0">
                     <div className="flex items-center gap-2">
                       <input
@@ -643,16 +661,23 @@ function ReadingWritingEditor({ data, onChange }) {
                             <input
                               value={option}
                               onChange={(e) => {
-                                const options = [...(q.options || [])]
-                                options[oi] = e.target.value
-                                updateQuestion(i, qi, { options })
+                                updateOption(i, qi, oi, e.target.value)
                               }}
                               className={`${inputCls} flex-1`}
                               placeholder={`Opción ${oi + 1}`}
                             />
+                            <label className="flex items-center gap-1 text-xs text-ink/60 whitespace-nowrap">
+                              <input
+                                type="radio"
+                                name={`reading-answer-${q.id}`}
+                                checked={option !== '' && q.answer === option}
+                                onChange={() => updateQuestion(i, qi, { answer: option })}
+                                className="accent-olive"
+                              />
+                              Correcta
+                            </label>
                             {q.options.length > 2 && (
-                              <button
-                                onClick={() => updateQuestion(i, qi, { options: q.options.filter((_, idx) => idx !== oi) })}
+                              <button onClick={() => removeOption(i, qi, oi)}
                                 className="text-stamp text-xs font-medium shrink-0"
                               >
                                 Quitar

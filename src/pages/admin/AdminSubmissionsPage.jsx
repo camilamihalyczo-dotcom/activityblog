@@ -45,7 +45,14 @@ function SubmissionRow({ entry, onDelete }) {
         <div className="mt-4 flex flex-col gap-3 border-t-2 border-dashed border-ink/10 pt-4">
           {(entry.detail || []).map((d, i) => (
             <div key={i} className="text-sm">
-              {d.question || d.sentence || d.word ? (
+              {d.manual_review || (d.question && d.answer !== undefined && d.is_correct === undefined) ? (
+                <>
+                  <p className="text-ink/80">{d.question}</p>
+                  <p className="text-ink/85 whitespace-pre-line bg-paper rounded-lg p-3">
+                    {d.answer || <span className="italic text-ink/60">(sin responder)</span>}
+                  </p>
+                </>
+              ) : d.question || d.sentence || d.word ? (
                 <>
                   <p className="text-ink/80">{d.question || d.sentence || d.word}</p>
                   <p className="text-ink/70 flex items-center gap-2 flex-wrap mt-0.5">
