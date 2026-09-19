@@ -17,6 +17,13 @@ create table if not exists blog_posts (
 
 alter table blog_posts enable row level security;
 
+-- Las policies no admiten `if not exists`; se eliminan antes de recrearlas
+-- para permitir volver a ejecutar este esquema sin errores.
+drop policy if exists "public_read_blog_posts" on blog_posts;
+drop policy if exists "authenticated_insert_blog_posts" on blog_posts;
+drop policy if exists "authenticated_update_blog_posts" on blog_posts;
+drop policy if exists "authenticated_delete_blog_posts" on blog_posts;
+
 -- El sitio público (alumnos, familias) puede LEER los posts sin login.
 create policy "public_read_blog_posts"
   on blog_posts for select

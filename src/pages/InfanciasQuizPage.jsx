@@ -23,7 +23,11 @@ function QuizGroup({ quiz, c, groupSlug }) {
   const score = quiz.questions.filter((q) => answers[q.id] === q.answer).length
 
   return (
-    <CollapsibleExercise title={quiz.title || 'Cuestionario'} label="Actividad" className="mb-10 text-kidsInk">
+    <CollapsibleExercise
+      title={quiz.title || 'Cuestionario'}
+      label="Actividad"
+      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
+    >
       <div className="flex flex-col gap-6">
         {quiz.questions.map((q, qi) => (
           <div key={q.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>

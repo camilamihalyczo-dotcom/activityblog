@@ -16,6 +16,8 @@ export const EMPTY_CONTENT_BY_TYPE = {
   fill_blank: [],
   synonyms_antonyms: [],
   pronunciation: [],
+  sentence_builder: [],
+  voice_lab: [],
 }
 
 export function buildAdultosScopeKey(levelSlug, trackSlug, temarioSlug, contentType) {

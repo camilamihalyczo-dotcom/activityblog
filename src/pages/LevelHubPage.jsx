@@ -4,7 +4,7 @@ import { getLevel } from '../data/levels.js'
 import { fetchTracks } from '../lib/tracks.js'
 import { THEME_COLORS } from '../lib/colorMaps.js'
 import TicketHeader from '../components/TicketHeader.jsx'
-import { Briefcase, Palette, GraduationCap, Sparkles, Code2, Plane } from 'lucide-react'
+import { Briefcase, Palette, GraduationCap, Sparkles, Code2, Plane, Users } from 'lucide-react'
 
 // Un ícono por track conocido. Los tracks en sí (nombre, color, progresión
 // interna, clave de acceso, temarios) ahora viven en Supabase y se cargan
@@ -14,6 +14,7 @@ import { Briefcase, Palette, GraduationCap, Sparkles, Code2, Plane } from 'lucid
 // que esta pantalla es de acceso libre.
 const ICONS = {
   'business-english': Briefcase,
+  'english-for-hr-recruiting': Users,
   'english-for-creatives': Palette,
   'exam-prep': GraduationCap,
   'special-courses': Sparkles,

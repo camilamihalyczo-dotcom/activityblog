@@ -24,6 +24,13 @@ alter table glossary_entries enable row level security;
 
 -- Igual patrón que el resto del contenido de estudio: lectura pública
 -- (lo ven los alumnos en /adultos y /infancias), escritura solo logueada.
+-- Las policies no admiten `if not exists`; se eliminan antes de recrearlas
+-- para permitir volver a ejecutar este esquema sin errores.
+drop policy if exists "public_read_glossary_entries" on glossary_entries;
+drop policy if exists "authenticated_insert_glossary_entries" on glossary_entries;
+drop policy if exists "authenticated_update_glossary_entries" on glossary_entries;
+drop policy if exists "authenticated_delete_glossary_entries" on glossary_entries;
+
 create policy "public_read_glossary_entries"
   on glossary_entries for select
   to anon, authenticated

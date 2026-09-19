@@ -36,6 +36,32 @@
 // armaron por destreza de examen (Reading/Listening/Writing/Speaking).
 export const THEMES = [
   {
+    slug: 'english-for-developers',
+    name: 'English for Developers',
+    description: 'Inglés de uso cotidiano en equipos de desarrollo: code reviews, standups y comunicación async con el equipo.',
+    progression: 'Code Reviews & PRs → Standups & Meetings → Docs & Async Comms',
+    color: 'violet', // #6B3FA0
+    passcode: 'codigo24',
+    temarios: [
+      { slug: 'code-reviews-prs', name: 'Code Reviews & PRs', description: 'Dar y recibir feedback sobre código, comentar pull requests con claridad.' },
+      { slug: 'standups-meetings', name: 'Standups & Meetings', description: 'Daily standups, sprint planning y reuniones técnicas en inglés.' },
+      { slug: 'docs-async-comms', name: 'Docs & Async Comms', description: 'Documentación técnica, mensajes en Slack/Jira y comunicación asincrónica con el equipo.' },
+    ],
+  },
+  {
+    slug: 'english-for-data-ai',
+    name: 'English for Data & AI',
+    description: 'Inglés para daily updates, pipelines, model reviews, dashboards y entrevistas técnicas.',
+    progression: 'Data Foundations & Standups → Technical Storytelling & Metrics → System Design & Interview Readiness',
+    color: 'violet', // #6B3FA0
+    passcode: 'datos24',
+    temarios: [
+      { slug: 'data-foundations-standups', name: 'Data Foundations & Standups', description: 'Daily updates, pipelines, agilidad y primeros bloqueos.' },
+      { slug: 'technical-storytelling-metrics', name: 'Technical Storytelling & Metrics', description: 'Model reviews, trade-offs, dashboards y presentar a stakeholders.' },
+      { slug: 'system-design-interview-readiness', name: 'System Design & Interview Readiness', description: 'Pizarras técnicas, preguntas STAR y negociación internacional.' },
+    ],
+  },
+  {
     slug: 'business-english',
     name: 'Business English',
     description: 'Reuniones, mails y comunicación profesional en el trabajo — de cero a liderar reuniones y hacer networking internacional.',
@@ -49,6 +75,19 @@ export const THEMES = [
     ],
   },
   {
+    slug: 'english-for-hr-recruiting',
+    name: 'English for HR & Recruiting',
+    description: 'Entrevistas laborales internacionales: screening calls, negociación de ofertas, redacción de job descriptions y feedback constructivo.',
+    progression: 'Screening Calls → Job Descriptions → Offer Negotiation',
+    color: 'pink', // #A0396B
+    passcode: 'talento24',
+    temarios: [
+      { slug: 'screening-calls', name: 'Screening Calls', description: 'Reuniones iniciales de selección, preguntas clave y evaluación de fit.' },
+      { slug: 'job-descriptions', name: 'Job Descriptions', description: 'Redactar descripciones claras, responsabilidades y requisitos de cada puesto.' },
+      { slug: 'offer-negotiation', name: 'Offer Negotiation', description: 'Negociación de ofertas, feedback y cierre de contratación internacional.' },
+    ],
+  },
+  {
     slug: 'english-for-creatives',
     name: 'English for Creatives',
     description: 'Inglés para diseñadores y creativos: vocabulario de proceso, comunicación con clientes y networking de industria.',
@@ -59,6 +98,19 @@ export const THEMES = [
       { slug: 'creative-basics', name: 'Creative Basics', description: 'Vocabulario de diseño: describí tu trabajo y tu proceso.' },
       { slug: 'client-communication', name: 'Client Communication', description: 'Propuestas, briefings y feedback con clientes internacionales.' },
       { slug: 'industry-english', name: 'Industry English', description: 'Pitches, portfolio reviews y networking de industria.' },
+    ],
+  },
+  {
+    slug: 'english-for-travel',
+    name: 'English for Travel',
+    description: 'Inglés práctico para viajar: aeropuertos, alojamiento, moverte y resolver imprevistos en otro país.',
+    progression: 'Airports & Check-in → Hotels & Getting Around → Eating Out & Emergencies',
+    color: 'gold', // #C47A0B
+    passcode: 'viaje24',
+    temarios: [
+      { slug: 'airports-checkin', name: 'Airports & Check-in', description: 'Check-in, seguridad, migraciones y embarque sin sorpresas.' },
+      { slug: 'hotels-getting-around', name: 'Hotels & Getting Around', description: 'Alojamiento, transporte público y pedir indicaciones.' },
+      { slug: 'eating-out-emergencies', name: 'Eating Out & Emergencies', description: 'Restaurantes, compras y resolver imprevistos (salud, pérdidas, cambios de planes).' },
     ],
   },
   {
@@ -85,32 +137,6 @@ export const THEMES = [
     temarios: [
       { slug: 'tech-interviews', name: 'English for Tech Interviews', description: 'Mock interviews, vocabulario técnico, hablar de código con confianza.' },
       { slug: 'creators', name: 'English for Creators', description: 'Captions, guiones, pitches y DMs para redes.' },
-    ],
-  },
-  {
-    slug: 'english-for-developers',
-    name: 'English for Developers',
-    description: 'Inglés de uso cotidiano en equipos de desarrollo: code reviews, standups y comunicación async con el equipo.',
-    progression: 'Code Reviews & PRs → Standups & Meetings → Docs & Async Comms',
-    color: 'violet', // #6B3FA0
-    passcode: 'codigo24',
-    temarios: [
-      { slug: 'code-reviews-prs', name: 'Code Reviews & PRs', description: 'Dar y recibir feedback sobre código, comentar pull requests con claridad.' },
-      { slug: 'standups-meetings', name: 'Standups & Meetings', description: 'Daily standups, sprint planning y reuniones técnicas en inglés.' },
-      { slug: 'docs-async-comms', name: 'Docs & Async Comms', description: 'Documentación técnica, mensajes en Slack/Jira y comunicación asincrónica con el equipo.' },
-    ],
-  },
-  {
-    slug: 'english-for-travel',
-    name: 'English for Travel',
-    description: 'Inglés práctico para viajar: aeropuertos, alojamiento, moverte y resolver imprevistos en otro país.',
-    progression: 'Airports & Check-in → Hotels & Getting Around → Eating Out & Emergencies',
-    color: 'gold', // #C47A0B
-    passcode: 'viaje24',
-    temarios: [
-      { slug: 'airports-checkin', name: 'Airports & Check-in', description: 'Check-in, seguridad, migraciones y embarque sin sorpresas.' },
-      { slug: 'hotels-getting-around', name: 'Hotels & Getting Around', description: 'Alojamiento, transporte público y pedir indicaciones.' },
-      { slug: 'eating-out-emergencies', name: 'Eating Out & Emergencies', description: 'Restaurantes, compras y resolver imprevistos (salud, pérdidas, cambios de planes).' },
     ],
   },
 ]

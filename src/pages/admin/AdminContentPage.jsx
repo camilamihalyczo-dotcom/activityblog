@@ -20,6 +20,8 @@ const CONTENT_TYPES = [
   { key: 'fill_blank', label: 'Completar oraciones' },
   { key: 'synonyms_antonyms', label: 'Sinónimos y antónimos' },
   { key: 'pronunciation', label: 'Pronunciación' },
+  { key: 'sentence_builder', label: 'Sentence Builder' },
+  { key: 'voice_lab', label: 'Voice Lab' },
 ]
 
 // Mapea el content_type interno al segmento de URL de la página pública
@@ -33,6 +35,8 @@ const CONTENT_TYPE_PATHS = {
   fill_blank: 'completar',
   synonyms_antonyms: 'sinonimos-antonimos',
   pronunciation: 'pronunciacion',
+  sentence_builder: 'sentence-builder',
+  voice_lab: 'voice-lab',
 }
 
 // Tipos de contenido cuyo `data` es un array (se guarda [] cuando está
@@ -47,6 +51,8 @@ const ARRAY_CONTENT_TYPES = [
   'fill_blank',
   'synonyms_antonyms',
   'pronunciation',
+  'sentence_builder',
+  'voice_lab',
 ]
 
 const inputCls = 'w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm'
@@ -1050,6 +1056,154 @@ function PronunciationEditor({ data, onChange }) {
   )
 }
 
+function SentenceBuilderEditor({ data, onChange }) {
+  const exercises = data || []
+  const updateExercise = (ei, patch) => {
+    const next = [...exercises]
+    next[ei] = { ...next[ei], ...patch }
+    onChange(next)
+  }
+  const addExercise = () => onChange([...exercises, { id: genId(), title: '', sentences: [] }])
+  const addSentence = (ei) =>
+    updateExercise(ei, { sentences: [...exercises[ei].sentences, { id: genId(), blocks: ['', '', '', ''], correctOrder: [0, 1, 2, 3] }] })
+  const updateSentence = (ei, si, blocks) => {
+    const sentences = [...exercises[ei].sentences]
+    const previousBlocks = sentences[si].blocks
+    const previousOrder = Array.isArray(sentences[si].correctOrder)
+      ? sentences[si].correctOrder
+      : previousBlocks.map((_, index) => index)
+    const correctOrder = previousOrder
+      .filter((index) => index < blocks.length)
+      .concat(blocks.map((_, index) => index).filter((index) => !previousOrder.includes(index)))
+    sentences[si] = { ...sentences[si], blocks, correctOrder }
+    updateExercise(ei, { sentences })
+  }
+  const removeBlock = (ei, si, blockIndex) => {
+    const sentence = exercises[ei].sentences[si]
+    const correctOrder = (sentence.correctOrder || sentence.blocks.map((_, index) => index))
+      .filter((index) => index !== blockIndex)
+      .map((index) => index > blockIndex ? index - 1 : index)
+    const sentences = [...exercises[ei].sentences]
+    sentences[si] = {
+      ...sentence,
+      blocks: sentence.blocks.filter((_, index) => index !== blockIndex),
+      correctOrder,
+    }
+    updateExercise(ei, { sentences })
+  }
+  const updateCorrectPosition = (ei, si, blockIndex, value) => {
+    const sentence = exercises[ei].sentences[si]
+    const order = Array.isArray(sentence.correctOrder)
+      ? [...sentence.correctOrder]
+      : sentence.blocks.map((_, index) => index)
+    const oldPosition = order.indexOf(blockIndex)
+    const newPosition = Math.max(0, Math.min(order.length - 1, Number(value) - 1))
+    if (oldPosition === -1 || oldPosition === newPosition) return
+    order.splice(oldPosition, 1)
+    order.splice(newPosition, 0, blockIndex)
+    const sentences = [...exercises[ei].sentences]
+    sentences[si] = { ...sentence, correctOrder: order }
+    updateExercise(ei, { sentences })
+  }
+  return (
+    <div className="flex flex-col gap-6">
+      {exercises.map((exercise, ei) => (
+        <div key={exercise.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
+          <div className="flex gap-3 items-start">
+            <label className="flex-1">
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título del ejercicio</span>
+              <input value={exercise.title || ''} onChange={(e) => updateExercise(ei, { title: e.target.value })} placeholder="ej: Desafíos progresivos de sintaxis" className={inputCls} />
+            </label>
+            <button onClick={() => onChange(exercises.filter((_, index) => index !== ei))} className={`${smallBtn} text-stamp shrink-0 mt-6`}>Borrar ejercicio</button>
+          </div>
+          {exercise.sentences.map((sentence, si) => (
+            <div key={sentence.id} className="border-2 border-ink/10 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Oración {si + 1}</span>
+                <button onClick={() => updateExercise(ei, { sentences: exercise.sentences.filter((_, index) => index !== si) })} className="text-stamp text-xs font-medium">Borrar oración</button>
+              </div>
+              <div className="flex flex-col gap-2">
+                {sentence.blocks.map((block, bi) => (
+                  <div key={bi} className="flex gap-2">
+                    <input value={block} onChange={(e) => { const blocks = [...sentence.blocks]; blocks[bi] = e.target.value; updateSentence(ei, si, blocks) }} placeholder={`Bloque ${bi + 1}`} className={inputCls} />
+                    <label className="flex items-center gap-1 text-xs text-ink/60 shrink-0">
+                      <span>Orden</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max={sentence.blocks.length}
+                        value={(sentence.correctOrder || sentence.blocks.map((_, index) => index))[0] === undefined ? bi + 1 : (sentence.correctOrder || sentence.blocks.map((_, index) => index)).indexOf(bi) + 1}
+                        onChange={(e) => updateCorrectPosition(ei, si, bi, e.target.value)}
+                        className="w-14 px-2 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm text-center"
+                        aria-label={`Orden correcto del bloque ${bi + 1}`}
+                      />
+                    </label>
+                    {sentence.blocks.length > 2 && <button onClick={() => removeBlock(ei, si, bi)} className="text-stamp text-xs">Quitar</button>}
+                  </div>
+                ))}
+              </div>
+              <p className="text-ink/60 text-xs">Indicá el orden correcto de cada bloque. El banco se va a mezclar automáticamente para el alumno.</p>
+              <button onClick={() => updateSentence(ei, si, [...sentence.blocks, ''])} className="text-brand hover:underline text-xs font-medium mt-3">+ Agregar bloque</button>
+            </div>
+          ))}
+          <button onClick={() => addSentence(ei)} className="text-brand hover:underline text-sm font-medium self-start">+ Agregar oración</button>
+        </div>
+      ))}
+      <button onClick={addExercise} className="text-brand hover:underline text-sm font-medium self-start">+ Agregar ejercicio</button>
+      {exercises.length === 0 && <p className="text-ink/60 text-xs">Sin desafíos todavía.</p>}
+    </div>
+  )
+}
+
+function VoiceLabEditor({ data, onChange }) {
+  const challenges = data || []
+  const update = (index, patch) => {
+    const next = [...challenges]
+    next[index] = { ...next[index], ...patch }
+    onChange(next)
+  }
+  const addChallenge = () =>
+    onChange([...challenges, { id: genId(), title: '', sentence: '', keywords: [], phoneticTip: '' }])
+
+  return (
+    <div className="flex flex-col gap-4">
+      {challenges.map((challenge, index) => (
+        <div key={challenge.id} className="texture-card rounded-xl p-5 flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Desafío {index + 1}</span>
+            <button onClick={() => onChange(challenges.filter((_, itemIndex) => itemIndex !== index))} className={`${smallBtn} text-stamp`}>
+              Borrar desafío
+            </button>
+          </div>
+          <label>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título</span>
+            <input value={challenge.title || ''} onChange={(e) => update(index, { title: e.target.value })} placeholder="ej: Daily Past Action" className={inputCls} />
+          </label>
+          <label>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Texto a leer</span>
+            <textarea rows={2} value={challenge.sentence || ''} onChange={(e) => update(index, { sentence: e.target.value })} placeholder="Yesterday, I cleaned the dataset and deployed the model." className={inputCls} />
+          </label>
+          <label>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Palabras críticas (separadas por coma)</span>
+            <input
+              value={(challenge.keywords || []).join(', ')}
+              onChange={(e) => update(index, { keywords: e.target.value.split(',').map((word) => word.trim()).filter(Boolean) })}
+              placeholder="cleaned, dataset, deployed"
+              className={inputCls}
+            />
+          </label>
+          <label>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Tip de corrección fonética</span>
+            <textarea rows={2} value={challenge.phoneticTip || ''} onChange={(e) => update(index, { phoneticTip: e.target.value })} placeholder="Cleaned es una sola sílaba: [kliind]." className={inputCls} />
+          </label>
+        </div>
+      ))}
+      <button onClick={addChallenge} className="text-brand hover:underline text-sm font-medium self-start">+ Agregar desafío</button>
+      {challenges.length === 0 && <p className="text-ink/60 text-xs">Sin desafíos todavía.</p>}
+    </div>
+  )
+}
+
 // ─── Página principal ───────────────────────────────────────────────
 
 export default function AdminContentPage() {
@@ -1309,6 +1463,8 @@ export default function AdminContentPage() {
           {contentType === 'fill_blank' && <FillBlankEditor data={contentData} onChange={setContentData} />}
           {contentType === 'synonyms_antonyms' && <SynonymsAntonymsEditor data={contentData} onChange={setContentData} />}
           {contentType === 'pronunciation' && <PronunciationEditor data={contentData} onChange={setContentData} />}
+          {contentType === 'sentence_builder' && <SentenceBuilderEditor data={contentData} onChange={setContentData} />}
+          {contentType === 'voice_lab' && <VoiceLabEditor data={contentData} onChange={setContentData} />}
 
           <div className="flex items-center gap-4 mt-8 flex-wrap">
             <button

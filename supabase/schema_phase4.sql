@@ -5,7 +5,7 @@
 -- Por qué hace falta: la tabla `content_items` (fase 2) tiene una regla que
 -- solo deja guardar content_type = 'flashcards', 'quiz', 'listening' o
 -- 'reading_writing'. Al sumar "Completar oraciones", "Sinónimos y
--- antónimos" y "Pronunciación" hay que ampliar esa lista — sin este script,
+-- antónimos", "Pronunciación" y "Sentence Builder" hay que ampliar esa lista — sin este script,
 -- guardar contenido de esos tres tipos nuevos falla con un error de la base
 -- de datos ("violates check constraint").
 
@@ -19,5 +19,7 @@ alter table content_items add constraint content_items_content_type_check
     'reading_writing',
     'fill_blank',
     'synonyms_antonyms',
-    'pronunciation'
+    'pronunciation',
+    'sentence_builder',
+    'voice_lab'
   ));
