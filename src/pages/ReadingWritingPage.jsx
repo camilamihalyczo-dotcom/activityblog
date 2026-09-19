@@ -28,7 +28,7 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
         {(item.questions || []).map((q, qi) => (
           <div key={q.id}>
             <p className="font-mono text-xs text-ink/60 mb-1">Pregunta {qi + 1}</p>
-            <p className="font-medium text-ink mb-2">{q.q}</p>
+            <p className="font-medium text-ink mb-2 whitespace-pre-line">{q.q}</p>
             {q.type === 'multiple_choice' ? (
               <div className="flex flex-col gap-2">
                 {(q.options || []).filter(Boolean).map((option, oi) => (
@@ -75,7 +75,7 @@ function WritingItem({ item, c, text, onChange, disabled }) {
       {item.image_url && (
         <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-xl mb-4" />
       )}
-      <p className="text-ink/70 mb-4">{item.prompt}</p>
+      <p className="text-ink/70 mb-4 whitespace-pre-line">{item.prompt}</p>
       <textarea
         rows={8}
         value={text}
