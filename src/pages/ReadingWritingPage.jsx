@@ -29,14 +29,33 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
           <div key={q.id}>
             <p className="font-mono text-xs text-ink/60 mb-1">Pregunta {qi + 1}</p>
             <p className="font-medium text-ink mb-2">{q.q}</p>
-            <textarea
-              rows={2}
-              value={answers[q.id] || ''}
-              onChange={(e) => onChange(q.id, e.target.value)}
-              disabled={disabled}
-              placeholder="Escribí tu respuesta acá..."
-              className={`w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm ${c.focusBorder} outline-none transition-colors resize-none disabled:opacity-60`}
-            />
+            {q.type === 'multiple_choice' ? (
+              <div className="flex flex-col gap-2">
+                {(q.options || []).filter(Boolean).map((option, oi) => (
+                  <label key={`${q.id}-${oi}`} className="flex items-center gap-2 text-sm text-ink">
+                    <input
+                      type="radio"
+                      name={`reading-${q.id}`}
+                      value={option}
+                      checked={answers[q.id] === option}
+                      onChange={(e) => onChange(q.id, e.target.value)}
+                      disabled={disabled}
+                      className="accent-brand"
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <textarea
+                rows={2}
+                value={answers[q.id] || ''}
+                onChange={(e) => onChange(q.id, e.target.value)}
+                disabled={disabled}
+                placeholder="Escribí tu respuesta acá..."
+                className={`w-full px-3 py-2 rounded-lg border-2 border-ink/15 bg-paper text-sm ${c.focusBorder} outline-none transition-colors resize-none disabled:opacity-60`}
+              />
+            )}
           </div>
         ))}
       </div>

@@ -552,9 +552,9 @@ function ReadingWritingEditor({ data, onChange }) {
     deleteImage(items[i]?.image_url)
     onChange(items.filter((_, idx) => idx !== i))
   }
-  const updateQuestion = (i, qi, value) => {
+  const updateQuestion = (i, qi, patch) => {
     const questions = [...items[i].questions]
-    questions[qi] = { ...questions[qi], q: value }
+    questions[qi] = { ...questions[qi], ...patch }
     updateItem(i, { questions })
   }
   const addQuestion = (i) => updateItem(i, { questions: [...items[i].questions, { id: genId(), q: '' }] })
@@ -601,19 +601,67 @@ function ReadingWritingEditor({ data, onChange }) {
               </label>
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
-                  Preguntas (el alumno responde en texto libre, sin corrección automática)
+                  Preguntas (texto libre o multiple choice)
                 </span>
                 {item.questions.map((q, qi) => (
-                  <div key={q.id} className="flex items-center gap-2">
-                    <input
-                      value={q.q}
-                      onChange={(e) => updateQuestion(i, qi, e.target.value)}
-                      className={`${inputCls} flex-1`}
-                      placeholder={`Pregunta ${qi + 1}`}
-                    />
-                    <button onClick={() => removeQuestion(i, qi)} className="text-stamp text-xs font-medium shrink-0">
-                      Quitar
-                    </button>
+                  <div key={q.id} className="flex flex-col gap-2 border-b border-ink/10 pb-3 last:border-0">
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={q.q}
+                        onChange={(e) => updateQuestion(i, qi, { q: e.target.value })}
+                        className={`${inputCls} flex-1`}
+                        placeholder={`Pregunta ${qi + 1}`}
+                      />
+                      <select
+                        value={q.type === 'multiple_choice' ? 'multiple_choice' : 'text'}
+                        onChange={(e) =>
+                          updateQuestion(i, qi, {
+                            type: e.target.value,
+                            options: e.target.value === 'multiple_choice' ? (q.options?.length ? q.options : ['', '']) : [],
+                          })
+                        }
+                        className={`${inputCls} w-auto`}
+                      >
+                        <option value="text">Texto libre</option>
+                        <option value="multiple_choice">Multiple choice</option>
+                      </select>
+                      <button onClick={() => removeQuestion(i, qi)} className="text-stamp text-xs font-medium shrink-0">
+                        Quitar
+                      </button>
+                    </div>
+                    {q.type === 'multiple_choice' && (
+                      <div className="flex flex-col gap-2 pl-2">
+                        <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Opciones para elegir</span>
+                        {(q.options || []).map((option, oi) => (
+                          <div key={oi} className="flex items-center gap-2">
+                            <input
+                              value={option}
+                              onChange={(e) => {
+                                const options = [...(q.options || [])]
+                                options[oi] = e.target.value
+                                updateQuestion(i, qi, { options })
+                              }}
+                              className={`${inputCls} flex-1`}
+                              placeholder={`Opción ${oi + 1}`}
+                            />
+                            {q.options.length > 2 && (
+                              <button
+                                onClick={() => updateQuestion(i, qi, { options: q.options.filter((_, idx) => idx !== oi) })}
+                                className="text-stamp text-xs font-medium shrink-0"
+                              >
+                                Quitar
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => updateQuestion(i, qi, { options: [...(q.options || []), ''] })}
+                          className="text-brand hover:underline text-xs font-medium self-start"
+                        >
+                          + Agregar opción
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button onClick={() => addQuestion(i)} className="text-brand hover:underline text-xs font-medium self-start">

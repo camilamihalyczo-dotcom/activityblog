@@ -28,14 +28,33 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
           <div key={q.id}>
             <p className="font-playful text-xs text-kidsInk/70 mb-1 font-semibold">Pregunta {qi + 1}</p>
             <p className="font-playful font-medium text-kidsInk mb-2">{q.q}</p>
-            <textarea
-              rows={2}
-              value={answers[q.id] || ''}
-              onChange={(e) => onChange(q.id, e.target.value)}
-              disabled={disabled}
-              placeholder="Escribí tu respuesta acá..."
-              className={`w-full px-3 py-2 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-none disabled:opacity-60`}
-            />
+            {q.type === 'multiple_choice' ? (
+              <div className="flex flex-col gap-2">
+                {(q.options || []).filter(Boolean).map((option, oi) => (
+                  <label key={`${q.id}-${oi}`} className="flex items-center gap-2 font-playful text-sm text-kidsInk">
+                    <input
+                      type="radio"
+                      name={`reading-${q.id}`}
+                      value={option}
+                      checked={answers[q.id] === option}
+                      onChange={(e) => onChange(q.id, e.target.value)}
+                      disabled={disabled}
+                      className="accent-kidsInk"
+                    />
+                    {option}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <textarea
+                rows={2}
+                value={answers[q.id] || ''}
+                onChange={(e) => onChange(q.id, e.target.value)}
+                disabled={disabled}
+                placeholder="Escribí tu respuesta acá..."
+                className={`w-full px-3 py-2 rounded-xl border-2 border-kidsInk/12 bg-kidsCream font-playful text-sm focus:outline focus:outline-3 ${c.outline} outline-none transition-colors resize-none disabled:opacity-60`}
+              />
+            )}
           </div>
         ))}
       </div>
