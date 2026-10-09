@@ -58,6 +58,8 @@ export default function InfanciasBlogPage() {
             <article key={post.id} className="bg-white rounded-[22px] shadow-kids border-t-8 border-kidsPurpleDeep p-6 sm:p-8">
               {post.image_url && (
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={post.image_url}
                   alt=""
                   className="w-full aspect-video object-cover rounded-2xl mb-5"

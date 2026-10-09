@@ -36,7 +36,6 @@ const ALL_TOPICS = [
   { slug: 'listening', label: 'Listening' },
   { slug: 'reading-writing', label: 'Reading & Writing' },
   { slug: 'completar', label: 'Completar oraciones' },
-  { slug: 'sinonimos-antonimos', label: 'Sinónimos y antónimos' },
   { slug: 'pronunciacion', label: 'Pronunciación' },
   { slug: 'sentence-builder', label: 'Sentence Builder' },
   { slug: 'voice-lab', label: 'Voice Lab' },

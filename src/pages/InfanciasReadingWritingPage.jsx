@@ -1,25 +1,27 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
-import { recordSubmission, useStudentName } from '../lib/submissions.js'
+import { newSubmissionId, recordSubmission, useStudentName } from '../lib/submissions.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
 import NameField from '../components/NameField.jsx'
 import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
-import { BookOpen, PenLine } from 'lucide-react'
+import { BookOpen, PenLine, CheckCircle2, XCircle } from 'lucide-react'
+import { buildReadingWritingSubmissions, correctOptionText, isAutoGraded } from '../lib/readingWriting.js'
 
-function ReadingItem({ item, c, answers, onChange, disabled }) {
+function ReadingItem({ item, c, answers, onChange, disabled, showResults, defaultOpen }) {
   return (
     <CollapsibleExercise
       title={item.title}
       label="Reading"
+      defaultOpen={defaultOpen}
       icon={BookOpen}
       className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
     >
       {item.image_url && (
-        <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
+        <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
       )}
       <p className="font-playful whitespace-pre-line text-kidsInk/85 leading-relaxed mb-6">{item.text}</p>
 
@@ -30,8 +32,11 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
             <p className="font-playful font-medium text-kidsInk mb-2 whitespace-pre-line">{q.q}</p>
             {q.type === 'multiple_choice' ? (
               <div className="flex flex-col gap-2">
-                {(q.options || []).filter(Boolean).map((option, oi) => (
-                  <label key={`${q.id}-${oi}`} className="flex items-center gap-2 font-playful text-sm text-kidsInk">
+                {(q.options || []).filter(Boolean).map((option, oi) => {
+                  const correct = showResults && isAutoGraded(q) ? correctOptionText(q) : null
+                  const chosen = answers[q.id] === option
+                  return (
+                  <label key={`${q.id}-${oi}`} className={`flex items-center gap-2 font-playful text-sm text-kidsInk ${correct && option === correct ? 'font-semibold' : ''}`}>
                     <input
                       type="radio"
                       name={`reading-${q.id}`}
@@ -42,8 +47,11 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
                       className="accent-kidsInk"
                     />
                     {option}
+                    {correct && chosen && option === correct && <CheckCircle2 size={15} className="text-olive shrink-0" aria-label="Correcta" />}
+                    {correct && chosen && option !== correct && <XCircle size={15} className="text-stamp shrink-0" aria-label="Incorrecta" />}
                   </label>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               <textarea
@@ -62,17 +70,18 @@ function ReadingItem({ item, c, answers, onChange, disabled }) {
   )
 }
 
-function WritingItem({ item, c, text, onChange, disabled }) {
+function WritingItem({ item, c, text, onChange, disabled, defaultOpen }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
     <CollapsibleExercise
       title={item.title}
       label="Writing"
+      defaultOpen={defaultOpen}
       icon={PenLine}
       className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
     >
       {item.image_url && (
-        <img src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
+        <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-64 object-cover rounded-2xl mb-4" />
       )}
       <p className="font-playful text-kidsInk/70 mb-4 whitespace-pre-line">{item.prompt}</p>
       <textarea
@@ -98,6 +107,10 @@ export default function InfanciasReadingWritingPage() {
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [studentName, setStudentName] = useStudentName()
+  // Un id de entrega por ítem, fijo mientras el alumno esté en la página:
+  // si toca "Seguir editando" y vuelve a guardar, se actualiza la misma
+  // entrega en vez de crear una duplicada.
+  const submissionIds = useRef({})
 
   useEffect(() => {
     let active = true
@@ -109,6 +122,7 @@ export default function InfanciasReadingWritingPage() {
         setReadingWriting(readingWritingData || [])
         setReadingAnswers({})
         setWritingAnswers({})
+        submissionIds.current = {}
         setSaved(false)
         setStatus('ready')
       })
@@ -139,33 +153,27 @@ export default function InfanciasReadingWritingPage() {
 
   const handleSave = async () => {
     setSaving(true)
+    const submissions = buildReadingWritingSubmissions(readingWriting, readingAnswers, writingAnswers)
+    // Primera vez que se guarda este ítem: id nuevo. Las siguientes:
+    // mismo id + replace, para actualizar en vez de duplicar.
+    const submissionIdFor = (itemId) => {
+      const existing = submissionIds.current[itemId]
+      if (existing) return { id: existing, replace: true }
+      const id = newSubmissionId()
+      submissionIds.current[itemId] = id
+      return { id, replace: false }
+    }
     await Promise.all(
-      readingWriting.map((item) => {
-        const common = {
+      submissions.map(({ itemId, ...sub }) =>
+        recordSubmission({
+          ...submissionIdFor(itemId),
           scope: 'infancias',
           groupSlug: slug,
           contentType: 'reading_writing',
           studentName,
-        }
-        if (item.type === 'reading') {
-          const answers = readingAnswers[item.id] || {}
-          return recordSubmission({
-            ...common,
-            label: `Reading — ${item.title}`,
-            detail: (item.questions || []).map((q) => ({
-              id: q.id,
-              question: q.q,
-              answer: answers[q.id] || '',
-              manual_review: true,
-            })),
-          })
-        }
-        return recordSubmission({
-          ...common,
-          label: `Writing — ${item.title}`,
-          detail: [{ prompt: item.prompt, answer: writingAnswers[item.id] || '' }],
+          ...sub,
         })
-      })
+      )
     )
     setSaving(false)
     setSaved(true)
@@ -193,6 +201,8 @@ export default function InfanciasReadingWritingPage() {
                   c={c}
                   answers={readingAnswers[item.id] || {}}
                   disabled={saved}
+                  showResults={saved}
+                  defaultOpen={readingWriting.length === 1}
                   onChange={(qId, value) =>
                     setReadingAnswers((a) => ({ ...a, [item.id]: { ...a[item.id], [qId]: value } }))
                   }
@@ -204,6 +214,7 @@ export default function InfanciasReadingWritingPage() {
                   c={c}
                   text={writingAnswers[item.id] || ''}
                   disabled={saved}
+                  defaultOpen={readingWriting.length === 1}
                   onChange={(value) => setWritingAnswers((a) => ({ ...a, [item.id]: value }))}
                 />
               )
@@ -220,7 +231,11 @@ export default function InfanciasReadingWritingPage() {
                   {saving ? 'Guardando…' : 'Guardar mis respuestas'}
                 </button>
                 <p className="font-playful text-kidsInk/70 text-xs mt-2">
-                  Esto no se corrige solo — tu profe lo lee directamente.
+                  {!hasAnyAnswer
+                    ? 'Respondé al menos una pregunta o escribí algo para poder guardar.'
+                    : !studentName.trim()
+                    ? 'Escribí tu nombre para poder guardar.'
+                    : 'Las preguntas de opción múltiple se corrigen solas; lo que escribís lo lee tu profe.'}
                 </p>
               </div>
             ) : (

@@ -32,7 +32,7 @@ function QuizGroup({ quiz, c, groupSlug }) {
         {quiz.questions.map((q, qi) => (
           <div key={q.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
             <p className="font-playful text-xs text-kidsInk/70 mb-2 font-semibold">Pregunta {qi + 1}</p>
-            {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
+            {q.image_url && <img loading="lazy" decoding="async" src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
             <p className="font-playful font-semibold text-kidsInk mb-2">{q.q}</p>
             <QuestionHint hint={q.hint} kids />
             <div className="flex flex-col gap-2">

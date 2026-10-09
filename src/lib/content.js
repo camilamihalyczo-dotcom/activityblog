@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js'
+import { cached, clearCache } from './cache.js'
 
 // El contenido de estudio (flashcards, quiz, listening, reading&writing) se
 // guarda como un blob JSON por combinación de "dónde vive" + "qué tipo de
@@ -28,7 +29,11 @@ export function buildInfanciasScopeKey(groupSlug, contentType) {
   return `infancias:${groupSlug}:${contentType}`
 }
 
-export async function fetchContent(scopeKey, contentType) {
+export function fetchContent(scopeKey, contentType) {
+  return cached(`content:${scopeKey}`, () => fetchContentFresh(scopeKey, contentType))
+}
+
+async function fetchContentFresh(scopeKey, contentType) {
   const { data, error } = await supabase.from('content_items').select('data').eq('scope_key', scopeKey).maybeSingle()
   if (error) throw error
   let value = data ? data.data : EMPTY_CONTENT_BY_TYPE[contentType]
@@ -99,6 +104,7 @@ export async function fetchAllContentStatus() {
 // ─── Escritura (panel /notas-profe) ────────────────────────────────────
 
 export async function saveContent({ scopeKey, scope, levelSlug, trackSlug, temarioSlug, groupSlug, contentType, data }) {
+  clearCache()
   const payload = {
     scope_key: scopeKey,
     scope,

@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient.js'
+import { cached, clearCache } from './cache.js'
 
 // El slug real de cada topic (el que usan InfanciasGroupHubPage y el
 // checklist de /notas-profe/groups) es 'cuestionario' — pero el content
@@ -28,13 +29,21 @@ function normalizeTopics(topics) {
 
 // ─── Lectura (sitio público) ───────────────────────────────────────────
 
-export async function fetchGroups() {
+export function fetchGroups() {
+  return cached('groups', fetchGroupsFresh)
+}
+
+async function fetchGroupsFresh() {
   const { data, error } = await supabase.from('groups').select('*').order('sort_order', { ascending: true })
   if (error) throw error
   return (data || []).map((g) => ({ ...g, topics: normalizeTopics(g.topics) }))
 }
 
-export async function fetchGroup(slug) {
+export function fetchGroup(slug) {
+  return cached(`group:${slug}`, () => fetchGroupFresh(slug))
+}
+
+async function fetchGroupFresh(slug) {
   const { data, error } = await supabase.from('groups').select('*').eq('slug', slug).maybeSingle()
   if (error) throw error
   return data ? { ...data, topics: normalizeTopics(data.topics) } : data
@@ -43,6 +52,7 @@ export async function fetchGroup(slug) {
 // ─── Escritura (panel /notas-profe) ────────────────────────────────────
 
 export async function saveGroup(group) {
+  clearCache()
   const payload = {
     slug: group.slug.trim(),
     name: group.name.trim(),
@@ -61,11 +71,13 @@ export async function saveGroup(group) {
 }
 
 export async function deleteGroup(id) {
+  clearCache()
   const { error } = await supabase.from('groups').delete().eq('id', id)
   if (error) throw error
 }
 
 export async function reorderGroups(orderedGroups) {
+  clearCache()
   const results = await Promise.all(
     orderedGroups.map((g, i) => supabase.from('groups').update({ sort_order: i }).eq('id', g.id))
   )

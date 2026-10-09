@@ -12,7 +12,6 @@ const CONTENT_TYPES = [
   { key: 'listening', label: 'Listening' },
   { key: 'reading_writing', label: 'Reading & Writing' },
   { key: 'fill_blank', label: 'Completar oraciones' },
-  { key: 'synonyms_antonyms', label: 'Sinónimos y antónimos' },
   { key: 'pronunciation', label: 'Pronunciación' },
   { key: 'sentence_builder', label: 'Sentence Builder' },
   { key: 'voice_lab', label: 'Voice Lab' },

@@ -1,53 +1,60 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
-import AdultosPage from './pages/AdultosPage.jsx'
-import AdultosBlogPage from './pages/AdultosBlogPage.jsx'
-import LevelHubPage from './pages/LevelHubPage.jsx'
-import ThemeHubPage from './pages/ThemeHubPage.jsx'
-import TemarioHubPage from './pages/TemarioHubPage.jsx'
-import FlashcardsPage from './pages/FlashcardsPage.jsx'
-import QuizPage from './pages/QuizPage.jsx'
-import ListeningPage from './pages/ListeningPage.jsx'
-import ReadingWritingPage from './pages/ReadingWritingPage.jsx'
-import FillBlankPage from './pages/FillBlankPage.jsx'
-import MatchingPage from './pages/MatchingPage.jsx'
-import PronunciationPage from './pages/PronunciationPage.jsx'
-import SentenceBuilderPage from './pages/SentenceBuilderPage.jsx'
-import VoiceLabPage from './pages/VoiceLabPage.jsx'
-import GlossaryPage from './pages/GlossaryPage.jsx'
-import PhoneticChartPage from './pages/PhoneticChartPage.jsx'
-import InfanciasPage from './pages/InfanciasPage.jsx'
-import InfanciasBlogPage from './pages/InfanciasBlogPage.jsx'
-import InfanciasGroupHubPage from './pages/InfanciasGroupHubPage.jsx'
-import InfanciasFlashcardsPage from './pages/InfanciasFlashcardsPage.jsx'
-import InfanciasQuizPage from './pages/InfanciasQuizPage.jsx'
-import InfanciasListeningPage from './pages/InfanciasListeningPage.jsx'
-import InfanciasReadingWritingPage from './pages/InfanciasReadingWritingPage.jsx'
-import InfanciasFillBlankPage from './pages/InfanciasFillBlankPage.jsx'
-import InfanciasMatchingPage from './pages/InfanciasMatchingPage.jsx'
-import InfanciasPronunciationPage from './pages/InfanciasPronunciationPage.jsx'
-import InfanciasSentenceBuilderPage from './pages/InfanciasSentenceBuilderPage.jsx'
-import InfanciasVoiceLabPage from './pages/InfanciasVoiceLabPage.jsx'
-import InfanciasGlossaryPage from './pages/InfanciasGlossaryPage.jsx'
-import InfanciasPhoneticChartPage from './pages/InfanciasPhoneticChartPage.jsx'
-import AdminLoginPage from './pages/admin/AdminLoginPage.jsx'
-import AdminLayout from './pages/admin/AdminLayout.jsx'
-import AdminHomePage from './pages/admin/AdminHomePage.jsx'
-import AdminBlogPage from './pages/admin/AdminBlogPage.jsx'
-import AdminTracksPage from './pages/admin/AdminTracksPage.jsx'
-import AdminGroupsPage from './pages/admin/AdminGroupsPage.jsx'
-import AdminContentPage from './pages/admin/AdminContentPage.jsx'
-import AdminContentStatusPage from './pages/admin/AdminContentStatusPage.jsx'
-import AdminErrorLogPage from './pages/admin/AdminErrorLogPage.jsx'
-import AdminSubmissionsPage from './pages/admin/AdminSubmissionsPage.jsx'
-import AdminGlossaryPage from './pages/admin/AdminGlossaryPage.jsx'
+const AdultosPage = lazy(() => import('./pages/AdultosPage.jsx'))
+const AdultosBlogPage = lazy(() => import('./pages/AdultosBlogPage.jsx'))
+const LevelHubPage = lazy(() => import('./pages/LevelHubPage.jsx'))
+const ThemeHubPage = lazy(() => import('./pages/ThemeHubPage.jsx'))
+const TemarioHubPage = lazy(() => import('./pages/TemarioHubPage.jsx'))
+const FlashcardsPage = lazy(() => import('./pages/FlashcardsPage.jsx'))
+const QuizPage = lazy(() => import('./pages/QuizPage.jsx'))
+const ListeningPage = lazy(() => import('./pages/ListeningPage.jsx'))
+const ReadingWritingPage = lazy(() => import('./pages/ReadingWritingPage.jsx'))
+const FillBlankPage = lazy(() => import('./pages/FillBlankPage.jsx'))
+const PronunciationPage = lazy(() => import('./pages/PronunciationPage.jsx'))
+const SentenceBuilderPage = lazy(() => import('./pages/SentenceBuilderPage.jsx'))
+const VoiceLabPage = lazy(() => import('./pages/VoiceLabPage.jsx'))
+const GlossaryPage = lazy(() => import('./pages/GlossaryPage.jsx'))
+const PhoneticChartPage = lazy(() => import('./pages/PhoneticChartPage.jsx'))
+const InfanciasPage = lazy(() => import('./pages/InfanciasPage.jsx'))
+const InfanciasBlogPage = lazy(() => import('./pages/InfanciasBlogPage.jsx'))
+const InfanciasGroupHubPage = lazy(() => import('./pages/InfanciasGroupHubPage.jsx'))
+const InfanciasFlashcardsPage = lazy(() => import('./pages/InfanciasFlashcardsPage.jsx'))
+const InfanciasQuizPage = lazy(() => import('./pages/InfanciasQuizPage.jsx'))
+const InfanciasListeningPage = lazy(() => import('./pages/InfanciasListeningPage.jsx'))
+const InfanciasReadingWritingPage = lazy(() => import('./pages/InfanciasReadingWritingPage.jsx'))
+const InfanciasFillBlankPage = lazy(() => import('./pages/InfanciasFillBlankPage.jsx'))
+const InfanciasPronunciationPage = lazy(() => import('./pages/InfanciasPronunciationPage.jsx'))
+const InfanciasSentenceBuilderPage = lazy(() => import('./pages/InfanciasSentenceBuilderPage.jsx'))
+const InfanciasVoiceLabPage = lazy(() => import('./pages/InfanciasVoiceLabPage.jsx'))
+const InfanciasGlossaryPage = lazy(() => import('./pages/InfanciasGlossaryPage.jsx'))
+const InfanciasPhoneticChartPage = lazy(() => import('./pages/InfanciasPhoneticChartPage.jsx'))
+const AdminLoginPage = lazy(() => import('./pages/admin/AdminLoginPage.jsx'))
+const AdminLayout = lazy(() => import('./pages/admin/AdminLayout.jsx'))
+const AdminHomePage = lazy(() => import('./pages/admin/AdminHomePage.jsx'))
+const AdminBlogPage = lazy(() => import('./pages/admin/AdminBlogPage.jsx'))
+const AdminTracksPage = lazy(() => import('./pages/admin/AdminTracksPage.jsx'))
+const AdminGroupsPage = lazy(() => import('./pages/admin/AdminGroupsPage.jsx'))
+const AdminContentPage = lazy(() => import('./pages/admin/AdminContentPage.jsx'))
+const AdminContentStatusPage = lazy(() => import('./pages/admin/AdminContentStatusPage.jsx'))
+const AdminErrorLogPage = lazy(() => import('./pages/admin/AdminErrorLogPage.jsx'))
+const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage.jsx'))
+const AdminGlossaryPage = lazy(() => import('./pages/admin/AdminGlossaryPage.jsx'))
+
+// Cada página se descarga recién cuando se visita (code splitting): el
+// alumno no baja el panel de admin ni las librerías de drag & drop si no
+// las usa, así la primera carga es mucho más liviana.
+const PageFallback = () => (
+  <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
+)
 
 export default function App() {
   return (
     <BrowserRouter>
       <Analytics />
+      <Suspense fallback={<PageFallback />}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/tabla-fonetica" element={<PhoneticChartPage />} />
@@ -61,7 +68,6 @@ export default function App() {
         <Route path="/adultos/:level/:theme/:temario/listening" element={<ListeningPage />} />
         <Route path="/adultos/:level/:theme/:temario/reading-writing" element={<ReadingWritingPage />} />
         <Route path="/adultos/:level/:theme/:temario/completar" element={<FillBlankPage />} />
-        <Route path="/adultos/:level/:theme/:temario/sinonimos-antonimos" element={<MatchingPage />} />
         <Route path="/adultos/:level/:theme/:temario/pronunciacion" element={<PronunciationPage />} />
         <Route path="/adultos/:level/:theme/:temario/sentence-builder" element={<SentenceBuilderPage />} />
         <Route path="/adultos/:level/:theme/:temario/voice-lab" element={<VoiceLabPage />} />
@@ -75,7 +81,6 @@ export default function App() {
         <Route path="/infancias/:group/listening" element={<InfanciasListeningPage />} />
         <Route path="/infancias/:group/reading-writing" element={<InfanciasReadingWritingPage />} />
         <Route path="/infancias/:group/completar" element={<InfanciasFillBlankPage />} />
-        <Route path="/infancias/:group/sinonimos-antonimos" element={<InfanciasMatchingPage />} />
         <Route path="/infancias/:group/pronunciacion" element={<InfanciasPronunciationPage />} />
         <Route path="/infancias/:group/sentence-builder" element={<InfanciasSentenceBuilderPage />} />
         <Route path="/infancias/:group/voice-lab" element={<InfanciasVoiceLabPage />} />
@@ -98,6 +103,7 @@ export default function App() {
           <Route path="glosario" element={<AdminGlossaryPage />} />
         </Route>
       </Routes>
+      </Suspense>
       <Footer />
     </BrowserRouter>
   )

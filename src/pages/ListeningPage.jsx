@@ -22,7 +22,7 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
     <CollapsibleExercise title={item.title} label="Listening" icon={Video} className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}>
 
       {item.image_url && (
-        <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />
+        <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />
       )}
 
       <div className="aspect-video rounded-xl overflow-hidden bg-ink/5 flex items-center justify-center mb-4">
@@ -58,7 +58,7 @@ function ListeningItem({ item, c, levelSlug, themeSlug, temarioSlug }) {
         {item.questions.map((q, qi) => (
           <div key={q.id}>
             <p className="font-mono text-xs text-ink/60 mb-1">Pregunta {qi + 1}</p>
-            {q.image_url && <img src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-2" />}
+            {q.image_url && <img loading="lazy" decoding="async" src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-2" />}
             <p className="font-semibold text-ink mb-2">{q.q}</p>
             <div className="flex flex-col gap-2">
               {q.options.map((opt, oi) => {

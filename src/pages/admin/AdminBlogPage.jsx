@@ -208,7 +208,7 @@ export default function AdminBlogPage() {
           </span>
           {form.image_url ? (
             <div className="flex items-center gap-3">
-              <img src={form.image_url} alt="" className="w-24 h-16 object-cover rounded-lg border-2 border-ink/15" />
+              <img loading="lazy" decoding="async" src={form.image_url} alt="" className="w-24 h-16 object-cover rounded-lg border-2 border-ink/15" />
               <button type="button" onClick={removeImage} className="text-stamp hover:underline text-sm font-medium">
                 Quitar imagen
               </button>

@@ -51,7 +51,7 @@ function DropZone({ id, item, chipText, c, submitted, correct, onClickZone }) {
       label={item.relation === 'antonym' ? 'Antónimo' : 'Sinónimo'}
       className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-5 text-kidsInk`}
     >
-      {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-40 object-cover rounded-xl" />}
+      {item.image_url && <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-40 object-cover rounded-xl" />}
       <button
         ref={setNodeRef}
         onClick={() => !submitted && onClickZone(id)}

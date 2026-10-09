@@ -54,6 +54,8 @@ export default function AdultosBlogPage() {
             <article key={post.id} className="texture-card rounded-2xl border-t-4 border-t-brand p-6 sm:p-8">
               {post.image_url && (
                 <img
+                  loading="lazy"
+                  decoding="async"
                   src={post.image_url}
                   alt=""
                   className="w-full aspect-video object-cover rounded-xl mb-5"

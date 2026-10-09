@@ -1,8 +1,8 @@
 import { ChevronDown } from 'lucide-react'
 
-export default function CollapsibleExercise({ children, title, label, icon: Icon, className = '' }) {
+export default function CollapsibleExercise({ children, title, label, icon: Icon, className = '', defaultOpen = false }) {
   return (
-    <details className={`group ${className}`}>
+    <details className={`group ${className}`} open={defaultOpen || undefined}>
       <summary className="flex cursor-pointer list-none items-center justify-between gap-4 select-none">
         <span className="flex min-w-0 items-center gap-2">
           {Icon && <Icon size={18} aria-hidden="true" />}

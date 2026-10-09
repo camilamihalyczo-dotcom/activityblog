@@ -65,7 +65,7 @@ function FillBlankItem({ item, c, value, onChange, submitted }) {
 
   return (
     <div className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
-      {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
+      {item.image_url && <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
 
       {options.length > 0 ? (
         <>
@@ -324,7 +324,7 @@ function FillBlankWordBankGroup({ exercise, c, levelSlug, themeSlug, temarioSlug
       <div className="flex flex-col gap-6">
         {items.map((item) => (
           <div key={item.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
-            {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
+            {item.image_url && <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
             <p className="text-ink leading-relaxed flex flex-wrap items-center gap-2">
               {item.segments.map((seg, si) => {
                 const slotId = item.blanks[si]

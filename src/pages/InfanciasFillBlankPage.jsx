@@ -64,7 +64,7 @@ function FillBlankItem({ item, c, value, onChange, submitted }) {
 
   return (
     <div className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
-      {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
+      {item.image_url && <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
 
       {options.length > 0 ? (
         <>
@@ -319,7 +319,7 @@ function FillBlankWordBankGroup({ exercise, c, groupSlug }) {
       <div className="flex flex-col gap-6">
         {items.map((item) => (
           <div key={item.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
-            {item.image_url && <img src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
+            {item.image_url && <img loading="lazy" decoding="async" src={item.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
             <p className="font-playful text-kidsInk leading-relaxed flex flex-wrap items-center gap-2">
               {item.segments.map((seg, si) => {
                 const slotId = item.blanks[si]

@@ -18,7 +18,6 @@ const CONTENT_TYPES = [
   { key: 'listening', label: 'Listening' },
   { key: 'reading_writing', label: 'Reading & Writing' },
   { key: 'fill_blank', label: 'Completar oraciones' },
-  { key: 'synonyms_antonyms', label: 'Sinónimos y antónimos' },
   { key: 'pronunciation', label: 'Pronunciación' },
   { key: 'sentence_builder', label: 'Sentence Builder' },
   { key: 'voice_lab', label: 'Voice Lab' },
@@ -33,7 +32,6 @@ const CONTENT_TYPE_PATHS = {
   listening: 'listening',
   reading_writing: 'reading-writing',
   fill_blank: 'completar',
-  synonyms_antonyms: 'sinonimos-antonimos',
   pronunciation: 'pronunciacion',
   sentence_builder: 'sentence-builder',
   voice_lab: 'voice-lab',
@@ -49,7 +47,6 @@ const ARRAY_CONTENT_TYPES = [
   'listening',
   'reading_writing',
   'fill_blank',
-  'synonyms_antonyms',
   'pronunciation',
   'sentence_builder',
   'voice_lab',
@@ -85,7 +82,7 @@ function ImageField({ url, folder, onUpload, onRemove, label = 'Imagen (opcional
       <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">{label}</span>
       {url ? (
         <div className="flex items-center gap-3">
-          <img src={url} alt="" className="w-20 h-20 object-cover rounded-lg border-2 border-ink/15" />
+          <img loading="lazy" decoding="async" src={url} alt="" className="w-20 h-20 object-cover rounded-lg border-2 border-ink/15" />
           <button type="button" onClick={onRemove} className="text-stamp text-xs font-medium">
             Quitar imagen
           </button>
@@ -544,9 +541,12 @@ function ListeningEditor({ data, onChange }) {
 
 // ─── Reading & Writing ──────────────────────────────────────────────
 
-function ReadingQuestionEditor({ question, onChange, onRemove }) {
+function ReadingQuestionEditor({ question, index, onChange, onRemove }) {
   const options = question.options || []
   const isMultipleChoice = question.type === 'multiple_choice'
+  // `answer` se guarda como índice de la opción correcta (igual que en el
+  // Cuestionario). Contenido viejo puede tenerlo como texto — lo
+  // traducimos a índice para mostrarlo bien.
   const answerIndex = Number.isInteger(question.answer)
     ? question.answer
     : options.findIndex((option) => option === question.answer)
@@ -554,47 +554,63 @@ function ReadingQuestionEditor({ question, onChange, onRemove }) {
   const updateOption = (oi, value) => {
     const nextOptions = [...options]
     nextOptions[oi] = value
-    onChange({ ...question, options: nextOptions })
+    onChange({ ...question, options: nextOptions, answer: answerIndex >= 0 ? answerIndex : 0 })
   }
 
   const removeOption = (oi) => {
-    const nextOptions = options.filter((_, index) => index !== oi)
+    const nextOptions = options.filter((_, idx) => idx !== oi)
     let nextAnswer = answerIndex
-    if (oi === answerIndex) nextAnswer = null
+    if (oi === answerIndex || answerIndex < 0) nextAnswer = 0
     else if (oi < answerIndex) nextAnswer -= 1
+    if (nextAnswer >= nextOptions.length) nextAnswer = 0
     onChange({ ...question, options: nextOptions, answer: nextAnswer })
   }
 
-  const changeType = (type) =>
+  const changeType = (type) => {
+    if (type === question.type || (type === 'text' && !isMultipleChoice)) return
     onChange({
       ...question,
       type,
-      options: type === 'multiple_choice' ? (options.length ? options : ['', '']) : [],
+      options: type === 'multiple_choice' ? (options.length >= 2 ? options : ['', '']) : [],
       answer: type === 'multiple_choice' ? (answerIndex >= 0 ? answerIndex : 0) : null,
     })
+  }
+
+  const typeBtn = (active) =>
+    `px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-colors ${
+      active ? 'bg-ink text-cream border-ink' : 'border-ink/15 text-ink/70 hover:border-ink/40'
+    }`
 
   return (
-    <div className="border-2 border-ink/10 rounded-lg p-4 flex flex-col gap-3">
-      <div className="flex gap-3 items-start">
-        <textarea
-          value={question.q}
-          onChange={(e) => onChange({ ...question, q: e.target.value })}
-          placeholder="Texto de la pregunta"
-          rows={2}
-          className={`${inputCls} flex-1 resize-y`}
-        />
-        <select value={isMultipleChoice ? 'multiple_choice' : 'text'} onChange={(e) => changeType(e.target.value)} className={`${inputCls} w-auto`}>
-          <option value="text">Texto libre</option>
-          <option value="multiple_choice">Multiple choice</option>
-        </select>
-        <button onClick={onRemove} className={`${smallBtn} text-stamp shrink-0`}>
-          Borrar pregunta
-        </button>
+    <div className="border-2 border-ink/10 rounded-lg p-4 flex flex-col gap-3 bg-paper/40">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Pregunta {index + 1}</span>
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => changeType('multiple_choice')} className={typeBtn(isMultipleChoice)}>
+            Multiple choice
+          </button>
+          <button type="button" onClick={() => changeType('text')} className={typeBtn(!isMultipleChoice)}>
+            Respuesta abierta
+          </button>
+          <button type="button" onClick={onRemove} className={`${smallBtn} text-stamp ml-2`}>
+            Borrar pregunta
+          </button>
+        </div>
       </div>
 
-      {isMultipleChoice && (
+      <textarea
+        value={question.q}
+        onChange={(e) => onChange({ ...question, q: e.target.value })}
+        placeholder="Texto de la pregunta"
+        rows={2}
+        className={`${inputCls} resize-y`}
+      />
+
+      {isMultipleChoice ? (
         <div className="flex flex-col gap-2">
-          <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Opciones (marcá la correcta)</span>
+          <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
+            Opciones (marcá la correcta — se corrige sola)
+          </span>
           {options.map((option, oi) => (
             <div key={oi} className="flex items-center gap-2">
               <input
@@ -611,19 +627,24 @@ function ReadingQuestionEditor({ question, onChange, onRemove }) {
                 placeholder={`Opción ${oi + 1}`}
               />
               {options.length > 2 && (
-                <button onClick={() => removeOption(oi)} className="text-stamp text-xs font-medium shrink-0">
+                <button type="button" onClick={() => removeOption(oi)} className="text-stamp text-xs font-medium shrink-0">
                   Quitar
                 </button>
               )}
             </div>
           ))}
           <button
-            onClick={() => onChange({ ...question, options: [...options, ''] })}
+            type="button"
+            onClick={() => onChange({ ...question, options: [...options, ''], answer: answerIndex >= 0 ? answerIndex : 0 })}
             className="text-brand hover:underline text-xs font-medium self-start"
           >
             + Agregar opción
           </button>
         </div>
+      ) : (
+        <p className="text-ink/60 text-xs">
+          El alumno escribe su respuesta. No se autocorrige — la revisás vos en “Respuestas de los alumnos”.
+        </p>
       )}
     </div>
   )
@@ -644,15 +665,21 @@ function ReadingWritingEditor({ data, onChange }) {
     onChange(items.filter((_, idx) => idx !== i))
   }
   const updateQuestion = (i, qi, patch) => {
-    const questions = [...items[i].questions]
+    const questions = [...(items[i].questions || [])]
     questions[qi] = { ...questions[qi], ...patch }
     updateItem(i, { questions })
   }
-  const addQuestion = (i) =>
+  const addQuestion = (i, type = 'multiple_choice') =>
     updateItem(i, {
-      questions: [...(items[i].questions || []), { id: genId(), q: '', type: 'text', options: [], answer: null }],
+      questions: [
+        ...(items[i].questions || []),
+        type === 'multiple_choice'
+          ? { id: genId(), q: '', type: 'multiple_choice', options: ['', ''], answer: 0 }
+          : { id: genId(), q: '', type: 'text', options: [], answer: null },
+      ],
     })
-  const removeQuestion = (i, qi) => updateItem(i, { questions: items[i].questions.filter((_, idx) => idx !== qi) })
+  const removeQuestion = (i, qi) =>
+    updateItem(i, { questions: (items[i].questions || []).filter((_, idx) => idx !== qi) })
 
   return (
     <div className="flex flex-col gap-6">
@@ -695,19 +722,28 @@ function ReadingWritingEditor({ data, onChange }) {
               </label>
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
-                  Preguntas (texto libre o multiple choice)
+                  Preguntas de comprensión
                 </span>
                 {(item.questions || []).map((q, qi) => (
                   <ReadingQuestionEditor
                     key={q.id}
+                    index={qi}
                     question={q}
                     onChange={(patch) => updateQuestion(i, qi, patch)}
                     onRemove={() => removeQuestion(i, qi)}
                   />
                 ))}
-                <button onClick={() => addQuestion(i)} className="text-brand hover:underline text-xs font-medium self-start">
-                  + Agregar pregunta
-                </button>
+                {(item.questions || []).length === 0 && (
+                  <p className="text-ink/60 text-xs">Todavía no hay preguntas para este texto.</p>
+                )}
+                <div className="flex gap-4 flex-wrap">
+                  <button onClick={() => addQuestion(i, 'multiple_choice')} className="text-brand hover:underline text-xs font-medium">
+                    + Pregunta multiple choice
+                  </button>
+                  <button onClick={() => addQuestion(i, 'text')} className="text-brand hover:underline text-xs font-medium">
+                    + Pregunta abierta
+                  </button>
+                </div>
               </div>
             </>
           ) : (
@@ -933,84 +969,6 @@ function FillBlankEditor({ data, onChange }) {
         + Agregar ejercicio
       </button>
       {exercises.length === 0 && <p className="text-ink/60 text-xs">Sin ejercicios todavía.</p>}
-    </div>
-  )
-}
-
-// ─── Sinónimos y antónimos ──────────────────────────────────────────
-// Cada ítem es un par palabra ↔ coincidencia. En la página pública, el
-// alumno arrastra (o toca) la coincidencia correcta hasta la palabra.
-
-function SynonymsAntonymsEditor({ data, onChange }) {
-  const items = data || []
-  const updateItem = (i, patch) => {
-    const next = [...items]
-    next[i] = { ...next[i], ...patch }
-    onChange(next)
-  }
-  const addItem = () =>
-    onChange([...items, { id: genId(), word: '', relation: 'synonym', match: '', image_url: null }])
-  const removeItem = (i) => {
-    deleteImage(items[i]?.image_url)
-    onChange(items.filter((_, idx) => idx !== i))
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      {items.map((item, i) => (
-        <div key={item.id} className="texture-card rounded-xl p-4 flex flex-col gap-3">
-          <div className="flex gap-3 items-start flex-wrap">
-            <label className="flex-1 min-w-[160px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Palabra</span>
-              <input
-                value={item.word}
-                onChange={(e) => updateItem(i, { word: e.target.value })}
-                placeholder="ej: happy"
-                className={inputCls}
-              />
-            </label>
-            <label className="min-w-[140px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Relación</span>
-              <select
-                value={item.relation}
-                onChange={(e) => updateItem(i, { relation: e.target.value })}
-                className={inputCls}
-              >
-                <option value="synonym">Sinónimo</option>
-                <option value="antonym">Antónimo</option>
-              </select>
-            </label>
-            <label className="flex-1 min-w-[160px]">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
-                {item.relation === 'antonym' ? 'Antónimo correcto' : 'Sinónimo correcto'}
-              </span>
-              <input
-                value={item.match}
-                onChange={(e) => updateItem(i, { match: e.target.value })}
-                placeholder={item.relation === 'antonym' ? 'ej: sad' : 'ej: glad'}
-                className={inputCls}
-              />
-            </label>
-            <button onClick={() => removeItem(i)} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
-              Borrar
-            </button>
-          </div>
-          <ImageField
-            url={item.image_url}
-            folder="content"
-            onUpload={(url) => updateItem(i, { image_url: url })}
-            onRemove={() => {
-              deleteImage(item.image_url)
-              updateItem(i, { image_url: null })
-            }}
-            label="Imagen de contexto (opcional)"
-          />
-        </div>
-      ))}
-      <button onClick={addItem} className="text-brand hover:underline text-sm font-medium self-start">
-        + Agregar par
-      </button>
-      {items.length === 0 && <p className="text-ink/60 text-xs">Sin pares todavía.</p>}
     </div>
   )
 }
@@ -1272,6 +1230,34 @@ export default function AdminContentPage() {
   const [loadedScopeKey, setLoadedScopeKey] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveMessage, setSaveMessage] = useState('')
+  // true cuando hay cambios en el editor que todavía no se guardaron.
+  // Sirve para avisar antes de cambiar de pestaña/temario/grupo (antes se
+  // perdían los cambios sin aviso) o de cerrar la pestaña del navegador.
+  const [dirty, setDirty] = useState(false)
+
+  const updateContentData = (next) => {
+    setContentData(next)
+    setDirty(true)
+    setSaveMessage('')
+  }
+
+  // Envuelve cualquier cambio de selección: si hay cambios sin guardar,
+  // pide confirmación antes de descartarlos.
+  const guarded = (fn) => (...args) => {
+    if (dirty && !window.confirm('Tenés cambios sin guardar. ¿Descartarlos y seguir?')) return
+    setDirty(false)
+    fn(...args)
+  }
+
+  useEffect(() => {
+    if (!dirty) return undefined
+    const onBeforeUnload = (e) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [dirty])
 
   useEffect(() => {
     fetchTracks().then(setTracks).catch(() => {})
@@ -1323,6 +1309,7 @@ export default function AdminContentPage() {
         if (!active) return
         setContentData(data)
         setLoadedScopeKey(scopeKey)
+        setDirty(false)
         setContentStatus('ready')
       })
       .catch(() => {
@@ -1355,6 +1342,7 @@ export default function AdminContentPage() {
           (ARRAY_CONTENT_TYPES.includes(contentType) ? [] : null),
       })
       setSaveMessage('Guardado ✓')
+      setDirty(false)
     } catch (err) {
       setSaveMessage(err.message || 'No pudimos guardar.')
     } finally {
@@ -1390,10 +1378,10 @@ export default function AdminContentPage() {
           {['adultos', 'infancias'].map((s) => (
             <button
               key={s}
-              onClick={() => {
+              onClick={guarded(() => {
                 setScope(s)
                 setSaveMessage('')
-              }}
+              })}
               className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-colors ${
                 scope === s ? 'bg-ink text-cream border-ink' : 'border-ink/15 text-ink/70'
               }`}
@@ -1409,7 +1397,7 @@ export default function AdminContentPage() {
               <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Nivel</span>
               <select
                 value={selectedLevelSlug}
-                onChange={(e) => setSelectedLevelSlug(e.target.value)}
+                onChange={guarded((e) => setSelectedLevelSlug(e.target.value))}
                 className={inputCls}
               >
                 <option value="">Elegí un nivel…</option>
@@ -1424,7 +1412,7 @@ export default function AdminContentPage() {
               <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Track</span>
               <select
                 value={selectedTrackSlug}
-                onChange={(e) => setSelectedTrackSlug(e.target.value)}
+                onChange={guarded((e) => setSelectedTrackSlug(e.target.value))}
                 className={inputCls}
               >
                 <option value="">Elegí un track…</option>
@@ -1439,7 +1427,7 @@ export default function AdminContentPage() {
               <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Temario</span>
               <select
                 value={selectedTemarioSlug}
-                onChange={(e) => setSelectedTemarioSlug(e.target.value)}
+                onChange={guarded((e) => setSelectedTemarioSlug(e.target.value))}
                 disabled={!selectedTrackSlug}
                 className={`${inputCls} disabled:opacity-50`}
               >
@@ -1457,7 +1445,7 @@ export default function AdminContentPage() {
             <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Grupo</span>
             <select
               value={selectedGroupSlug}
-              onChange={(e) => setSelectedGroupSlug(e.target.value)}
+              onChange={guarded((e) => setSelectedGroupSlug(e.target.value))}
               className={inputCls}
             >
               <option value="">Elegí un grupo…</option>
@@ -1474,7 +1462,7 @@ export default function AdminContentPage() {
           {CONTENT_TYPES.map((t) => (
             <button
               key={t.key}
-              onClick={() => setContentType(t.key)}
+              onClick={guarded(() => setContentType(t.key))}
               className={`px-4 py-2 rounded-full text-sm font-medium border-2 transition-colors ${
                 contentType === t.key ? 'bg-brand text-cream border-brand' : 'border-ink/15 text-ink/70'
               }`}
@@ -1491,15 +1479,14 @@ export default function AdminContentPage() {
 
       {scopeKey && editorReady && (
         <div>
-          {contentType === 'flashcards' && <FlashcardsEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'quiz' && <QuizEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'listening' && <ListeningEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'reading_writing' && <ReadingWritingEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'fill_blank' && <FillBlankEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'synonyms_antonyms' && <SynonymsAntonymsEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'pronunciation' && <PronunciationEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'sentence_builder' && <SentenceBuilderEditor data={contentData} onChange={setContentData} />}
-          {contentType === 'voice_lab' && <VoiceLabEditor data={contentData} onChange={setContentData} />}
+          {contentType === 'flashcards' && <FlashcardsEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'quiz' && <QuizEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'listening' && <ListeningEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'reading_writing' && <ReadingWritingEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'fill_blank' && <FillBlankEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'pronunciation' && <PronunciationEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'sentence_builder' && <SentenceBuilderEditor data={contentData} onChange={updateContentData} />}
+          {contentType === 'voice_lab' && <VoiceLabEditor data={contentData} onChange={updateContentData} />}
 
           <div className="flex items-center gap-4 mt-8 flex-wrap">
             <button
@@ -1519,6 +1506,7 @@ export default function AdminContentPage() {
                 Ver como alumno ↗
               </a>
             )}
+            {dirty && !saving && <p className="text-sm font-medium text-gold">Cambios sin guardar</p>}
             {saveMessage && (
               <p className={`text-sm font-medium ${saveMessage === 'Guardado ✓' ? 'text-olive' : 'text-stamp'}`}>
                 {saveMessage}
