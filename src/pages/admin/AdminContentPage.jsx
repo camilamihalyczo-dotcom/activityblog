@@ -6,6 +6,18 @@ import { fetchGroups } from '../../lib/groups.js'
 import { fetchContent, saveContent, buildAdultosScopeKey, buildInfanciasScopeKey } from '../../lib/content.js'
 import { uploadImage, deleteImage } from '../../lib/media.js'
 import { parseCSVRows } from '../../lib/csv.js'
+import { splitSentenceAtBlanks } from '../../lib/text.js'
+import {
+  buildWordBankData,
+  countBlanks,
+  joinBankWords,
+  parseBankWords,
+  parseDistractors,
+  sentenceIssues,
+} from '../../lib/fillBlank.js'
+import { cleanPairs, normalizePronunciationContent, pairIssues } from '../../lib/pronunciation.js'
+import { speak } from '../../lib/speech.js'
+import { parseYouTubeId } from '../../lib/youtube.js'
 
 function genId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID()
@@ -187,6 +199,26 @@ function FlashcardsEditor({ data, onChange }) {
   return (
     <div className="flex flex-col gap-4">
       <input type="file" accept=".csv,text/csv" ref={csvInputRef} onChange={handleCsvFile} className="hidden" />
+      {/* Acciones arriba: con muchas tarjetas no hace falta bajar hasta el
+          final para agregar, y el cuadro de "pegar lista" aparece justo acá. */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
+          {cards.length} {cards.length === 1 ? 'tarjeta' : 'tarjetas'}
+        </span>
+        <button onClick={addCard} className="text-brand hover:underline text-sm font-medium">
+          + Agregar tarjeta
+        </button>
+        {!bulkMode && (
+          <>
+            <button onClick={() => openBulk('lines')} className="text-brand hover:underline text-sm font-medium">
+              Pegar una lista
+            </button>
+            <button onClick={() => csvInputRef.current?.click()} className="text-brand hover:underline text-sm font-medium">
+              Importar CSV
+            </button>
+          </>
+        )}
+      </div>
       {bulkMode && (
         <div className="texture-card rounded-xl p-4 flex flex-col gap-2">
           <span className="block text-xs font-mono uppercase tracking-wide text-ink/60">
@@ -231,6 +263,7 @@ function FlashcardsEditor({ data, onChange }) {
       )}
       {cards.map((card, i) => (
         <div key={i} className="texture-card rounded-xl p-4 flex gap-3 items-start">
+          <span className="font-mono text-xs text-ink/50 w-6 shrink-0 pt-2.5 text-right">{i + 1}</span>
           <div className="flex-1 flex flex-col gap-2">
             <input
               value={card.front}
@@ -259,28 +292,17 @@ function FlashcardsEditor({ data, onChange }) {
           </button>
         </div>
       ))}
-      <div className="flex gap-4 flex-wrap">
-        <button onClick={addCard} className="text-brand hover:underline text-sm font-medium">
+      {cards.length > 0 && (
+        <button onClick={addCard} className="text-brand hover:underline text-sm font-medium self-start">
           + Agregar tarjeta
         </button>
-        {!bulkMode && (
-          <>
-            <button onClick={() => openBulk('lines')} className="text-brand hover:underline text-sm font-medium">
-              Pegar una lista
-            </button>
-            <button onClick={() => csvInputRef.current?.click()} className="text-brand hover:underline text-sm font-medium">
-              Importar CSV
-            </button>
-          </>
-        )}
-      </div>
+      )}
     </div>
   )
 }
 
 // ─── Preguntas de opción múltiple (usado por Quiz y Listening) ────────
-// `withHint` solo lo pasa QuizEditor — Listening comparte el mismo
-// componente pero, por ahora, sin la opción de pista.
+// Las dos actividades pueden tener una pista opcional por pregunta.
 
 function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false }) {
   const updateOption = (oi, value) => {
@@ -461,15 +483,15 @@ function ListeningEditor({ data, onChange }) {
     onChange(items.filter((_, idx) => idx !== i))
   }
   const updateQuestion = (i, qi, patch) => {
-    const questions = [...items[i].questions]
+    const questions = [...(items[i].questions || [])]
     questions[qi] = patch
     updateItem(i, { questions })
   }
   const addQuestion = (i) =>
     updateItem(i, {
-      questions: [...items[i].questions, { id: genId(), q: '', options: ['', ''], answer: 0, image_url: null }],
+      questions: [...(items[i].questions || []), { id: genId(), q: '', options: ['', ''], answer: 0, image_url: null, hint: '' }],
     })
-  const removeQuestion = (i, qi) => updateItem(i, { questions: items[i].questions.filter((_, idx) => idx !== qi) })
+  const removeQuestion = (i, qi) => updateItem(i, { questions: (items[i].questions || []).filter((_, idx) => idx !== qi) })
 
   return (
     <div className="flex flex-col gap-6">
@@ -488,14 +510,28 @@ function ListeningEditor({ data, onChange }) {
           </div>
           <label>
             <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
-              ID de YouTube (lo que va después de "v=" en la URL)
+              Video de YouTube (pegá el link completo o solo el ID)
             </span>
             <input
               value={item.youtubeId}
               onChange={(e) => updateItem(i, { youtubeId: e.target.value })}
-              placeholder="ej: dQw4w9WgXcQ"
+              onBlur={(e) => {
+                // Se guarda solo el ID, aunque se haya pegado el link entero.
+                const id = parseYouTubeId(e.target.value)
+                if (id && id !== e.target.value) updateItem(i, { youtubeId: id })
+              }}
+              placeholder="ej: https://www.youtube.com/watch?v=dQw4w9WgXcQ"
               className={inputCls}
             />
+            {String(item.youtubeId || '').trim() &&
+              (parseYouTubeId(item.youtubeId) ? (
+                <span className="block text-xs text-olive mt-1">✓ Video reconocido ({parseYouTubeId(item.youtubeId)})</span>
+              ) : (
+                <span className="block text-xs text-stamp mt-1">⚠ No reconozco ese link de YouTube — revisalo.</span>
+              ))}
+            {!String(item.youtubeId || '').trim() && (
+              <span className="block text-xs text-ink/60 mt-1">Opcional: sin video, el alumno ve solo la imagen, la transcripción y las preguntas.</span>
+            )}
           </label>
           <label>
             <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Transcripción</span>
@@ -518,12 +554,13 @@ function ListeningEditor({ data, onChange }) {
           />
           <div className="flex flex-col gap-3">
             <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Preguntas</span>
-            {item.questions.map((q, qi) => (
+            {(item.questions || []).map((q, qi) => (
               <OptionsQuestionEditor
                 key={q.id}
                 question={q}
                 onChange={(patch) => updateQuestion(i, qi, patch)}
                 onRemove={() => removeQuestion(i, qi)}
+                withHint
               />
             ))}
             <button onClick={() => addQuestion(i)} className="text-brand hover:underline text-xs font-medium self-start">
@@ -772,16 +809,140 @@ function ReadingWritingEditor({ data, onChange }) {
 }
 
 // ─── Completar oraciones ────────────────────────────────────────────
-// Cada ítem es una oración con un espacio marcado con "___" (tres guiones
-// bajos). Sin opciones, el alumno escribe la respuesta (se corrige solo,
-// ignorando mayúsculas y tildes; se pueden separar varias respuestas
-// válidas con "/"). Con opciones, el alumno elige entre palabras dadas.
+// Dos modos por ejercicio:
+// • Clásico: cada oración tiene UN espacio (___). Sin opciones, el alumno
+//   escribe (se corrige ignorando mayúsculas y tildes; varias respuestas
+//   válidas separadas con "/"). Con opciones, elige entre palabras dadas.
+// • Banco compartido: cada oración puede tener VARIOS espacios; todas las
+//   palabras del ejercicio (más distractores opcionales) se mezclan en un
+//   banco común. Se guarda una palabra por espacio, en orden, como
+//   "palabra1 | palabra2" (ver src/lib/fillBlank.js).
 
-function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) {
-  const hasOptions = !hideOptions && (item.options || []).length > 0
+function IssueList({ issues }) {
+  if (!issues.length) return null
+  return (
+    <ul className="text-xs text-stamp flex flex-col gap-0.5 bg-stamp/5 border border-stamp/20 rounded-lg px-3 py-2">
+      {issues.map((issue) => (
+        <li key={issue}>⚠ {issue}</li>
+      ))}
+    </ul>
+  )
+}
+
+// Vista previa de la oración con cada espacio numerado y la palabra que
+// le toca, para ver de un vistazo que el orden es el correcto.
+function BlankPreview({ sentence, words }) {
+  const segments = splitSentenceAtBlanks(sentence)
+  if (segments.length < 2) return null
+  return (
+    <p className="text-sm text-ink leading-loose bg-paper rounded-lg px-3 py-2">
+      {segments.map((seg, i) => (
+        <span key={i}>
+          {seg}
+          {i < segments.length - 1 && (
+            <span
+              className={`inline-flex items-center gap-1 mx-0.5 px-2 py-0.5 rounded-md border text-xs font-medium ${
+                words[i] ? 'border-olive bg-olive/10' : 'border-stamp/50 bg-stamp/5 text-stamp'
+              }`}
+            >
+              <span className="font-mono text-[10px] opacity-60">{i + 1}</span>
+              {words[i] || 'falta'}
+            </span>
+          )}
+        </span>
+      ))}
+    </p>
+  )
+}
+
+function WordBankAnswersEditor({ item, onChange }) {
+  const blanks = countBlanks(item.sentence)
+  // Borrador local sin recortar: si se recortara en cada tecla, no se
+  // podría escribir una respuesta de dos palabras ("agricultural sector").
+  // Lo que se guarda (item.answer) sí va recortado.
+  const [draft, setDraft] = useState(() => parseBankWords(item.answer))
+  const words = draft
+  const extra = words.slice(blanks)
+
+  const commit = (next) => {
+    setDraft(next)
+    onChange({ ...item, answer: joinBankWords(next) })
+  }
+  const padded = () => {
+    const next = [...words]
+    while (next.length < blanks) next.push('')
+    return next
+  }
+  const setWord = (i, value) => {
+    const next = padded()
+    next[i] = value
+    commit(next)
+  }
+  // Mueve una palabra al espacio de al lado (para corregir el orden sin
+  // tener que borrar y reescribir).
+  const swap = (i, j) => {
+    const next = padded()
+    ;[next[i], next[j]] = [next[j], next[i]]
+    commit(next)
+  }
+  const dropExtra = () => commit(words.slice(0, blanks))
+
+  if (blanks === 0) {
+    return <p className="text-ink/60 text-xs">Escribí la oración marcando cada espacio con ___ y acá van a aparecer los casilleros para las palabras.</p>
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
+        Palabra de cada espacio (en el orden en que aparecen)
+      </span>
+      {Array.from({ length: blanks }, (_, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <span className="font-mono text-xs text-ink/60 w-16 shrink-0">Espacio {i + 1}</span>
+          <input
+            value={words[i] || ''}
+            onChange={(e) => setWord(i, e.target.value)}
+            placeholder={i === 0 ? 'ej: role' : 'ej: agricultural sector'}
+            className={`${inputCls} flex-1`}
+          />
+          <div className="flex gap-1 shrink-0">
+            <button
+              type="button"
+              disabled={i === 0}
+              onClick={() => swap(i, i - 1)}
+              title="Mover al espacio anterior"
+              className="px-2 py-1 rounded border-2 border-ink/15 text-xs disabled:opacity-30"
+            >
+              ↑
+            </button>
+            <button
+              type="button"
+              disabled={i === blanks - 1}
+              onClick={() => swap(i, i + 1)}
+              title="Mover al espacio siguiente"
+              className="px-2 py-1 rounded border-2 border-ink/15 text-xs disabled:opacity-30"
+            >
+              ↓
+            </button>
+          </div>
+        </div>
+      ))}
+      {extra.some(Boolean) && (
+        <button type="button" onClick={dropExtra} className="text-stamp hover:underline text-xs font-medium self-start">
+          Quitar palabras sobrantes ({extra.filter(Boolean).join(', ')})
+        </button>
+      )}
+      <BlankPreview sentence={item.sentence} words={words.map((w) => (w || '').trim())} />
+    </div>
+  )
+}
+
+function FillBlankItemEditor({ item, index, onChange, onRemove, wordBank = false }) {
+  const hasOptions = !wordBank && (item.options || []).length > 0
+  const issues = sentenceIssues(item, { wordBank })
 
   const toggleOptions = () => {
-    onChange(hasOptions ? { ...item, options: [] } : { ...item, options: ['', ''] })
+    onChange(hasOptions ? { ...item, options: [], answer: '' } : { ...item, options: ['', ''], answer: '' })
   }
   const updateOption = (oi, value) => {
     const wasCorrect = item.answer === item.options[oi] && item.options[oi] !== ''
@@ -791,34 +952,33 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
   }
   const addOption = () => onChange({ ...item, options: [...item.options, ''] })
   const removeOption = (oi) => {
-    // Si se borra justo la opción marcada como correcta, `answer` quedaría
-    // apuntando a un texto que ya no existe entre las opciones — nadie
-    // podría acertar nunca ese ítem. Se limpia para que el profe tenga que
-    // volver a marcar cuál es la correcta.
+    // Si se borra justo la opción correcta, se limpia `answer` para que
+    // haya que volver a marcar cuál es (si no, nadie podría acertar).
     const wasCorrect = item.answer === item.options[oi]
     onChange({ ...item, options: item.options.filter((_, idx) => idx !== oi), answer: wasCorrect ? '' : item.answer })
   }
 
   return (
-    <div className="texture-card rounded-xl p-5 flex flex-col gap-3">
-      <div className="flex gap-3 items-start">
-        <label className="flex-1">
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
-            {hideOptions
-              ? 'Oración (marcá cada espacio con ___ — podés usar más de uno en la misma oración)'
-              : 'Oración (marcá el espacio con ___, tres guiones bajos)'}
-          </span>
-          <input
-            value={item.sentence}
-            onChange={(e) => onChange({ ...item, sentence: e.target.value })}
-            placeholder={hideOptions ? 'In my current ___, I work in the ___.' : 'Every day, our team ___ (have) a standup.'}
-            className={inputCls}
-          />
-        </label>
-        <button onClick={onRemove} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
-          Borrar
+    <div className="border-2 border-ink/10 rounded-lg p-4 flex flex-col gap-3 bg-paper/40">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Oración {index + 1}</span>
+        <button onClick={onRemove} className={`${smallBtn} text-stamp`}>
+          Borrar oración
         </button>
       </div>
+      <label>
+        <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
+          {wordBank
+            ? 'Oración — marcá cada espacio con ___ (podés usar varios)'
+            : 'Oración — marcá el espacio con ___ (tres guiones bajos)'}
+        </span>
+        <input
+          value={item.sentence}
+          onChange={(e) => onChange({ ...item, sentence: e.target.value })}
+          placeholder={wordBank ? 'In my current ___, I work in the ___.' : 'Every day, our team ___ (have) a standup.'}
+          className={inputCls}
+        />
+      </label>
 
       <ImageField
         url={item.image_url}
@@ -831,66 +991,66 @@ function FillBlankItemEditor({ item, onChange, onRemove, hideOptions = false }) 
         label="Imagen de contexto (opcional)"
       />
 
-      {!hideOptions && (
-        <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/60">
-          <input type="checkbox" checked={hasOptions} onChange={toggleOptions} className="accent-brand" />
-          Con opciones (multiple choice) en vez de texto libre
-        </label>
+      {wordBank ? (
+        <WordBankAnswersEditor item={item} onChange={onChange} />
+      ) : (
+        <>
+          <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/60">
+            <input type="checkbox" checked={hasOptions} onChange={toggleOptions} className="accent-brand" />
+            Con opciones (multiple choice) en vez de texto libre
+          </label>
+          {hasOptions ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Opciones (marcá la correcta)</span>
+              {item.options.map((opt, oi) => (
+                <div key={oi} className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name={`fillblank-answer-${item.id}`}
+                    checked={opt !== '' && item.answer === opt}
+                    onChange={() => onChange({ ...item, answer: opt })}
+                    className="accent-olive shrink-0"
+                  />
+                  <input
+                    value={opt}
+                    onChange={(e) => updateOption(oi, e.target.value)}
+                    className={`${inputCls} flex-1`}
+                    placeholder={`Opción ${oi + 1}`}
+                  />
+                  {item.options.length > 2 && (
+                    <button onClick={() => removeOption(oi)} className="text-stamp text-xs font-medium shrink-0">
+                      Quitar
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button onClick={addOption} className="text-brand hover:underline text-xs font-medium self-start">
+                + Agregar opción
+              </button>
+            </div>
+          ) : (
+            <label>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
+                Respuesta correcta (si hay más de una válida, separalas con /)
+              </span>
+              <input
+                value={item.answer}
+                onChange={(e) => onChange({ ...item, answer: e.target.value })}
+                placeholder="has / is having"
+                className={inputCls}
+              />
+            </label>
+          )}
+        </>
       )}
 
-      {hasOptions ? (
-        <div className="flex flex-col gap-2">
-          <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
-            Opciones (marcá la correcta)
-          </span>
-          {item.options.map((opt, oi) => (
-            <div key={oi} className="flex items-center gap-2">
-              <input
-                type="radio"
-                name={`fillblank-answer-${item.id}`}
-                checked={opt !== '' && item.answer === opt}
-                onChange={() => onChange({ ...item, answer: opt })}
-                className="accent-olive shrink-0"
-              />
-              <input
-                value={opt}
-                onChange={(e) => updateOption(oi, e.target.value)}
-                className={`${inputCls} flex-1`}
-                placeholder={`Opción ${oi + 1}`}
-              />
-              {item.options.length > 2 && (
-                <button onClick={() => removeOption(oi)} className="text-stamp text-xs font-medium shrink-0">
-                  Quitar
-                </button>
-              )}
-            </div>
-          ))}
-          <button onClick={addOption} className="text-brand hover:underline text-xs font-medium self-start">
-            + Agregar opción
-          </button>
-        </div>
-      ) : (
-        <label>
-          <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
-            {hideOptions
-              ? 'Palabra(s) que van en el banco compartido — si la oración tiene más de un espacio, escribí una palabra por espacio separadas por |'
-              : 'Respuesta correcta (si hay más de una válida, separalas con /)'}
-          </span>
-          <input
-            value={item.answer}
-            onChange={(e) => onChange({ ...item, answer: e.target.value })}
-            placeholder={hideOptions ? 'role | agricultural sector' : 'has / is having'}
-            className={inputCls}
-          />
-        </label>
-      )}
+      <IssueList issues={issues} />
     </div>
   )
 }
 
 // Igual que Cuestionario: un temario/grupo puede tener varios ejercicios
-// de "completar oraciones" por separado (cada uno con su propio título y
-// varias oraciones), en vez de una sola lista larga con todas mezcladas.
+// de "completar oraciones" por separado, cada uno con su título.
 
 function FillBlankEditor({ data, onChange }) {
   const exercises = data || []
@@ -899,7 +1059,7 @@ function FillBlankEditor({ data, onChange }) {
     next[ei] = { ...next[ei], ...patch }
     onChange(next)
   }
-  const addExercise = () => onChange([...exercises, { id: genId(), title: '', wordBank: false, sentences: [] }])
+  const addExercise = () => onChange([...exercises, { id: genId(), title: '', wordBank: false, distractors: [], sentences: [] }])
   const removeExercise = (ei) => {
     for (const s of exercises[ei]?.sentences || []) deleteImage(s.image_url)
     onChange(exercises.filter((_, idx) => idx !== ei))
@@ -907,19 +1067,28 @@ function FillBlankEditor({ data, onChange }) {
   const toggleWordBank = (ei) => {
     const exercise = exercises[ei]
     const wordBank = !exercise.wordBank
-    // Al activar el banco compartido se limpian las opciones de cada
-    // oración, para que no queden mezcladas dos mecánicas distintas.
-    const sentences = wordBank ? exercise.sentences.map((s) => ({ ...s, options: [] })) : exercise.sentences
+    const sentences = (exercise.sentences || []).map((s) => {
+      if (wordBank) {
+        // Clásico → banco: se quitan las opciones. Si había opciones, la
+        // respuesta marcada pasa a ser la palabra del banco; si había
+        // alternativas con "/", queda la primera.
+        const first = String(s.answer || '').split('/')[0].trim()
+        return { ...s, options: [], answer: first }
+      }
+      // Banco → clásico: queda solo la primera palabra (el modo clásico
+      // tiene un espacio por oración; los avisos marcan si sobran).
+      return { ...s, answer: parseBankWords(s.answer)[0] || '' }
+    })
     updateExercise(ei, { wordBank, sentences })
   }
   const updateSentence = (ei, si, patch) => {
-    const sentences = [...exercises[ei].sentences]
+    const sentences = [...(exercises[ei].sentences || [])]
     sentences[si] = patch
     updateExercise(ei, { sentences })
   }
   const addSentence = (ei) =>
     updateExercise(ei, {
-      sentences: [...exercises[ei].sentences, { id: genId(), sentence: '', options: [], answer: '', image_url: null }],
+      sentences: [...(exercises[ei].sentences || []), { id: genId(), sentence: '', options: [], answer: '', image_url: null }],
     })
   const removeSentence = (ei, si) => {
     deleteImage(exercises[ei].sentences[si]?.image_url)
@@ -928,43 +1097,73 @@ function FillBlankEditor({ data, onChange }) {
 
   return (
     <div className="flex flex-col gap-6">
-      {exercises.map((exercise, ei) => (
-        <div key={exercise.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
-          <div className="flex gap-3 items-start">
-            <label className="flex-1">
-              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título del ejercicio</span>
-              <input
-                value={exercise.title}
-                onChange={(e) => updateExercise(ei, { title: e.target.value })}
-                placeholder="ej: Completar — Present Simple"
-                className={inputCls}
-              />
+      {exercises.map((exercise, ei) => {
+        const sentences = exercise.sentences || []
+        const bankSize = exercise.wordBank
+          ? buildWordBankData(sentences, exercise.distractors).chips.length
+          : 0
+        const withIssues = sentences.filter((s) => sentenceIssues(s, { wordBank: !!exercise.wordBank }).length > 0).length
+        return (
+          <div key={exercise.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
+            <div className="flex gap-3 items-start">
+              <label className="flex-1">
+                <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título del ejercicio</span>
+                <input
+                  value={exercise.title}
+                  onChange={(e) => updateExercise(ei, { title: e.target.value })}
+                  placeholder="ej: Completar — Present Simple"
+                  className={inputCls}
+                />
+              </label>
+              <button onClick={() => removeExercise(ei)} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
+                Borrar ejercicio
+              </button>
+            </div>
+            <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/60">
+              <input type="checkbox" checked={!!exercise.wordBank} onChange={() => toggleWordBank(ei)} className="accent-brand" />
+              Un solo banco de palabras compartido (permite varios espacios por oración)
             </label>
-            <button onClick={() => removeExercise(ei)} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
-              Borrar ejercicio
-            </button>
+            {exercise.wordBank && (
+              <label>
+                <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
+                  Palabras distractoras (opcional — van al banco pero no tienen espacio; separalas con coma)
+                </span>
+                <input
+                  value={Array.isArray(exercise.distractors) ? exercise.distractors.join(', ') : exercise.distractors || ''}
+                  onChange={(e) => updateExercise(ei, { distractors: e.target.value })}
+                  onBlur={(e) => updateExercise(ei, { distractors: parseDistractors(e.target.value) })}
+                  placeholder="ej: department, field"
+                  className={inputCls}
+                />
+              </label>
+            )}
+            {sentences.map((s, si) => (
+              <FillBlankItemEditor
+                key={s.id}
+                index={si}
+                item={s}
+                onChange={(patch) => updateSentence(ei, si, patch)}
+                onRemove={() => removeSentence(ei, si)}
+                wordBank={!!exercise.wordBank}
+              />
+            ))}
+            <div className="flex items-center gap-4 flex-wrap">
+              <button onClick={() => addSentence(ei)} className="text-brand hover:underline text-sm font-medium">
+                + Agregar oración
+              </button>
+              {exercise.wordBank && bankSize > 0 && (
+                <span className="text-ink/60 text-xs">El banco va a tener {bankSize} palabras.</span>
+              )}
+              {withIssues > 0 && (
+                <span className="text-stamp text-xs">
+                  {withIssues} {withIssues === 1 ? 'oración tiene' : 'oraciones tienen'} avisos — revisalas antes de guardar.
+                </span>
+              )}
+            </div>
+            {sentences.length === 0 && <p className="text-ink/60 text-xs">Sin oraciones, este ejercicio no aparece en el sitio.</p>}
           </div>
-          <label className="flex items-center gap-2 text-xs font-mono uppercase tracking-wide text-ink/60">
-            <input type="checkbox" checked={!!exercise.wordBank} onChange={() => toggleWordBank(ei)} className="accent-brand" />
-            Un solo banco de palabras compartido (en vez de opciones por oración)
-          </label>
-          {exercise.sentences.map((s, si) => (
-            <FillBlankItemEditor
-              key={s.id}
-              item={s}
-              onChange={(patch) => updateSentence(ei, si, patch)}
-              onRemove={() => removeSentence(ei, si)}
-              hideOptions={!!exercise.wordBank}
-            />
-          ))}
-          <button onClick={() => addSentence(ei)} className="text-brand hover:underline text-sm font-medium self-start">
-            + Agregar oración
-          </button>
-          {exercise.sentences.length === 0 && (
-            <p className="text-ink/60 text-xs">Sin oraciones, este ejercicio no aparece en el sitio.</p>
-          )}
-        </div>
-      ))}
+        )
+      })}
       <button onClick={addExercise} className="text-brand hover:underline text-sm font-medium self-start">
         + Agregar ejercicio
       </button>
@@ -974,75 +1173,143 @@ function FillBlankEditor({ data, onChange }) {
 }
 
 // ─── Pronunciación ───────────────────────────────────────────────────
-// Cada grupo son 2+ palabras que suenan parecido. La primera palabra queda
-// fija arriba (es la que se muestra como consigna); el resto son las
-// palabras que el alumno tiene que emparejar, tocándolas desde un banco
-// compartido debajo. Cada grupo puede tener una pista opcional.
+// "Parejas que suenan igual": cada ejercicio tiene título, consigna
+// opcional y parejas de palabras (2, o más si querés tríos). En el sitio
+// el alumno escucha cada palabra y las arrastra de a pares; se corrige al
+// final. La explicación de cada pareja se muestra después de corregir.
+// Ver src/lib/pronunciation.js.
 
 function PronunciationEditor({ data, onChange }) {
-  const groups = data || []
-  const updateGroup = (gi, patch) => {
-    const next = [...groups]
-    next[gi] = { ...next[gi], ...patch }
-    onChange(next)
+  const exercises = normalizePronunciationContent(data)
+  const update = (next) => onChange(next)
+  const updateExercise = (ei, patch) => {
+    const next = [...exercises]
+    next[ei] = { ...next[ei], ...patch }
+    update(next)
   }
-  const addGroup = () => onChange([...groups, { id: genId(), words: ['', ''], hint: '' }])
-  const removeGroup = (gi) => onChange(groups.filter((_, idx) => idx !== gi))
-  const updateWord = (gi, wi, value) => {
-    const words = [...groups[gi].words]
+  const addExercise = () =>
+    update([...exercises, { id: genId(), title: '', instructions: '', pairs: [{ id: genId(), words: ['', ''], hint: '' }] }])
+  const removeExercise = (ei) => update(exercises.filter((_, idx) => idx !== ei))
+  const updatePair = (ei, pi, patch) => {
+    const pairs = [...(exercises[ei].pairs || [])]
+    pairs[pi] = { ...pairs[pi], ...patch }
+    updateExercise(ei, { pairs })
+  }
+  const addPair = (ei) => updateExercise(ei, { pairs: [...(exercises[ei].pairs || []), { id: genId(), words: ['', ''], hint: '' }] })
+  const removePair = (ei, pi) => updateExercise(ei, { pairs: exercises[ei].pairs.filter((_, idx) => idx !== pi) })
+  const updateWord = (ei, pi, wi, value) => {
+    const words = [...exercises[ei].pairs[pi].words]
     words[wi] = value
-    updateGroup(gi, { words })
+    updatePair(ei, pi, { words })
   }
-  const addWord = (gi) => updateGroup(gi, { words: [...groups[gi].words, ''] })
-  const removeWord = (gi, wi) => updateGroup(gi, { words: groups[gi].words.filter((_, idx) => idx !== wi) })
 
   return (
-    <div className="flex flex-col gap-4">
-      {groups.map((group, gi) => (
-        <div key={group.id} className="texture-card rounded-xl p-4 flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
-              Grupo {gi + 1} (palabras que suenan parecido)
-            </span>
-            <button onClick={() => removeGroup(gi)} className={`${smallBtn} text-stamp`}>
-              Borrar grupo
-            </button>
-          </div>
-          <div className="flex flex-col gap-2">
-            {group.words.map((w, wi) => (
-              <div key={wi} className="flex items-center gap-2">
+    <div className="flex flex-col gap-6">
+      {exercises.map((exercise, ei) => {
+        const pairs = exercise.pairs || []
+        const validPairs = cleanPairs(pairs).length
+        return (
+          <div key={exercise.id} className="texture-card rounded-xl p-5 flex flex-col gap-4">
+            <div className="flex gap-3 items-start">
+              <label className="flex-1">
+                <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Título del ejercicio</span>
                 <input
-                  value={w}
-                  onChange={(e) => updateWord(gi, wi, e.target.value)}
-                  className={`${inputCls} flex-1`}
-                  placeholder={wi === 0 ? 'Palabra fija (aparece arriba)' : `Palabra para emparejar ${wi}`}
+                  value={exercise.title || ''}
+                  onChange={(e) => updateExercise(ei, { title: e.target.value })}
+                  placeholder="ej: Homófonos — palabras que suenan igual"
+                  className={inputCls}
                 />
-                {group.words.length > 2 && (
-                  <button onClick={() => removeWord(gi, wi)} className="text-stamp text-xs font-medium shrink-0">
-                    Quitar
+              </label>
+              <button onClick={() => removeExercise(ei)} className={`${smallBtn} text-stamp shrink-0 mt-6`}>
+                Borrar ejercicio
+              </button>
+            </div>
+            <label>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">
+                Consigna (opcional — si la dejás vacía se usa una genérica)
+              </span>
+              <input
+                value={exercise.instructions || ''}
+                onChange={(e) => updateExercise(ei, { instructions: e.target.value })}
+                placeholder="ej: Escuchá y juntá las palabras que suenan igual pero se escriben distinto."
+                className={inputCls}
+              />
+            </label>
+
+            {pairs.map((pair, pi) => {
+              const issues = pairIssues(pair, pairs)
+              return (
+                <div key={pair.id} className="border-2 border-ink/10 rounded-lg p-4 flex flex-col gap-2 bg-paper/40">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono uppercase tracking-wide text-ink/60">Pareja {pi + 1}</span>
+                    <button onClick={() => removePair(ei, pi)} className={`${smallBtn} text-stamp`}>
+                      Borrar pareja
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {pair.words.map((w, wi) => (
+                      <div key={wi} className="flex items-center gap-1 flex-1 min-w-[160px]">
+                        <input
+                          value={w}
+                          onChange={(e) => updateWord(ei, pi, wi, e.target.value)}
+                          className={`${inputCls} flex-1`}
+                          placeholder={wi === 0 ? 'ej: knight' : wi === 1 ? 'ej: night' : `Palabra ${wi + 1}`}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => speak(w)}
+                          disabled={!w.trim()}
+                          title="Escuchar cómo la va a oír el alumno"
+                          className="px-2 py-2 rounded-lg border-2 border-ink/15 text-xs disabled:opacity-30"
+                        >
+                          🔊
+                        </button>
+                        {pair.words.length > 2 && (
+                          <button
+                            onClick={() => updatePair(ei, pi, { words: pair.words.filter((_, idx) => idx !== wi) })}
+                            className="text-stamp text-xs font-medium shrink-0 ml-1"
+                          >
+                            Quitar
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => updatePair(ei, pi, { words: [...pair.words, ''] })}
+                    className="text-brand hover:underline text-xs font-medium self-start"
+                  >
+                    + Agregar una palabra más (trío)
                   </button>
-                )}
-              </div>
-            ))}
-            <button onClick={() => addWord(gi)} className="text-brand hover:underline text-xs font-medium self-start">
-              + Agregar palabra
-            </button>
+                  <input
+                    value={pair.hint || ''}
+                    onChange={(e) => updatePair(ei, pi, { hint: e.target.value })}
+                    className={inputCls}
+                    placeholder="Explicación (opcional, se muestra después de corregir) — ej: las dos se pronuncian /naɪt/"
+                  />
+                  <IssueList issues={issues} />
+                </div>
+              )
+            })}
+            <div className="flex items-center gap-4 flex-wrap">
+              <button onClick={() => addPair(ei)} className="text-brand hover:underline text-sm font-medium">
+                + Agregar pareja
+              </button>
+              <span className="text-ink/60 text-xs">
+                {validPairs} {validPairs === 1 ? 'pareja lista' : 'parejas listas'}
+                {validPairs > 0 && validPairs < 3 && ' — con 3 o más el ejercicio tiene más sentido'}
+              </span>
+            </div>
           </div>
-          <input
-            value={group.hint || ''}
-            onChange={(e) => updateGroup(gi, { hint: e.target.value })}
-            className={`${inputCls} mt-1`}
-            placeholder="Pista (opcional)"
-          />
-        </div>
-      ))}
-      <button onClick={addGroup} className="text-brand hover:underline text-sm font-medium self-start">
-        + Agregar grupo
+        )
+      })}
+      <button onClick={addExercise} className="text-brand hover:underline text-sm font-medium self-start">
+        + Agregar ejercicio
       </button>
-      {groups.length === 0 && (
+      {exercises.length === 0 && (
         <p className="text-ink/60 text-xs">
-          Sin grupos todavía. Cada grupo son 2 o más palabras que suenan parecido (ej: ship / sheep). La primera
-          palabra que cargues queda fija como consigna; el resto son las que el alumno tiene que emparejar.
+          Sin ejercicios todavía. Cada ejercicio son parejas de palabras que suenan igual (ej: knight / night, sea /
+          see). El alumno las escucha y las junta de a pares.
         </p>
       )}
     </div>
@@ -1235,6 +1502,28 @@ export default function AdminContentPage() {
   // perdían los cambios sin aviso) o de cerrar la pestaña del navegador.
   const [dirty, setDirty] = useState(false)
 
+  const topRef = useRef(null)
+  const editorRef = useRef(null)
+
+  // Al tocar cualquier botón "+ Agregar…" dentro del editor, baja hasta el
+  // campo nuevo que apareció y lo deja listo para escribir (antes había que
+  // ir a buscarlo al final de la lista).
+  const FIELD_SELECTOR = 'input:not([type=file]):not([type=radio]):not([type=checkbox]), textarea'
+  const handleEditorClickCapture = (e) => {
+    const btn = e.target.closest('button')
+    const root = editorRef.current
+    if (!btn || !root || !btn.textContent.trim().startsWith('+')) return
+    const before = new Set(root.querySelectorAll(FIELD_SELECTOR))
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const fresh = [...root.querySelectorAll(FIELD_SELECTOR)].find((el) => !before.has(el))
+        if (!fresh) return
+        fresh.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        fresh.focus({ preventScroll: true })
+      })
+    )
+  }
+
   const updateContentData = (next) => {
     setContentData(next)
     setDirty(true)
@@ -1352,6 +1641,21 @@ export default function AdminContentPage() {
 
   const editorReady = contentStatus === 'ready' && loadedScopeKey === scopeKey
 
+  // Ctrl+S / Cmd+S guarda sin tener que ir al botón.
+  const saveRef = useRef(handleSave)
+  saveRef.current = handleSave
+  useEffect(() => {
+    if (!editorReady) return undefined
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault()
+        saveRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [editorReady])
+
   // Link a la página pública tal como la va a ver el alumno, para chequear
   // el resultado sin salir del panel.
   const publicUrl =
@@ -1368,7 +1672,7 @@ export default function AdminContentPage() {
       <Link to="/notas-profe" className="text-ink/60 hover:text-ink text-sm font-medium mb-4 inline-block">
         ← Volver al panel
       </Link>
-      <h1 className="font-display text-3xl font-semibold text-ink mb-2">Contenido</h1>
+      <h1 ref={topRef} className="font-display text-3xl font-semibold text-ink mb-2 scroll-mt-4">Contenido</h1>
       <p className="text-ink/60 mb-8">
         Elegí primero dónde vive el contenido (track y temario, o grupo) y después qué actividad querés cargar.
       </p>
@@ -1478,7 +1782,7 @@ export default function AdminContentPage() {
       {scopeKey && contentStatus === 'error' && <p className="text-stamp text-sm">No pudimos cargar este contenido.</p>}
 
       {scopeKey && editorReady && (
-        <div>
+        <div ref={editorRef} onClickCapture={handleEditorClickCapture}>
           {contentType === 'flashcards' && <FlashcardsEditor data={contentData} onChange={updateContentData} />}
           {contentType === 'quiz' && <QuizEditor data={contentData} onChange={updateContentData} />}
           {contentType === 'listening' && <ListeningEditor data={contentData} onChange={updateContentData} />}
@@ -1488,30 +1792,39 @@ export default function AdminContentPage() {
           {contentType === 'sentence_builder' && <SentenceBuilderEditor data={contentData} onChange={updateContentData} />}
           {contentType === 'voice_lab' && <VoiceLabEditor data={contentData} onChange={updateContentData} />}
 
-          <div className="flex items-center gap-4 mt-8 flex-wrap">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="bg-ink text-cream font-semibold px-6 py-3 rounded-lg hover:bg-brand transition-colors disabled:opacity-50"
-            >
-              {saving ? 'Guardando…' : 'Guardar contenido'}
-            </button>
-            {publicUrl && (
-              <a
-                href={publicUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand hover:underline text-sm font-medium"
+          {/* Barra fija abajo: guardar y lo demás siempre a mano, sin tener que
+              bajar hasta el final de una lista larga. */}
+          <div className="sticky bottom-3 z-20 mt-8">
+            <div className="texture-card rounded-xl shadow-lg border-2 border-ink/10 px-4 py-3 flex items-center gap-x-4 gap-y-2 flex-wrap">
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                title="También podés guardar con Ctrl+S"
+                className="bg-ink text-cream font-semibold px-5 py-2.5 rounded-lg hover:bg-brand transition-colors disabled:opacity-50"
               >
-                Ver como alumno ↗
-              </a>
-            )}
-            {dirty && !saving && <p className="text-sm font-medium text-gold">Cambios sin guardar</p>}
-            {saveMessage && (
-              <p className={`text-sm font-medium ${saveMessage === 'Guardado ✓' ? 'text-olive' : 'text-stamp'}`}>
-                {saveMessage}
-              </p>
-            )}
+                {saving ? 'Guardando…' : 'Guardar contenido'}
+              </button>
+              {dirty && !saving && <p className="text-sm font-medium text-gold">Cambios sin guardar</p>}
+              {saveMessage && (
+                <p className={`text-sm font-medium ${saveMessage === 'Guardado ✓' ? 'text-olive' : 'text-stamp'}`}>
+                  {saveMessage}
+                </p>
+              )}
+              <div className="flex items-center gap-4 ml-auto">
+                {publicUrl && (
+                  <a href={publicUrl} target="_blank" rel="noopener noreferrer" className="text-brand hover:underline text-sm font-medium">
+                    Ver como alumno ↗
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  className="text-ink/60 hover:text-ink text-sm font-medium"
+                >
+                  ↑ Cambiar actividad
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

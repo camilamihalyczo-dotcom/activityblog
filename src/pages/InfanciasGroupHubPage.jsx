@@ -15,7 +15,7 @@ const ALL_TOPICS = [
   { slug: 'completar', label: 'Completar oraciones', desc: 'Espacios en blanco para completar', icon: SpellCheck2 },
   { slug: 'listening', label: 'Listening', desc: 'Video, canciones y preguntas', icon: Headphones },
   { slug: 'reading-writing', label: 'Reading & Writing', desc: 'Comprensión lectora y producción escrita', icon: BookOpenText },
-  { slug: 'pronunciacion', label: 'Pronunciación', desc: 'Agrupá las palabras que suenan parecido', icon: AudioLines },
+  { slug: 'pronunciacion', label: 'Pronunciación', desc: 'Escuchá y emparejá las palabras que suenan igual', icon: AudioLines },
   { slug: 'voice-lab', label: 'Voice Lab', desc: 'Practicá pronunciación con reconocimiento de voz', icon: Mic2 },
 ]
 

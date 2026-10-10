@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
@@ -105,9 +105,16 @@ export default function AdminTracksPage() {
 
   // ─── Track form ────────────────────────────────────────────────────
 
+  // Al tocar "Editar" en la lista de abajo, sube hasta el formulario (antes
+  // se completaba arriba sin que se viera).
+  const trackFormRef = useRef(null)
+  const temarioFormRef = useRef(null)
+  const scrollTo = (ref) => requestAnimationFrame(() => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+
   const startEditTrack = (track) => {
     setTrackForm(track)
     setTrackError('')
+    scrollTo(trackFormRef)
   }
 
   const startNewTrack = () => {
@@ -161,6 +168,7 @@ export default function AdminTracksPage() {
   const startEditTemario = (temario) => {
     setTemarioForm(temario)
     setTemarioError('')
+    scrollTo(temarioFormRef)
   }
 
   const startNewTemario = () => {
@@ -223,7 +231,7 @@ export default function AdminTracksPage() {
 
       {/* ─── Tracks ─────────────────────────────────────────────────── */}
 
-      <form onSubmit={handleTrackSubmit} className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
+      <form ref={trackFormRef} onSubmit={handleTrackSubmit} className="scroll-mt-4 texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
         <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
           {trackForm.id ? 'Editar track' : 'Nuevo track'}
         </p>
@@ -366,7 +374,7 @@ export default function AdminTracksPage() {
             esas se cargan desde la sección de Contenido.
           </p>
 
-          <form onSubmit={handleTemarioSubmit} className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
+          <form ref={temarioFormRef} onSubmit={handleTemarioSubmit} className="scroll-mt-4 texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
             <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
               {temarioForm.id ? 'Editar temario' : 'Nuevo temario'}
             </p>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { DndContext, closestCenter, useSensor, useSensors, PointerSensor, KeyboardSensor } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy, useSortable, sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
@@ -78,9 +78,14 @@ export default function AdminGroupsPage() {
 
   useEffect(loadGroups, [])
 
+  // Al tocar "Editar" en la lista de abajo, sube hasta el formulario (antes
+  // se completaba arriba sin que se viera).
+  const formRef = useRef(null)
+
   const startEdit = (group) => {
     setForm(group)
     setError('')
+    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   const startNew = () => {
@@ -140,7 +145,7 @@ export default function AdminGroupsPage() {
         Cada grupo tiene su rango de edad, color y clave propios, y elige qué actividades tiene disponibles.
       </p>
 
-      <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="scroll-mt-4 texture-card rounded-2xl p-6 mb-8 flex flex-col gap-4">
         <p className="font-mono text-xs uppercase tracking-widest text-ink/60">{form.id ? 'Editar grupo' : 'Nuevo grupo'}</p>
 
         <div className="flex gap-4 flex-wrap">

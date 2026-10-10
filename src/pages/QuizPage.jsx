@@ -1,155 +1,25 @@
-import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getLevel } from '../data/levels.js'
 import { fetchTrack, fetchTemario } from '../lib/tracks.js'
 import { THEME_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildAdultosScopeKey } from '../lib/content.js'
-import { recordSubmission, useStudentName } from '../lib/submissions.js'
+import { useActivityLoad } from '../lib/useActivityLoad.js'
 import TicketHeader from '../components/TicketHeader.jsx'
 import EmptyState from '../components/EmptyState.jsx'
-import NameField from '../components/NameField.jsx'
-import QuestionHint from '../components/QuestionHint.jsx'
-import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
-import { CheckCircle2, XCircle } from 'lucide-react'
-
-// Cada temario puede tener más de un cuestionario (ej: uno por unidad
-// dentro del mismo temario) — por eso cada uno corrige y se envía por
-// separado, con su propio puntaje.
-function QuizGroup({ quiz, c, levelSlug, themeSlug, temarioSlug }) {
-  const [answers, setAnswers] = useState({})
-  const [submitted, setSubmitted] = useState(false)
-  const [studentName, setStudentName] = useStudentName()
-
-  if (quiz.questions.length === 0) return null
-
-  const score = quiz.questions.filter((q) => answers[q.id] === q.answer).length
-
-  return (
-    <CollapsibleExercise
-      title={quiz.title || 'Cuestionario'}
-      label="Actividad"
-      className={`texture-card rounded-2xl ${c.borderT4} p-6 sm:p-8 mb-8 text-ink`}
-    >
-      <div className="flex flex-col gap-6">
-        {quiz.questions.map((q, qi) => (
-          <div key={q.id} className={`texture-card rounded-2xl ${c.borderT4} p-6`}>
-            <p className="font-mono text-xs text-ink/60 mb-2">Pregunta {qi + 1}</p>
-            {q.image_url && <img loading="lazy" decoding="async" src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-lg mb-4" />}
-            <p className="font-semibold text-ink mb-2">{q.q}</p>
-            <QuestionHint hint={q.hint} />
-            <div className="flex flex-col gap-2">
-              {q.options.map((opt, oi) => {
-                const chosen = answers[q.id] === oi
-                const correct = submitted && oi === q.answer
-                const wrong = submitted && chosen && oi !== q.answer
-                return (
-                  <button
-                    key={oi}
-                    disabled={submitted}
-                    onClick={() => setAnswers((a) => ({ ...a, [q.id]: oi }))}
-                    className={`text-left px-4 py-3 rounded-lg border-2 transition-colors flex items-center justify-between gap-2
-                      ${chosen && !submitted ? 'border-ink bg-ink/5' : 'border-ink/15'}
-                      ${correct ? 'border-olive bg-olive/10' : ''}
-                      ${wrong ? 'border-stamp bg-stamp/10' : ''}
-                    `}
-                  >
-                    <span>{opt}</span>
-                    {correct && <CheckCircle2 size={18} className="text-olive shrink-0" />}
-                    {wrong && <XCircle size={18} className="text-stamp shrink-0" />}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {!submitted ? (
-        <div className="mt-8">
-          <NameField value={studentName} onChange={setStudentName} c={c} />
-          <button
-            onClick={() => {
-              setSubmitted(true)
-              recordSubmission({
-                scope: 'adultos',
-                levelSlug,
-                trackSlug: themeSlug,
-                temarioSlug,
-                contentType: 'quiz',
-                label: quiz.title,
-                studentName,
-                score,
-                total: quiz.questions.length,
-                detail: quiz.questions.map((q) => ({
-                  id: q.id,
-                  question: q.q,
-                  given: q.options[answers[q.id]] ?? null,
-                  correct: q.options[q.answer],
-                  is_correct: answers[q.id] === q.answer,
-                })),
-              })
-            }}
-            disabled={Object.keys(answers).length < quiz.questions.length || !studentName.trim()}
-            className={`w-full bg-ink text-cream font-semibold py-3 rounded-lg ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            Corregir
-          </button>
-        </div>
-      ) : (
-        <div className="mt-8 texture-card rounded-2xl p-6 text-center">
-          <p className="font-display text-2xl font-semibold text-ink">
-            {score} / {quiz.questions.length} correctas
-          </p>
-          <button
-            onClick={() => {
-              setSubmitted(false)
-              setAnswers({})
-            }}
-            className={`mt-4 text-ink/60 ${c.hoverText} text-sm font-medium underline`}
-          >
-            Intentar de nuevo
-          </button>
-        </div>
-      )}
-    </CollapsibleExercise>
-  )
-}
+import { QuizExercise } from '../components/MultipleChoiceExercises.jsx'
 
 export default function QuizPage() {
   const { level: slug, theme: themeSlug, temario: temarioSlug } = useParams()
   const level = getLevel(slug)
-  const [theme, setTheme] = useState(null)
-  const [temario, setTemario] = useState(null)
-  const [quizzes, setQuizzes] = useState([])
-  const [status, setStatus] = useState('loading') // loading | error | ready
+  const scopeKey = buildAdultosScopeKey(slug, themeSlug, temarioSlug, 'quiz')
+  const { status, data } = useActivityLoad(
+    () => Promise.all([fetchTrack(themeSlug), fetchTemario(themeSlug, temarioSlug), fetchContent(scopeKey, 'quiz')]),
+    [scopeKey],
+    ([track, temario]) => Boolean(level && track && temario)
+  )
 
-  useEffect(() => {
-    let active = true
-    setStatus('loading')
-    Promise.all([
-      fetchTrack(themeSlug),
-      fetchTemario(themeSlug, temarioSlug),
-      fetchContent(buildAdultosScopeKey(slug, themeSlug, temarioSlug, 'quiz'), 'quiz'),
-    ])
-      .then(([trackData, temarioData, quizzesData]) => {
-        if (!active) return
-        setTheme(trackData)
-        setTemario(temarioData)
-        setQuizzes(quizzesData || [])
-        setStatus('ready')
-      })
-      .catch(() => {
-        if (active) setStatus('error')
-      })
-    return () => {
-      active = false
-    }
-  }, [slug, themeSlug, temarioSlug])
-
-  if (status === 'loading') {
-    return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
-  }
-  if (status === 'error' || !theme || !temario) {
+  if (status === 'loading') return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
+  if (status === 'error') {
     return (
       <div className="min-h-screen flex items-center justify-center text-stamp text-sm px-5 text-center">
         No pudimos cargar este contenido ahora mismo. Probá de nuevo en un rato.
@@ -157,25 +27,22 @@ export default function QuizPage() {
     )
   }
 
+  const [theme, temario, content] = data
+  const items = (content || []).filter((q) => (q.questions || []).length > 0)
   const c = THEME_COLORS[theme.color_key]
-  const nonEmptyQuizzes = quizzes.filter((q) => q.questions.length > 0)
+  const submission = { scope: 'adultos', levelSlug: slug, trackSlug: themeSlug, temarioSlug }
 
   return (
     <div className="min-h-screen">
       <TicketHeader crumbs={[level.code, theme.name, temario.name, 'Cuestionario']} backTo={`/adultos/${slug}/${themeSlug}/${temarioSlug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
-        <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 ${c.tag}`}>
-          Cuestionario
-        </span>
+        <span className={`inline-block font-mono text-[10px] uppercase tracking-widest border rounded-full px-3 py-1 mb-3 ${c.tag}`}>Cuestionario</span>
         <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mb-2">Cuestionario</h1>
         <p className="text-ink/60 mb-8">Elegí la opción correcta en cada pregunta.</p>
-
-        {nonEmptyQuizzes.length === 0 ? (
+        {items.length === 0 ? (
           <EmptyState label="cuestionarios" />
         ) : (
-          nonEmptyQuizzes.map((quiz) => (
-            <QuizGroup key={quiz.id} quiz={quiz} c={c} levelSlug={slug} themeSlug={themeSlug} temarioSlug={temarioSlug} />
-          ))
+          items.map((item) => <QuizExercise key={`${scopeKey}-${item.id}`} quiz={item} c={c} submission={submission} />)
         )}
       </div>
     </div>

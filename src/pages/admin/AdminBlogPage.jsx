@@ -35,10 +35,15 @@ export default function AdminBlogPage() {
 
   useEffect(loadPosts, [])
 
+  // Al tocar "Editar" en la lista de abajo, sube hasta el formulario (antes
+  // se completaba arriba sin que se viera).
+  const formRef = useRef(null)
+
   const startEdit = (post) => {
     setForm(post)
     setError('')
     setPreview(false)
+    requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 
   const startNew = () => {
@@ -150,7 +155,7 @@ export default function AdminBlogPage() {
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Blog</h1>
       <p className="text-ink/60 mb-8">Un post por fila. La fecha define el orden (más nueva arriba).</p>
 
-      <form onSubmit={handleSubmit} className="texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
+      <form ref={formRef} onSubmit={handleSubmit} className="scroll-mt-4 texture-card rounded-2xl p-6 mb-10 flex flex-col gap-4">
         <p className="font-mono text-xs uppercase tracking-widest text-ink/60">
           {form.id ? 'Editar post' : 'Nuevo post'}
         </p>

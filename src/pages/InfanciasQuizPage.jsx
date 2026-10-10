@@ -1,144 +1,23 @@
-import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { fetchGroup } from '../lib/groups.js'
 import { KIDS_GROUP_COLORS } from '../lib/colorMaps.js'
 import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
-import { recordSubmission, useStudentName } from '../lib/submissions.js'
+import { useActivityLoad } from '../lib/useActivityLoad.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
-import NameField from '../components/NameField.jsx'
-import QuestionHint from '../components/QuestionHint.jsx'
-import CollapsibleExercise from '../components/CollapsibleExercise.jsx'
-import { CheckCircle2, XCircle } from 'lucide-react'
-
-// Cada grupo puede tener más de un cuestionario — por eso cada uno corrige
-// y se envía por separado, con su propio puntaje.
-function QuizGroup({ quiz, c, groupSlug }) {
-  const [answers, setAnswers] = useState({})
-  const [submitted, setSubmitted] = useState(false)
-  const [studentName, setStudentName] = useStudentName()
-
-  if (quiz.questions.length === 0) return null
-
-  const score = quiz.questions.filter((q) => answers[q.id] === q.answer).length
-
-  return (
-    <CollapsibleExercise
-      title={quiz.title || 'Cuestionario'}
-      label="Actividad"
-      className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6 sm:p-8 mb-8 text-kidsInk`}
-    >
-      <div className="flex flex-col gap-6">
-        {quiz.questions.map((q, qi) => (
-          <div key={q.id} className={`bg-white rounded-[22px] shadow-kids ${c.borderT8} p-6`}>
-            <p className="font-playful text-xs text-kidsInk/70 mb-2 font-semibold">Pregunta {qi + 1}</p>
-            {q.image_url && <img loading="lazy" decoding="async" src={q.image_url} alt="" className="w-full max-h-56 object-cover rounded-xl mb-4" />}
-            <p className="font-playful font-semibold text-kidsInk mb-2">{q.q}</p>
-            <QuestionHint hint={q.hint} kids />
-            <div className="flex flex-col gap-2">
-              {q.options.map((opt, oi) => {
-                const chosen = answers[q.id] === oi
-                const correct = submitted && oi === q.answer
-                const wrong = submitted && chosen && oi !== q.answer
-                return (
-                  <button
-                    key={oi}
-                    disabled={submitted}
-                    onClick={() => setAnswers((a) => ({ ...a, [q.id]: oi }))}
-                    className={`text-left px-4 py-3 rounded-xl border-2 font-playful transition-colors flex items-center justify-between gap-2
-                      ${chosen && !submitted ? 'border-kidsInk bg-kidsInk/5' : 'border-kidsInk/12'}
-                      ${correct ? 'border-kidsGreenDeep bg-kidsGreen/15' : ''}
-                      ${wrong ? 'border-kidsRed bg-kidsRed/10' : ''}
-                    `}
-                  >
-                    <span>{opt}</span>
-                    {correct && <CheckCircle2 size={18} className="text-kidsGreenDeep shrink-0" />}
-                    {wrong && <XCircle size={18} className="text-kidsRed shrink-0" />}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {!submitted ? (
-        <div className="mt-8">
-          <NameField value={studentName} onChange={setStudentName} kids c={c} />
-          <button
-            onClick={() => {
-              setSubmitted(true)
-              recordSubmission({
-                scope: 'infancias',
-                groupSlug,
-                contentType: 'quiz',
-                label: quiz.title,
-                studentName,
-                score,
-                total: quiz.questions.length,
-                detail: quiz.questions.map((q) => ({
-                  id: q.id,
-                  question: q.q,
-                  given: q.options[answers[q.id]] ?? null,
-                  correct: q.options[q.answer],
-                  is_correct: answers[q.id] === q.answer,
-                })),
-              })
-            }}
-            disabled={Object.keys(answers).length < quiz.questions.length || !studentName.trim()}
-            className={`w-full bg-kidsInk text-white font-playful font-semibold py-3 rounded-full ${c.hoverBg} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            Corregir
-          </button>
-        </div>
-      ) : (
-        <div className="mt-8 bg-white rounded-[22px] shadow-kids p-6 text-center">
-          <p className="font-body font-extrabold text-2xl text-kidsInk">
-            {score} / {quiz.questions.length} correctas
-          </p>
-          <button
-            onClick={() => {
-              setSubmitted(false)
-              setAnswers({})
-            }}
-            className={`mt-4 text-kidsInk/70 ${c.hoverText} font-playful text-sm font-semibold underline`}
-          >
-            Intentar de nuevo
-          </button>
-        </div>
-      )}
-    </CollapsibleExercise>
-  )
-}
+import { QuizExercise } from '../components/MultipleChoiceExercises.jsx'
 
 export default function InfanciasQuizPage() {
   const { group: slug } = useParams()
-  const [group, setGroup] = useState(null)
-  const [quizzes, setQuizzes] = useState([])
-  const [status, setStatus] = useState('loading') // loading | error | ready
+  const scopeKey = buildInfanciasScopeKey(slug, 'quiz')
+  const { status, data } = useActivityLoad(
+    () => Promise.all([fetchGroup(slug), fetchContent(scopeKey, 'quiz')]),
+    [scopeKey],
+    ([group]) => Boolean(group)
+  )
 
-  useEffect(() => {
-    let active = true
-    setStatus('loading')
-    Promise.all([fetchGroup(slug), fetchContent(buildInfanciasScopeKey(slug, 'quiz'), 'quiz')])
-      .then(([groupData, quizzesData]) => {
-        if (!active) return
-        setGroup(groupData)
-        setQuizzes(quizzesData || [])
-        setStatus('ready')
-      })
-      .catch(() => {
-        if (active) setStatus('error')
-      })
-    return () => {
-      active = false
-    }
-  }, [slug])
-
-  if (status === 'loading') {
-    return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
-  }
-  if (status === 'error' || !group) {
+  if (status === 'loading') return <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsInk/70 font-playful text-sm">Cargando…</div>
+  if (status === 'error') {
     return (
       <div className="min-h-screen bg-kidsCream flex items-center justify-center text-kidsRed font-playful text-sm px-5 text-center">
         No pudimos cargar este contenido ahora mismo. Probá de nuevo en un rato.
@@ -146,23 +25,22 @@ export default function InfanciasQuizPage() {
     )
   }
 
+  const [group, content] = data
+  const items = (content || []).filter((q) => (q.questions || []).length > 0)
   const c = KIDS_GROUP_COLORS[group.color_key]
-  const nonEmptyQuizzes = quizzes.filter((q) => q.questions.length > 0)
+  const submission = { scope: 'infancias', groupSlug: slug }
 
   return (
     <div className="min-h-screen bg-kidsCream">
       <KidsHeader crumbs={[group.name, 'Cuestionario']} backTo={`/infancias/${slug}`} showFloatingBack />
       <div className="max-w-2xl mx-auto px-5 py-12 sm:py-16">
-        <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>
-          Cuestionario ✅
-        </span>
+        <span className={`inline-block font-playful font-semibold text-xs uppercase tracking-wide text-kidsInk ${c.bgLight} px-4 py-1.5 rounded-full mb-3`}>Cuestionario ✅</span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Cuestionario</h1>
         <p className="font-playful text-kidsInk/70 mb-8">Elegí la opción correcta en cada pregunta.</p>
-
-        {nonEmptyQuizzes.length === 0 ? (
+        {items.length === 0 ? (
           <KidsEmptyState label="cuestionarios" />
         ) : (
-          nonEmptyQuizzes.map((quiz) => <QuizGroup key={quiz.id} quiz={quiz} c={c} groupSlug={slug} />)
+          items.map((item) => <QuizExercise key={`${scopeKey}-${item.id}`} quiz={item} c={c} kids submission={submission} />)
         )}
       </div>
     </div>

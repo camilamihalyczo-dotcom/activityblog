@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient.js'
 import { cached, clearCache } from './cache.js'
+import { normalizePronunciationContent } from './pronunciation.js'
 
 // El contenido de estudio (flashcards, quiz, listening, reading&writing) se
 // guarda como un blob JSON por combinación de "dónde vive" + "qué tipo de
@@ -54,6 +55,13 @@ async function fetchContentFresh(scopeKey, contentType) {
   // `sentences`), las envolvemos en un solo ejercicio sin título.
   if (contentType === 'fill_blank' && Array.isArray(value) && value.length > 0 && value[0].sentences === undefined) {
     value = [{ id: 'legacy', title: '', sentences: value }]
+  }
+
+  // Migración: `pronunciation` guardaba antes un único ejercicio como
+  // array plano de grupos de palabras; ahora es un array de ejercicios
+  // (cada uno con título, consigna y parejas).
+  if (contentType === 'pronunciation') {
+    value = normalizePronunciationContent(value)
   }
 
   return value
