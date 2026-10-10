@@ -1,5 +1,5 @@
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { Analytics } from '@vercel/analytics/react'
 import Footer from './components/Footer.jsx'
 import Home from './pages/Home.jsx'
@@ -42,6 +42,9 @@ const AdminContentStatusPage = lazy(() => import('./pages/admin/AdminContentStat
 const AdminErrorLogPage = lazy(() => import('./pages/admin/AdminErrorLogPage.jsx'))
 const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage.jsx'))
 const AdminGlossaryPage = lazy(() => import('./pages/admin/AdminGlossaryPage.jsx'))
+const AdminDecksPage = lazy(() => import('./pages/admin/AdminDecksPage.jsx'))
+const AdminDeckEditorPage = lazy(() => import('./pages/admin/AdminDeckEditorPage.jsx'))
+const ClassDeckPage = lazy(() => import('./pages/ClassDeckPage.jsx'))
 
 // Cada página se descarga recién cuando se visita (code splitting): el
 // alumno no baja el panel de admin ni las librerías de drag & drop si no
@@ -49,6 +52,14 @@ const AdminGlossaryPage = lazy(() => import('./pages/admin/AdminGlossaryPage.jsx
 const PageFallback = () => (
   <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
 )
+
+// El pie del sitio (sugerencias, contacto) no va en el link de una clase:
+// esa página se imprime / guarda como PDF tal cual.
+function SiteFooter() {
+  const { pathname } = useLocation()
+  if (pathname.startsWith('/clase/')) return null
+  return <Footer />
+}
 
 export default function App() {
   return (
@@ -90,6 +101,7 @@ export default function App() {
             solo se llega escribiéndola directamente. La protección real es
             el login + las políticas de Supabase, esto es una capa extra
             para que no se note a simple vista. */}
+        <Route path="/clase/:token" element={<ClassDeckPage />} />
         <Route path="/notas-profe/login" element={<AdminLoginPage />} />
         <Route path="/notas-profe" element={<AdminLayout />}>
           <Route index element={<AdminHomePage />} />
@@ -101,10 +113,12 @@ export default function App() {
           <Route path="errores" element={<AdminErrorLogPage />} />
           <Route path="respuestas" element={<AdminSubmissionsPage />} />
           <Route path="glosario" element={<AdminGlossaryPage />} />
+          <Route path="clases" element={<AdminDecksPage />} />
+          <Route path="clases/:id" element={<AdminDeckEditorPage />} />
         </Route>
       </Routes>
       </Suspense>
-      <Footer />
+      <SiteFooter />
     </BrowserRouter>
   )
 }

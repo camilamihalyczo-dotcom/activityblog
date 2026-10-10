@@ -5,6 +5,12 @@ import { Link } from 'react-router-dom'
 // que lee + pantalla acá que escribe) es el mismo que se usó para el blog.
 const SECTIONS = [
   {
+    to: '/notas-profe/clases',
+    label: 'Clases y glosarios',
+    desc: 'Creá la presentación de cada clase o un glosario desde una plantilla, con tu estilo de Adultos o Infancias, y mandala por link o PDF.',
+    ready: true,
+  },
+  {
     to: '/notas-profe/blog',
     label: 'Blog',
     desc: 'Novedades y reflexiones para Adultos e Infancias.',

@@ -1,10 +1,12 @@
-import { Outlet, Navigate, Link, useNavigate } from 'react-router-dom'
+import { Outlet, Navigate, Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAdminSession } from '../../lib/useAdminSession.js'
 import { supabase } from '../../lib/supabaseClient.js'
 
 export default function AdminLayout() {
   const session = useAdminSession()
   const navigate = useNavigate()
+  // El editor de clases necesita más ancho (edición + vista previa lado a lado).
+  const wide = /^\/notas-profe\/clases\/./.test(useLocation().pathname)
 
   if (session === undefined) {
     return <div className="min-h-screen flex items-center justify-center text-ink/60 text-sm">Cargando…</div>
@@ -37,7 +39,7 @@ export default function AdminLayout() {
           </button>
         </div>
       </div>
-      <div className="max-w-4xl mx-auto px-5 py-10">
+      <div className={`${wide ? 'max-w-[1440px]' : 'max-w-4xl'} mx-auto px-5 py-10`}>
         <Outlet />
       </div>
     </div>
