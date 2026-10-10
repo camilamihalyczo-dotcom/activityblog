@@ -12,6 +12,6 @@ export function buildWhatsAppLink(message) {
 // Sitios de información/landing de cada audiencia (no son parte de esta
 // app: son las páginas públicas con precios, tracks y datos de contacto).
 export const MARKETING_SITES = {
-  adultos: 'https://camila-tutor.vercel.app/',
+  adultos: 'https://trackenglish-studio.vercel.app/',
   infancias: 'https://english-kids-club.vercel.app/',
 }
