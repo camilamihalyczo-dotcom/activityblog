@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { countNewSuggestions } from '../../lib/suggestions.js'
 
 // A medida que se sume contenido a Supabase, cada sección pasa de
 // `ready: false` a `ready: true` — el patrón (tabla + RLS + página pública
@@ -41,6 +43,13 @@ const SECTIONS = [
     ready: true,
   },
   {
+    to: '/notas-profe/sugerencias',
+    label: 'Sugerencias',
+    desc: 'Ideas, errores y comentarios que mandan desde el formulario del pie de página.',
+    ready: true,
+    badgeKey: 'suggestions',
+  },
+  {
     to: '/notas-profe/respuestas',
     label: 'Respuestas de los alumnos',
     desc: 'Lo que cada uno contestó al corregir un ejercicio o guardar un Reading/Writing — se guarda solo, no hace falta cargarlo a mano.',
@@ -61,6 +70,11 @@ const SECTIONS = [
 ]
 
 export default function AdminHomePage() {
+  const [badges, setBadges] = useState({})
+  useEffect(() => {
+    countNewSuggestions().then((n) => setBadges((b) => ({ ...b, suggestions: n })))
+  }, [])
+
   return (
     <div>
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Panel de administración</h1>
@@ -74,7 +88,12 @@ export default function AdminHomePage() {
               to={s.to}
               className="texture-card rounded-2xl p-6 hover:-translate-y-0.5 transition-transform"
             >
-              <p className="font-display text-lg font-semibold text-ink mb-1">{s.label}</p>
+              <p className="font-display text-lg font-semibold text-ink mb-1 flex items-center gap-2">
+                {s.label}
+                {s.badgeKey && badges[s.badgeKey] > 0 && (
+                  <span className="font-mono text-[10px] uppercase tracking-widest bg-brand text-cream rounded-full px-2 py-0.5">{badges[s.badgeKey]} nuevas</span>
+                )}
+              </p>
               <p className="text-ink/60 text-sm">{s.desc}</p>
             </Link>
           ) : (

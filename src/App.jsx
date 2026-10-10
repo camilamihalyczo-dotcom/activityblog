@@ -43,6 +43,7 @@ const AdminErrorLogPage = lazy(() => import('./pages/admin/AdminErrorLogPage.jsx
 const AdminSubmissionsPage = lazy(() => import('./pages/admin/AdminSubmissionsPage.jsx'))
 const AdminGlossaryPage = lazy(() => import('./pages/admin/AdminGlossaryPage.jsx'))
 const AdminDecksPage = lazy(() => import('./pages/admin/AdminDecksPage.jsx'))
+const AdminSuggestionsPage = lazy(() => import('./pages/admin/AdminSuggestionsPage.jsx'))
 const AdminDeckEditorPage = lazy(() => import('./pages/admin/AdminDeckEditorPage.jsx'))
 const ClassDeckPage = lazy(() => import('./pages/ClassDeckPage.jsx'))
 
@@ -114,6 +115,7 @@ export default function App() {
           <Route path="respuestas" element={<AdminSubmissionsPage />} />
           <Route path="glosario" element={<AdminGlossaryPage />} />
           <Route path="clases" element={<AdminDecksPage />} />
+          <Route path="sugerencias" element={<AdminSuggestionsPage />} />
           <Route path="clases/:id" element={<AdminDeckEditorPage />} />
         </Route>
       </Routes>
