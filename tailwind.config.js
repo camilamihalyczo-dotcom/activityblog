@@ -39,6 +39,10 @@ export default {
         // (reemplaza a Fraunces/IBM Plex Mono), Playfair Display itálica
         // como acento puntual, Inter para el cuerpo (reemplaza Space Grotesk).
         display: ['"Bebas Neue"', 'Impact', 'sans-serif'],
+        // Track English Studio (landing de adultos): Space Mono para
+        // etiquetas y Work Sans para el cuerpo. Se usan en la portada.
+        tesMono: ['"Space Mono"', '"Courier New"', 'monospace'],
+        tesBody: ['"Work Sans"', 'system-ui', 'sans-serif'],
         accent: ['"Playfair Display"', 'Georgia', 'serif'],
         body: ['"Inter"', 'system-ui', 'sans-serif'],
         mono: ['"Bebas Neue"', 'Impact', 'sans-serif'],
