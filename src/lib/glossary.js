@@ -58,6 +58,23 @@ export async function saveGlossaryEntry(entry) {
   if (error) throw error
 }
 
+// Alta en lote (desde el creador de clases/glosarios): un solo insert con
+// todas las filas, ya armadas para el mismo nivel+track o grupo.
+export async function addGlossaryEntries(entries) {
+  if (!entries.length) return
+  const rows = entries.map((entry) => ({
+    scope: entry.scope,
+    level_slug: entry.scope === 'adultos' ? entry.level_slug : null,
+    track_slug: entry.scope === 'adultos' ? entry.track_slug : null,
+    group_slug: entry.scope === 'infancias' ? entry.group_slug : null,
+    word: entry.word.trim(),
+    translation: entry.translation.trim(),
+    example: entry.example?.trim() || null,
+  }))
+  const { error } = await supabase.from('glossary_entries').insert(rows)
+  if (error) throw error
+}
+
 export async function deleteGlossaryEntry(id) {
   const { error } = await supabase.from('glossary_entries').delete().eq('id', id)
   if (error) throw error

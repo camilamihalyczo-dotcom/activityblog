@@ -5,6 +5,7 @@ import { SLIDE_PRESETS, templateLabel } from '../../lib/deckTemplates.js'
 import { BLOCK_TYPES, BRAND_FOOTER, STYLE_LABELS, blockLabel, colorsFor, genId, makeBlock, resolveColor } from '../../lib/deckThemes.js'
 import { ScaledDeck } from '../../components/deck/DeckRenderer.jsx'
 import { BlockEditor, inputCls } from '../../components/deck/BlockEditors.jsx'
+import SendToGlossaryPanel from '../../components/deck/SendToGlossaryPanel.jsx'
 
 const lab = 'block text-[11px] font-mono uppercase tracking-wide text-ink/60 mb-1'
 const iconBtn = 'px-1.5 text-xs text-ink/60 hover:text-ink disabled:opacity-30'
@@ -296,6 +297,8 @@ export default function AdminDeckEditorPage() {
               </div>
             </section>
           )}
+
+          <SendToGlossaryPanel deck={deck} />
         </div>
 
         {/* ── Vista previa ── */}
