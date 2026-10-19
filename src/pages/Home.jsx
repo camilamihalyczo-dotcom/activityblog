@@ -20,9 +20,23 @@ function TesMark({ className = '' }) {
   )
 }
 
+// Ícono solo de English Kids Club (los círculos del logo), para mobile.
+function EkcMark({ className = '' }) {
+  return (
+    <svg viewBox="-2 -1 80 86" className={className} aria-hidden="true">
+      <circle cx="26" cy="40" r="27" fill="#4FB4E8" />
+      <circle cx="57" cy="18" r="18" fill="#FFC94A" />
+      <circle cx="52" cy="55" r="25" fill="#F5A623" />
+      <circle cx="23" cy="69" r="14" fill="#C6B4EC" />
+    </svg>
+  )
+}
+
+// Links de abajo de cada tarjeta: misma tipografía que el título
+// "Activity Blog" (Inter) en las dos marcas; solo cambia el color.
 function CardLinks({ blogTo, siteHref, siteLabel, className }) {
   return (
-    <div className={`flex items-center gap-6 mt-4 px-2 ${className}`}>
+    <div className={`flex items-center justify-center gap-6 mt-4 px-2 font-body font-bold text-sm ${className}`}>
       <Link to={blogTo} className="inline-flex items-center gap-1.5 hover:underline underline-offset-4">
         <Newspaper size={14} aria-hidden="true" /> Blog
       </Link>
@@ -39,21 +53,22 @@ function AdultosCard() {
       <Link
         to="/adultos"
         aria-label="Adultos — entrar"
-        className="group flex-1 flex flex-col items-center text-center bg-[#FBF9F4] bg-[radial-gradient(#E4DED0_1px,transparent_1px)] [background-size:18px_18px] text-[#121212] border-2 border-[#121212] rounded-[28px] shadow-[6px_6px_0_#1C39BB] px-8 py-9 transition-transform hover:-translate-y-1"
+        className="group flex-1 flex flex-col items-center text-center bg-[#FBF9F4] bg-[radial-gradient(#E4DED0_1px,transparent_1px)] [background-size:18px_18px] text-[#121212] border-2 border-[#121212] rounded-[28px] px-6 sm:px-8 py-8 sm:py-9 transition-transform hover:-translate-y-1"
       >
-        <span className="flex items-center gap-2 mb-6">
+        <TesMark className="w-11 h-11 mb-5 md:hidden" />
+        <span className="hidden md:flex items-center gap-2 mb-6">
           <TesMark className="w-7 h-7" />
           <span className="font-display uppercase text-lg tracking-wide leading-none">
             Track English <i className="font-accent normal-case text-base text-[#1C39BB] tracking-normal">studio.</i>
           </span>
         </span>
-        <h2 className="font-display uppercase text-6xl leading-none mb-4">
+        <h2 className="font-display uppercase text-5xl sm:text-6xl leading-none mb-4">
           Adultos<span className="font-accent italic font-black text-[#1C39BB]">.</span>
         </h2>
         <p className="font-tesBody text-[#4A4A4A] leading-relaxed max-w-xs mb-7">
           Flashcards, cuestionarios y ejercicios armados con lo que trabajamos en tu track.
         </p>
-        <span className="mt-auto inline-flex items-center gap-2 font-tesMono text-xs font-bold uppercase tracking-[0.12em] bg-[#1C39BB] text-[#FBF9F4] border-2 border-[#121212] rounded-full px-6 py-3 shadow-[3px_3px_0_#121212] group-hover:shadow-[5px_5px_0_#121212] transition-shadow">
+        <span className="mt-auto inline-flex items-center gap-2 font-tesMono text-xs font-bold uppercase tracking-[0.12em] bg-[#1C39BB] text-[#FBF9F4] border-2 border-[#121212] rounded-full px-6 py-3">
           Entrar <ArrowRight size={15} aria-hidden="true" />
         </span>
       </Link>
@@ -61,7 +76,7 @@ function AdultosCard() {
         blogTo="/adultos/blog"
         siteHref={MARKETING_SITES.adultos}
         siteLabel="Track English Studio"
-        className="font-tesMono text-[11px] font-bold uppercase tracking-[0.12em] text-[#121212]"
+        className="text-[#121212]"
       />
     </div>
   )
@@ -73,11 +88,12 @@ function InfanciasCard() {
       <Link
         to="/infancias"
         aria-label="Infancias y adolescentes — entrar"
-        className="group relative overflow-hidden flex-1 flex flex-col items-center text-center bg-[#FFFBF2] text-[#2E2A4A] rounded-[28px] shadow-[0_10px_30px_rgba(46,42,74,0.10)] px-8 py-9 transition-transform hover:-translate-y-1"
+        className="group relative overflow-hidden flex-1 flex flex-col items-center text-center bg-[#FFFBF2] text-[#2E2A4A] rounded-[28px] shadow-[0_10px_30px_rgba(46,42,74,0.10)] px-6 sm:px-8 py-8 sm:py-9 transition-transform hover:-translate-y-1"
       >
         <span className="absolute -top-16 -right-14 w-44 h-44 rounded-full bg-[#FFC94A]/35" aria-hidden="true" />
         <span className="absolute -bottom-16 -left-12 w-36 h-36 rounded-full bg-[#4FB4E8]/25" aria-hidden="true" />
-        <img src="/brand/logo-ekc-horizontal.svg" alt="English Kids Club" className="relative h-6 w-auto mb-6" />
+        <EkcMark className="relative w-11 h-11 mb-5 md:hidden" />
+        <img src="/brand/logo-ekc-horizontal.svg" alt="English Kids Club" className="relative hidden md:block h-6 w-auto mb-6" />
         <h2 className="relative font-body font-extrabold uppercase text-[2rem] sm:text-4xl leading-[1.05] mb-4">
           Infancias y{' '}
           <span className="bg-[linear-gradient(transparent_60%,#FFC94A_60%)] px-1">adolescentes</span>
@@ -93,7 +109,7 @@ function InfanciasCard() {
         blogTo="/infancias/blog"
         siteHref={MARKETING_SITES.infancias}
         siteLabel="English Kids Club"
-        className="font-playful font-semibold text-sm text-[#2E2A4A]"
+        className="text-[#2E2A4A]"
       />
     </div>
   )
@@ -102,9 +118,9 @@ function InfanciasCard() {
 export default function Home() {
   return (
     <main className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-5 py-14 sm:py-16 bg-[#F7F4EE]">
-      <p className="font-tesMono text-[11px] uppercase tracking-[0.25em] text-ink/50 mb-3">Material de práctica entre clases</p>
-      <h1 className="font-body font-extrabold text-5xl sm:text-7xl text-ink tracking-tight mb-12 sm:mb-14 text-center">Activity Blog</h1>
-      <div className="grid md:grid-cols-2 gap-10 md:gap-14 w-full max-w-4xl">
+      <p className="font-tesMono text-[11px] uppercase tracking-[0.25em] text-ink/50 mb-3 text-center">Material de práctica entre clases</p>
+      <h1 className="font-body font-extrabold text-[3.25rem] leading-[1.02] sm:text-7xl text-ink tracking-tight mb-10 sm:mb-14 text-center">Activity Blog</h1>
+      <div className="grid md:grid-cols-2 gap-10 md:gap-14 w-full max-w-[22rem] md:max-w-4xl">
         <AdultosCard />
         <InfanciasCard />
       </div>

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CheckCircle2, Lightbulb, Mic2, Volume2, XCircle } from 'lucide-react'
+import { CheckCircle2, Lightbulb, Mic2, Snail, Volume2, XCircle } from 'lucide-react'
 import CollapsibleExercise from './CollapsibleExercise.jsx'
 import NameField from './NameField.jsx'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
+import { canSpeak, speak, stopSpeaking } from '../lib/speech.js'
 
 function normalizeWord(value) {
   return value.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'()_`~?-]/g, '')
@@ -29,7 +30,9 @@ export default function VoiceLabExercise({
   const [isListening, setIsListening] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [playing, setPlaying] = useState(null) // null | 'normal' | 'slow'
   const recognitionRef = useRef(null)
+  const ttsAvailable = canSpeak()
 
   const keywords = useMemo(() => (challenge.keywords || []).map(normalizeWord), [challenge.keywords])
   const spokenSet = new Set(recognizedWords)
@@ -69,12 +72,20 @@ export default function VoiceLabExercise({
     }
   }, [])
 
+  // Si se cierra la página con el audio sonando, lo cortamos.
+  useEffect(() => () => stopSpeaking(), [])
+
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop()
       return
     }
     if (!recognitionRef.current) return
+    // Que el micrófono no "escuche" al modelo sonando.
+    if (playing) {
+      stopSpeaking()
+      setPlaying(null)
+    }
     setTranscript('')
     setRecognizedWords([])
     setErrorMessage('')
@@ -86,16 +97,27 @@ export default function VoiceLabExercise({
     }
   }
 
-  const playModel = () => {
-    if (!('speechSynthesis' in window)) {
-      setErrorMessage('Tu navegador no tiene síntesis de voz disponible.')
+  const playModel = (speed) => {
+    if (playing === speed) {
+      stopSpeaking()
+      setPlaying(null)
       return
     }
-    window.speechSynthesis.cancel()
-    const utterance = new SpeechSynthesisUtterance(challenge.sentence)
-    utterance.lang = 'en-US'
-    utterance.rate = 0.9
-    window.speechSynthesis.speak(utterance)
+    if (isListening) recognitionRef.current?.stop()
+    setErrorMessage('')
+    setPlaying(speed)
+    const ok = speak(challenge.sentence, {
+      rate: speed === 'slow' ? 0.6 : 0.9,
+      onEnd: () => setPlaying((cur) => (cur === speed ? null : cur)),
+      onError: () => {
+        setPlaying((cur) => (cur === speed ? null : cur))
+        setErrorMessage('No pudimos reproducir el audio. Revisá que el volumen esté activo; si sigue sin sonar, probá en Google Chrome o Edge.')
+      },
+    })
+    if (!ok) {
+      setPlaying(null)
+      setErrorMessage('Tu navegador no tiene síntesis de voz disponible.')
+    }
   }
 
   return (
@@ -106,7 +128,7 @@ export default function VoiceLabExercise({
     >
       <div className={kids ? 'bg-white' : ''}>
         <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-sm mb-4`}>
-          Escuchá el modelo, presioná el micrófono y leé la oración en voz alta.
+          Primero escuchá cómo suena, después tocá el micrófono y leé la oración en voz alta.
         </p>
 
         <div className={`${kids ? 'bg-kidsCream' : 'bg-paper'} rounded-xl border-2 ${c.border} p-5 mb-5`}>
@@ -133,31 +155,64 @@ export default function VoiceLabExercise({
           </div>
         </div>
 
+        {challenge.phoneticTip?.trim() && (
         <div className={`${kids ? 'bg-kidsYellow/20 border-kidsYellow/40 text-kidsInk' : 'bg-gold/10 border-gold/30 text-ink'} flex items-start gap-3 rounded-lg border-2 p-4 mb-5`}>
           <Lightbulb size={18} className="shrink-0 mt-0.5" aria-hidden="true" />
           <p className="text-sm leading-relaxed">{challenge.phoneticTip}</p>
         </div>
+        )}
 
         {errorMessage && <p className={`${kids ? 'text-kidsRed font-playful' : 'text-stamp'} text-sm mb-4`}>{errorMessage}</p>}
         {transcript && <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-sm mb-4`}>Escuché: “{transcript}”</p>}
 
-        <div className="flex flex-col items-center gap-3">
-          <div className="flex items-center gap-4">
-            <button type="button" onClick={playModel} className={`${kids ? 'bg-kidsCream text-kidsInk' : 'bg-ink/5 text-ink'} rounded-full p-3`} aria-label="Escuchar pronunciación modelo">
-              <Volume2 size={20} />
-            </button>
+        <div className="flex flex-col items-center gap-5">
+          {ttsAvailable && (
+            <div className="flex flex-col items-center gap-2">
+              <p className={`${kids ? 'font-playful text-kidsInk/70' : 'font-mono text-ink/60'} text-[11px] uppercase tracking-widest`}>1 · Escuchá el modelo</p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => playModel('normal')}
+                  aria-pressed={playing === 'normal'}
+                  className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${
+                    playing === 'normal'
+                      ? kids ? 'border-kidsPurpleDeep bg-kidsPurpleDeep text-white' : 'border-brand bg-brand text-white'
+                      : kids ? 'border-kidsInk/15 bg-kidsCream text-kidsInk hover:border-kidsInk/40 font-playful' : 'border-ink/15 bg-paper text-ink hover:border-ink/40'
+                  }`}
+                >
+                  <Volume2 size={18} aria-hidden="true" className={playing === 'normal' ? 'animate-pulse' : ''} />
+                  {playing === 'normal' ? 'Sonando… (tocá para parar)' : 'Escuchar'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => playModel('slow')}
+                  aria-pressed={playing === 'slow'}
+                  className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${
+                    playing === 'slow'
+                      ? kids ? 'border-kidsPurpleDeep bg-kidsPurpleDeep text-white' : 'border-brand bg-brand text-white'
+                      : kids ? 'border-kidsInk/15 bg-kidsCream text-kidsInk hover:border-kidsInk/40 font-playful' : 'border-ink/15 bg-paper text-ink hover:border-ink/40'
+                  }`}
+                >
+                  <Snail size={18} aria-hidden="true" className={playing === 'slow' ? 'animate-pulse' : ''} />
+                  {playing === 'slow' ? 'Sonando…' : 'Más lento'}
+                </button>
+              </div>
+            </div>
+          )}
+          <div className="flex flex-col items-center gap-2">
+            <p className={`${kids ? 'font-playful text-kidsInk/70' : 'font-mono text-ink/60'} text-[11px] uppercase tracking-widest`}>{ttsAvailable ? '2 · Ahora decilo vos' : 'Decilo en voz alta'}</p>
             <button
               type="button"
               onClick={toggleListening}
-              className={`${isListening ? (kids ? 'bg-kidsRed ring-kidsRed/20' : 'bg-stamp ring-stamp/20') : (kids ? 'bg-kidsPurpleDeep' : 'bg-brand')} text-white rounded-full p-5 shadow-md ring-4 transition-colors`}
+              className={`${isListening ? (kids ? 'bg-kidsRed ring-kidsRed/20' : 'bg-stamp ring-stamp/20') : (kids ? 'bg-kidsPurpleDeep ring-kidsPurpleDeep/15' : 'bg-brand ring-brand/15')} text-white rounded-full p-5 shadow-md ring-4 transition-colors`}
               aria-label={isListening ? 'Detener grabación' : 'Comenzar grabación'}
             >
               <Mic2 size={26} />
             </button>
+            <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs`}>
+              {isListening ? 'Te escucho… hablá ahora' : 'Tocá el micrófono para hablar'}
+            </p>
           </div>
-          <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs`}>
-            {isListening ? 'Te escucho… hablá ahora' : 'Hacé clic en el micrófono para hablar'}
-          </p>
         </div>
 
         <div className={`${kids ? 'font-playful text-kidsInk' : 'text-ink'} flex flex-wrap items-center justify-center gap-2 mt-4 text-sm`}>
