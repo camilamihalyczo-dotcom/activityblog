@@ -2,8 +2,10 @@ import NameField from './NameField.jsx'
 
 // Pie común de los ejercicios autocorregidos: nombre + "Corregir" antes de
 // enviar, y el puntaje + "Intentar de nuevo" después. `hint` es el texto
-// chico que explica por qué el botón está deshabilitado.
-export default function ExerciseSubmit({ s, c, kids, studentName, setStudentName, disabled, hint, onSubmit, submitted, score, total, unit = 'correctas', onRetry }) {
+// chico que explica por qué el botón está deshabilitado. `note` es un
+// aviso opcional debajo del puntaje (ej: preguntas abiertas para revisar);
+// con `total` 0 (todo para revisar) se muestra solo la nota.
+export default function ExerciseSubmit({ s, c, kids, studentName, setStudentName, disabled, hint, onSubmit, submitted, score, total, unit = 'correctas', note, onRetry }) {
   if (!submitted) {
     return (
       <div className="mt-8">
@@ -21,9 +23,12 @@ export default function ExerciseSubmit({ s, c, kids, studentName, setStudentName
   }
   return (
     <div className={`mt-8 ${s.resultBox} p-6 text-center`}>
-      <p className={s.resultTitle}>
-        {score} / {total} {unit}
-      </p>
+      {total > 0 && (
+        <p className={s.resultTitle}>
+          {score} / {total} {unit}
+        </p>
+      )}
+      {note && <p className={total > 0 ? `${s.muted} text-sm mt-2` : s.resultTitle}>{note}</p>}
       <button onClick={onRetry} className={`mt-4 ${s.link}`}>
         Intentar de nuevo
       </button>

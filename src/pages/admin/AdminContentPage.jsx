@@ -303,8 +303,24 @@ function FlashcardsEditor({ data, onChange }) {
 
 // ─── Preguntas de opción múltiple (usado por Quiz y Listening) ────────
 // Las dos actividades pueden tener una pista opcional por pregunta.
+// Con `allowOpen` (Listening) cada pregunta puede ser también de respuesta
+// abierta (`type: 'text'`), igual que en Reading: el alumno escribe y la
+// profe la revisa en "Respuestas de los alumnos". Sin `type` = multiple
+// choice (así queda todo el contenido viejo).
 
-function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false }) {
+function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false, allowOpen = false }) {
+  const isOpen = allowOpen && question.type === 'text'
+  const changeType = (type) => {
+    if (type === 'text' && !isOpen) onChange({ ...question, type: 'text' })
+    if (type === 'multiple_choice' && isOpen) {
+      const options = (question.options || []).length >= 2 ? question.options : ['', '']
+      onChange({ ...question, type: 'multiple_choice', options, answer: Number.isInteger(question.answer) ? question.answer : 0 })
+    }
+  }
+  const typeBtn = (active) =>
+    `px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-colors ${
+      active ? 'bg-ink text-cream border-ink' : 'border-ink/15 text-ink/70 hover:border-ink/40'
+    }`
   const updateOption = (oi, value) => {
     const options = [...question.options]
     options[oi] = value
@@ -328,6 +344,16 @@ function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false 
 
   return (
     <div className="border-2 border-ink/10 rounded-lg p-4 flex flex-col gap-3">
+      {allowOpen && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <button type="button" onClick={() => changeType('multiple_choice')} className={typeBtn(!isOpen)}>
+            Multiple choice
+          </button>
+          <button type="button" onClick={() => changeType('text')} className={typeBtn(isOpen)}>
+            Respuesta abierta
+          </button>
+        </div>
+      )}
       <div className="flex gap-3 items-start">
         <input
           value={question.q}
@@ -362,6 +388,11 @@ function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false 
           />
         </label>
       )}
+      {isOpen ? (
+        <p className="text-ink/60 text-xs">
+          El alumno escribe su respuesta. No se autocorrige — la revisás vos en “Respuestas de los alumnos”.
+        </p>
+      ) : (
       <div className="flex flex-col gap-2">
         <span className="text-xs font-mono uppercase tracking-wide text-ink/60">
           Opciones (marcá la correcta)
@@ -392,6 +423,7 @@ function OptionsQuestionEditor({ question, onChange, onRemove, withHint = false 
           + Agregar opción
         </button>
       </div>
+      )}
     </div>
   )
 }
@@ -561,6 +593,7 @@ function ListeningEditor({ data, onChange }) {
                 onChange={(patch) => updateQuestion(i, qi, patch)}
                 onRemove={() => removeQuestion(i, qi)}
                 withHint
+                allowOpen
               />
             ))}
             <button onClick={() => addQuestion(i)} className="text-brand hover:underline text-xs font-medium self-start">

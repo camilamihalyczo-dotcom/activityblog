@@ -13,8 +13,16 @@ import QuestionHint from './QuestionHint.jsx'
 // `submission` = dónde vive ({ scope: 'adultos', levelSlug, trackSlug,
 // temarioSlug } o { scope: 'infancias', groupSlug }).
 
+// Preguntas de respuesta abierta (`type: 'text'`, solo Listening por
+// ahora): el alumno escribe y no se autocorrigen — van a "Respuestas de
+// los alumnos" para que las revise la profe, como en Reading.
+const isOpen = (q) => q.type === 'text'
+const hasText = (v) => typeof v === 'string' && v.trim() !== ''
+
 const validQuestions = (questions) =>
-  (questions || []).filter((q) => q && (q.options || []).some((o) => String(o || '').trim()))
+  (questions || []).filter((q) =>
+    q && (isOpen(q) ? hasText(q.q) : (q.options || []).some((o) => String(o || '').trim()))
+  )
 
 function QuestionList({ questions, answers, onAnswer, submitted, s, kids, nested }) {
   return (
@@ -27,6 +35,17 @@ function QuestionList({ questions, answers, onAnswer, submitted, s, kids, nested
           )}
           <p className={`${s.text} font-semibold mb-2 whitespace-pre-line`}>{q.q}</p>
           <QuestionHint hint={q.hint} kids={kids} />
+          {isOpen(q) ? (
+            <textarea
+              rows={3}
+              value={answers[q.id] || ''}
+              onChange={(e) => onAnswer(q.id, e.target.value)}
+              disabled={submitted}
+              placeholder="Escribí tu respuesta acá..."
+              aria-label={`Respuesta a la pregunta ${qi + 1}`}
+              className={`w-full px-3 py-2 border-2 text-sm ${s.input} ${s.inputIdle} transition-colors resize-y disabled:opacity-70`}
+            />
+          ) : (
           <div className="flex flex-col gap-2">
             {(q.options || []).map((opt, oi) => {
               if (!String(opt || '').trim()) return null
@@ -50,6 +69,7 @@ function QuestionList({ questions, answers, onAnswer, submitted, s, kids, nested
               )
             })}
           </div>
+          )}
         </div>
       ))}
     </div>
@@ -61,8 +81,10 @@ function useMultipleChoice({ questions, submission, contentType, label }) {
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
   const [studentName, setStudentName] = useStudentName()
-  const score = questions.filter((q) => answers[q.id] === q.answer).length
-  const answered = questions.filter((q) => answers[q.id] !== undefined).length
+  const graded = questions.filter((q) => !isOpen(q))
+  const openCount = questions.length - graded.length
+  const score = graded.filter((q) => answers[q.id] === q.answer).length
+  const answered = questions.filter((q) => (isOpen(q) ? hasText(answers[q.id]) : answers[q.id] !== undefined)).length
   const allAnswered = answered === questions.length
 
   const submit = () => {
@@ -72,15 +94,20 @@ function useMultipleChoice({ questions, submission, contentType, label }) {
       contentType,
       label,
       studentName,
-      score,
-      total: questions.length,
-      detail: questions.map((q) => ({
-        id: q.id,
-        question: q.q,
-        given: q.options[answers[q.id]] ?? null,
-        correct: q.options[q.answer],
-        is_correct: answers[q.id] === q.answer,
-      })),
+      // Si todas son abiertas no hay puntaje: queda "Para revisar".
+      score: graded.length ? score : null,
+      total: graded.length || null,
+      detail: questions.map((q) =>
+        isOpen(q)
+          ? { id: q.id, question: q.q, answer: answers[q.id].trim(), manual_review: true }
+          : {
+              id: q.id,
+              question: q.q,
+              given: q.options[answers[q.id]] ?? null,
+              correct: q.options[q.answer],
+              is_correct: answers[q.id] === q.answer,
+            }
+      ),
     })
   }
   const retry = () => {
@@ -97,10 +124,17 @@ function useMultipleChoice({ questions, submission, contentType, label }) {
     onSubmit: submit,
     submitted,
     score,
-    total: questions.length,
+    total: graded.length,
+    note: openCount
+      ? graded.length
+        ? openCount === 1
+          ? 'Tu respuesta escrita quedó guardada para que la revise tu profe.'
+          : 'Tus respuestas escritas quedaron guardadas para que las revise tu profe.'
+        : '¡Respuestas enviadas! Tu profe las va a revisar.'
+      : null,
     onRetry: retry,
   }
-  return { answers, onAnswer: (qid, oi) => setAnswers((a) => ({ ...a, [qid]: oi })), submitted, footerProps }
+  return { answers, onAnswer: (qid, value) => setAnswers((a) => ({ ...a, [qid]: value })), submitted, footerProps }
 }
 
 // ─── Cuestionario ───────────────────────────────────────────────────
