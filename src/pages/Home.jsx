@@ -32,15 +32,15 @@ function EkcMark({ className = '' }) {
   )
 }
 
-// Links de abajo de cada tarjeta: misma tipografía que el título
-// "Activity Blog" (Inter) en las dos marcas; solo cambia el color.
-function CardLinks({ blogTo, siteHref, siteLabel, className }) {
+// Links de abajo de cada tarjeta: iguales en las dos marcas (lo que está
+// fuera de las tarjetas es neutro), con la tipografía del título.
+function CardLinks({ blogTo, siteHref, siteLabel }) {
   return (
-    <div className={`flex items-center justify-center gap-6 mt-4 px-2 font-body font-bold text-sm ${className}`}>
-      <Link to={blogTo} className="inline-flex items-center gap-1.5 hover:underline underline-offset-4">
+    <div className={`flex items-center justify-center gap-6 mt-4 px-2 font-body font-medium text-sm text-ink/60`}>
+      <Link to={blogTo} className="inline-flex items-center gap-1.5 hover:text-ink transition-colors">
         <Newspaper size={14} aria-hidden="true" /> Blog
       </Link>
-      <a href={siteHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:underline underline-offset-4">
+      <a href={siteHref} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 hover:text-ink transition-colors">
         {siteLabel} <ExternalLink size={13} aria-hidden="true" />
       </a>
     </div>
@@ -76,7 +76,6 @@ function AdultosCard() {
         blogTo="/adultos/blog"
         siteHref={MARKETING_SITES.adultos}
         siteLabel="Track English Studio"
-        className="text-[#121212]"
       />
     </div>
   )
@@ -109,7 +108,6 @@ function InfanciasCard() {
         blogTo="/infancias/blog"
         siteHref={MARKETING_SITES.infancias}
         siteLabel="English Kids Club"
-        className="text-[#2E2A4A]"
       />
     </div>
   )

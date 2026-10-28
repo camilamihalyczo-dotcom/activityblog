@@ -8,13 +8,48 @@ import CollapsibleExercise from './CollapsibleExercise.jsx'
 
 // Reading & Writing — un único componente para Adultos e Infancias (el
 // estilo sale de src/lib/skin.js). Muestra todos los readings y writings
-// de un temario/grupo y los guarda juntos con un solo botón:
+// de un temario/grupo; cada uno tiene adentro su propio nombre + botón de
+// guardar (como el resto de los ejercicios), así no queda un botón suelto
+// abajo de todo que se presta a confusión. El nombre es uno solo: si lo
+// escriben en un ejercicio, aparece en los demás.
 // - las preguntas multiple choice de un Reading se corrigen solas;
 // - las abiertas y los Writing quedan para que los revise la profe.
 // `submission` = dónde vive ({ scope: 'adultos', levelSlug, trackSlug,
 // temarioSlug } o { scope: 'infancias', groupSlug }).
 
-function ReadingItem({ item, s, answers, onChange, disabled, showResults, defaultOpen }) {
+const hasText = (v) => typeof v === 'string' && v.trim() !== ''
+
+// Pie de cada Reading/Writing: nombre + guardar, y después "Seguir editando".
+function ItemSave({ s, c, kids, studentName, setStudentName, hasAnswer, saving, saved, onSave, onEdit, emptyHint, doneHint }) {
+  if (saved) {
+    return (
+      <div className={`mt-8 ${s.resultBox} p-6 text-center`}>
+        <p className={s.resultTitle.replace('text-2xl', 'text-xl')}>¡Guardado! Tu profe ya lo puede ver.</p>
+        {doneHint && <p className={`${s.muted} text-sm mt-2`}>{doneHint}</p>}
+        <button onClick={onEdit} className={`mt-4 ${s.link}`}>
+          Seguir editando
+        </button>
+      </div>
+    )
+  }
+  return (
+    <div className="mt-8">
+      <NameField value={studentName} onChange={setStudentName} kids={kids} c={c} />
+      <button
+        onClick={onSave}
+        disabled={!hasAnswer || saving || !studentName.trim()}
+        className={`w-full py-3 ${s.primary} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
+      >
+        {saving ? 'Guardando…' : 'Guardar mis respuestas'}
+      </button>
+      <p className={`${s.muted} text-xs mt-2`}>
+        {!hasAnswer ? emptyHint : !studentName.trim() ? 'Escribí tu nombre para poder guardar.' : 'Tu profe va a ver lo que guardes.'}
+      </p>
+    </div>
+  )
+}
+
+function ReadingItem({ item, s, answers, onChange, disabled, showResults, defaultOpen, footer }) {
   return (
     <CollapsibleExercise
       title={item.title}
@@ -80,11 +115,12 @@ function ReadingItem({ item, s, answers, onChange, disabled, showResults, defaul
           )
         })}
       </div>
+      {footer}
     </CollapsibleExercise>
   )
 }
 
-function WritingItem({ item, s, text, onChange, disabled, defaultOpen }) {
+function WritingItem({ item, s, text, onChange, disabled, defaultOpen, footer }) {
   const words = text.trim() ? text.trim().split(/\s+/).length : 0
   return (
     <CollapsibleExercise
@@ -107,6 +143,7 @@ function WritingItem({ item, s, text, onChange, disabled, defaultOpen }) {
         className={`w-full px-4 py-3 border-2 text-sm leading-relaxed ${s.input} ${s.inputIdle} transition-colors resize-y disabled:opacity-60`}
       />
       <p className={`text-right ${s.small} mt-2`}>{words} palabras</p>
+      {footer}
     </CollapsibleExercise>
   )
 }
@@ -115,59 +152,79 @@ export default function ReadingWritingExercises({ items, c, kids = false, submis
   const s = getSkin(c, kids)
   const [readingAnswers, setReadingAnswers] = useState({}) // { [itemId]: { [questionId]: text } }
   const [writingAnswers, setWritingAnswers] = useState({}) // { [itemId]: text }
-  const [saved, setSaved] = useState(false)
-  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState({}) // { [itemId]: true }
+  const [saving, setSaving] = useState(null) // itemId que se está guardando
   const [studentName, setStudentName] = useStudentName()
   // Un id de entrega por ítem, fijo mientras el alumno esté en la página:
   // si toca "Seguir editando" y vuelve a guardar, se actualiza la misma
   // entrega en vez de crear una duplicada.
   const submissionIds = useRef({})
 
-  const hasAnyAnswer =
-    Object.values(readingAnswers).some((qs) => Object.values(qs || {}).some((v) => v && v.trim() !== '')) ||
-    Object.values(writingAnswers).some((v) => v && v.trim() !== '')
+  const itemHasAnswer = (item) =>
+    item.type === 'reading'
+      ? Object.values(readingAnswers[item.id] || {}).some(hasText)
+      : hasText(writingAnswers[item.id])
 
-  const handleSave = async () => {
-    setSaving(true)
-    const submissions = buildReadingWritingSubmissions(items, readingAnswers, writingAnswers)
-    // Primera vez que se guarda un ítem: id nuevo. Las siguientes: mismo id
-    // + replace, para actualizar en vez de duplicar.
-    const submissionIdFor = (itemId) => {
+  const handleSave = async (item) => {
+    setSaving(item.id)
+    const [sub] = buildReadingWritingSubmissions([item], readingAnswers, writingAnswers)
+    if (sub) {
+      const { itemId, ...rest } = sub
       const existing = submissionIds.current[itemId]
-      if (existing) return { id: existing, replace: true }
-      const id = newSubmissionId()
+      const id = existing || newSubmissionId()
       submissionIds.current[itemId] = id
-      return { id, replace: false }
+      await recordSubmission({
+        ...submission,
+        id,
+        replace: Boolean(existing),
+        contentType: 'reading_writing',
+        studentName,
+        ...rest,
+      })
     }
-    await Promise.all(
-      submissions.map(({ itemId, ...sub }) =>
-        recordSubmission({
-          ...submission,
-          ...submissionIdFor(itemId),
-          contentType: 'reading_writing',
-          studentName,
-          ...sub,
-        })
-      )
-    )
-    setSaving(false)
-    setSaved(true)
+    setSaving(null)
+    setSaved((m) => ({ ...m, [item.id]: true }))
   }
 
   const single = items.length === 1
 
   return (
     <>
-      {items.map((item) =>
-        item.type === 'reading' ? (
+      {items.map((item) => {
+        const isSaved = Boolean(saved[item.id])
+        const hasOpen = item.type === 'reading' && (item.questions || []).some((q) => !isAutoGraded(q))
+        const footer = (
+          <ItemSave
+            s={s}
+            c={c}
+            kids={kids}
+            studentName={studentName}
+            setStudentName={setStudentName}
+            hasAnswer={itemHasAnswer(item)}
+            saving={saving === item.id}
+            saved={isSaved}
+            onSave={() => handleSave(item)}
+            onEdit={() => setSaved((m) => ({ ...m, [item.id]: false }))}
+            emptyHint={item.type === 'reading' ? 'Respondé al menos una pregunta para poder guardar.' : 'Escribí tu texto para poder guardar.'}
+            doneHint={
+              item.type === 'reading'
+                ? hasOpen
+                  ? 'Las de opción múltiple ya están corregidas arriba; las respuestas escritas las revisa tu profe.'
+                  : 'Arriba podés ver cuáles respondiste bien.'
+                : null
+            }
+          />
+        )
+        return item.type === 'reading' ? (
           <ReadingItem
             key={item.id}
             item={item}
             s={s}
             answers={readingAnswers[item.id] || {}}
-            disabled={saved}
-            showResults={saved}
+            disabled={isSaved}
+            showResults={isSaved}
             defaultOpen={single}
+            footer={footer}
             onChange={(qId, value) => setReadingAnswers((a) => ({ ...a, [item.id]: { ...a[item.id], [qId]: value } }))}
           />
         ) : (
@@ -176,39 +233,13 @@ export default function ReadingWritingExercises({ items, c, kids = false, submis
             item={item}
             s={s}
             text={writingAnswers[item.id] || ''}
-            disabled={saved}
+            disabled={isSaved}
             defaultOpen={single}
+            footer={footer}
             onChange={(value) => setWritingAnswers((a) => ({ ...a, [item.id]: value }))}
           />
         )
-      )}
-
-      {!saved ? (
-        <div className="mt-2">
-          <NameField value={studentName} onChange={setStudentName} kids={kids} c={c} />
-          <button
-            onClick={handleSave}
-            disabled={!hasAnyAnswer || saving || !studentName.trim()}
-            className={`w-full py-3 ${s.primary} transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
-          >
-            {saving ? 'Guardando…' : 'Guardar mis respuestas'}
-          </button>
-          <p className={`${s.muted} text-xs mt-2`}>
-            {!hasAnyAnswer
-              ? 'Respondé al menos una pregunta o escribí algo para poder guardar.'
-              : !studentName.trim()
-              ? 'Escribí tu nombre para poder guardar.'
-              : 'Las preguntas de opción múltiple se corrigen solas; lo que escribís lo revisa tu profe.'}
-          </p>
-        </div>
-      ) : (
-        <div className={`mt-2 ${s.resultBox} p-6 text-center`}>
-          <p className={s.resultTitle.replace('text-2xl', 'text-xl')}>¡Guardado! Tu profe ya lo puede ver.</p>
-          <button onClick={() => setSaved(false)} className={`mt-4 ${s.link}`}>
-            Seguir editando
-          </button>
-        </div>
-      )}
+      })}
     </>
   )
 }
