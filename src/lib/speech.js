@@ -4,11 +4,11 @@
 //
 // Chrome tiene varias mañas que hacen que a veces "no suene nada" sin dar
 // error; acá se cubren todas en un solo lugar:
-// - Las voces cargan de forma asíncrona: si todavía no están, se espera un
-//   momento en vez de hablar con una voz cualquiera (o con ninguna).
+// - En iPhone/iPad (Safari) hay que hablar en el mismo toque: nada de
+//   esperas antes de speak().
 // - cancel() seguido inmediatamente de speak() a veces descarta el audio
-//   nuevo: solo se cancela si algo está sonando, y se habla un instante
-//   después.
+//   nuevo en Chrome: solo se cancela si algo está sonando, y si se perdió
+//   se reintenta.
 // - Si la síntesis quedó en pausa (por ej. al cambiar de pestaña), se
 //   reanuda.
 // - El utterance se guarda en una variable del módulo: si no, Chrome puede
@@ -34,23 +34,10 @@ function pickVoice(lang) {
 }
 
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  // Pedirlas una vez hace que el navegador empiece a cargarlas ya.
+  cachedVoice = pickVoice('en-US')
   window.speechSynthesis.addEventListener?.('voiceschanged', () => {
     cachedVoice = pickVoice('en-US')
-  })
-}
-
-// Espera (como mucho `timeout` ms) a que el navegador tenga voces cargadas.
-function waitForVoices(timeout = 1500) {
-  const synth = window.speechSynthesis
-  if (synth.getVoices().length) return Promise.resolve()
-  return new Promise((resolve) => {
-    const done = () => {
-      synth.removeEventListener?.('voiceschanged', done)
-      clearTimeout(timer)
-      resolve()
-    }
-    const timer = setTimeout(done, timeout)
-    synth.addEventListener?.('voiceschanged', done)
   })
 }
 
@@ -75,46 +62,54 @@ export function speak(text, { rate = 0.9, lang = 'en-US', onStart, onEnd, onErro
   if (wasBusy) synth.cancel()
   if (synth.paused) synth.resume()
 
-  const say = () => {
-    const utterance = new SpeechSynthesisUtterance(text)
-    utterance.lang = lang
-    utterance.rate = rate
-    const voice = cachedVoice || pickVoice(lang)
-    if (voice) {
-      cachedVoice = voice
-      utterance.voice = voice
-    }
-    currentUtterance = utterance
-    let started = false
-    let finished = false
-    const finish = (cb, arg) => {
-      if (finished) return
-      finished = true
-      if (currentUtterance === utterance) currentUtterance = null
-      cb?.(arg)
-    }
-    utterance.onstart = () => {
-      started = true
-      onStart?.()
-    }
-    utterance.onend = () => finish(onEnd)
-    utterance.onerror = (event) => {
-      // "interrupted"/"canceled": lo cortó otro audio o el usuario; no es un error.
-      if (event.error === 'interrupted' || event.error === 'canceled') finish(onEnd)
-      else finish(onError, event.error || 'error')
-    }
-    synth.speak(utterance)
-    // Si a los 5 s no arrancó, Chrome se trabó: lo destrabamos y avisamos.
-    setTimeout(() => {
-      if (started || finished) return
-      finish(onError, 'timeout')
-      synth.cancel()
-    }, 5000)
+  // IMPORTANTE (iPhone/iPad): Safari solo deja hablar si speak() se llama
+  // en el mismo toque del botón — si se demora (esperando voces, un
+  // setTimeout…) lo bloquea en silencio. Por eso se habla siempre al
+  // instante; si las voces todavía no cargaron, el navegador elige una por
+  // el idioma (en-US), que funciona bien.
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = lang
+  utterance.rate = rate
+  const voice = cachedVoice || pickVoice(lang)
+  if (voice) {
+    cachedVoice = voice
+    utterance.voice = voice
   }
+  currentUtterance = utterance
+  let started = false
+  let finished = false
+  const finish = (cb, arg) => {
+    if (finished) return
+    finished = true
+    if (currentUtterance === utterance) currentUtterance = null
+    cb?.(arg)
+  }
+  utterance.onstart = () => {
+    started = true
+    onStart?.()
+  }
+  utterance.onend = () => finish(onEnd)
+  utterance.onerror = (event) => {
+    // "interrupted"/"canceled": lo cortó otro audio o el usuario; no es un error.
+    if (event.error === 'interrupted' || event.error === 'canceled') finish(onEnd)
+    else finish(onError, event.error || 'error')
+  }
+  synth.speak(utterance)
 
-  const needsVoices = !cachedVoice && !synth.getVoices().length
-  if (needsVoices) waitForVoices().then(say)
-  else if (wasBusy) setTimeout(say, 80)
-  else say()
+  // Chrome: si justo antes se cortó otro audio, a veces descarta este sin
+  // avisar. Si no quedó ni sonando ni en cola, lo volvemos a mandar (Chrome
+  // ya no exige el toque para eso; Safari no tiene este problema).
+  if (wasBusy) {
+    setTimeout(() => {
+      if (started || finished || currentUtterance !== utterance) return
+      if (!synth.speaking && !synth.pending) synth.speak(utterance)
+    }, 250)
+  }
+  // Si a los 6 s no arrancó, se trabó: lo destrabamos y avisamos.
+  setTimeout(() => {
+    if (started || finished) return
+    finish(onError, 'timeout')
+    synth.cancel()
+  }, 6000)
   return true
 }

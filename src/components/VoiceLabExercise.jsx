@@ -14,6 +14,38 @@ function getSpeechRecognition() {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null
 }
 
+// iPhone/iPad (los iPad nuevos se presentan como Mac con pantalla táctil).
+function isIOS() {
+  if (typeof navigator === 'undefined') return false
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
+const UNSUPPORTED_MIC = () =>
+  isIOS()
+    ? 'En iPhone el micrófono funciona solo en Safari (no en Chrome ni dentro de Instagram o WhatsApp). Abrí el link en Safari.'
+    : 'Tu navegador no soporta reconocimiento de voz. Probá con Google Chrome, Edge o Safari.'
+
+function micErrorMessage(error) {
+  switch (error) {
+    case 'not-allowed':
+      return isIOS()
+        ? 'Necesitamos permiso para usar el micrófono. En el iPhone: Ajustes › Safari › Micrófono › Permitir.'
+        : 'Necesitamos permiso para usar el micrófono. Tocá el candado de la barra de direcciones y permitilo.'
+    case 'service-not-allowed':
+      return isIOS()
+        ? 'Para usar el micrófono en el iPhone tiene que estar activado el Dictado: Ajustes › General › Teclado › Activar Dictado.'
+        : 'El reconocimiento de voz no está disponible en este navegador. Probá con Google Chrome.'
+    case 'no-speech':
+      return 'No te escuchamos. Tocá el micrófono y hablá cerca del teléfono.'
+    case 'audio-capture':
+      return 'No encontramos un micrófono. Revisá que esté conectado y no lo esté usando otra app.'
+    case 'network':
+      return 'El reconocimiento de voz necesita internet. Revisá la conexión y probá de nuevo.'
+    default:
+      return 'No pudimos reconocer la voz. Probá de nuevo.'
+  }
+}
+
 export default function VoiceLabExercise({
   challenge,
   c,
@@ -39,38 +71,59 @@ export default function VoiceLabExercise({
   const spokenKeywords = keywords.filter((keyword) => spokenSet.has(keyword))
   const allKeywordsSpoken = keywords.length > 0 && spokenKeywords.length === keywords.length
 
-  useEffect(() => {
-    const SpeechRecognition = getSpeechRecognition()
-    if (!SpeechRecognition) {
-      setErrorMessage('Tu navegador no soporta reconocimiento de voz nativo. Probá con Google Chrome o Edge.')
-      return undefined
-    }
+  const micSupported = Boolean(getSpeechRecognition())
+  const stopTimer = useRef(null)
 
+  // Se crea un reconocedor nuevo en cada toque del micrófono (reusar uno
+  // solo falla seguido en iPhone/Safari). Con resultados parciales, lo que
+  // se va diciendo aparece en pantalla y, si Safari corta sin un resultado
+  // "final", igual queda lo último que escuchó.
+  const startListening = () => {
+    const SpeechRecognition = getSpeechRecognition()
+    if (!SpeechRecognition) return
     const recognition = new SpeechRecognition()
     recognition.lang = 'en-US'
     recognition.continuous = false
-    recognition.interimResults = false
+    recognition.interimResults = true
+    recognition.maxAlternatives = 1
     recognition.onresult = (event) => {
-      const nextTranscript = event.results[0][0].transcript
-      setTranscript(nextTranscript)
-      setRecognizedWords(nextTranscript.split(/\s+/).map(normalizeWord).filter(Boolean))
+      let text = ''
+      for (let i = 0; i < event.results.length; i++) text += `${event.results[i][0].transcript} `
+      text = text.trim()
+      if (!text) return
+      setTranscript(text)
+      setRecognizedWords(text.split(/\s+/).map(normalizeWord).filter(Boolean))
       setErrorMessage('')
     }
     recognition.onerror = (event) => {
+      if (event.error === 'aborted') return
+      setErrorMessage(micErrorMessage(event.error))
+    }
+    recognition.onend = () => {
+      clearTimeout(stopTimer.current)
+      if (recognitionRef.current === recognition) recognitionRef.current = null
       setIsListening(false)
-      setErrorMessage(event.error === 'not-allowed' ? 'Necesitamos permiso para usar el micrófono.' : 'No pudimos reconocer la voz. Probá de nuevo.')
     }
-    recognition.onend = () => setIsListening(false)
     recognitionRef.current = recognition
+    recognition.start()
+    // Por si el navegador no corta solo (pasa en algunos iPhone).
+    clearTimeout(stopTimer.current)
+    stopTimer.current = setTimeout(() => recognition.stop(), 15000)
+  }
 
-    return () => {
-      recognition.onresult = null
-      recognition.onerror = null
-      recognition.onend = null
-      recognition.abort()
-      recognitionRef.current = null
-    }
-  }, [])
+  useEffect(
+    () => () => {
+      clearTimeout(stopTimer.current)
+      const recognition = recognitionRef.current
+      if (recognition) {
+        recognition.onresult = null
+        recognition.onerror = null
+        recognition.onend = null
+        recognition.abort()
+      }
+    },
+    []
+  )
 
   // Si se cierra la página con el audio sonando, lo cortamos.
   useEffect(() => () => stopSpeaking(), [])
@@ -80,7 +133,10 @@ export default function VoiceLabExercise({
       recognitionRef.current?.stop()
       return
     }
-    if (!recognitionRef.current) return
+    if (!micSupported) {
+      setErrorMessage(UNSUPPORTED_MIC())
+      return
+    }
     // Que el micrófono no "escuche" al modelo sonando.
     if (playing) {
       stopSpeaking()
@@ -90,7 +146,7 @@ export default function VoiceLabExercise({
     setRecognizedWords([])
     setErrorMessage('')
     try {
-      recognitionRef.current.start()
+      startListening()
       setIsListening(true)
     } catch {
       setErrorMessage('El micrófono ya está activo. Esperá un momento y probá de nuevo.')
@@ -103,7 +159,7 @@ export default function VoiceLabExercise({
       setPlaying(null)
       return
     }
-    if (isListening) recognitionRef.current?.stop()
+    if (isListening) recognitionRef.current?.abort()
     setErrorMessage('')
     setPlaying(speed)
     const ok = speak(challenge.sentence, {
@@ -111,7 +167,11 @@ export default function VoiceLabExercise({
       onEnd: () => setPlaying((cur) => (cur === speed ? null : cur)),
       onError: () => {
         setPlaying((cur) => (cur === speed ? null : cur))
-        setErrorMessage('No pudimos reproducir el audio. Revisá que el volumen esté activo; si sigue sin sonar, probá en Google Chrome o Edge.')
+        setErrorMessage(
+          isIOS()
+            ? 'No pudimos reproducir el audio. Revisá que el iPhone no esté en modo silencio (el botón del costado) y que el volumen esté alto.'
+            : 'No pudimos reproducir el audio. Revisá que el volumen esté activo; si sigue sin sonar, probá en Google Chrome o Edge.'
+        )
       },
     })
     if (!ok) {
@@ -204,13 +264,14 @@ export default function VoiceLabExercise({
             <button
               type="button"
               onClick={toggleListening}
-              className={`${isListening ? (kids ? 'bg-kidsRed ring-kidsRed/20' : 'bg-stamp ring-stamp/20') : (kids ? 'bg-kidsPurpleDeep ring-kidsPurpleDeep/15' : 'bg-brand ring-brand/15')} text-white rounded-full p-5 shadow-md ring-4 transition-colors`}
+              disabled={!micSupported}
+              className={`${isListening ? (kids ? 'bg-kidsRed ring-kidsRed/20' : 'bg-stamp ring-stamp/20') : (kids ? 'bg-kidsPurpleDeep ring-kidsPurpleDeep/15' : 'bg-brand ring-brand/15')} text-white rounded-full p-5 shadow-md ring-4 transition-colors disabled:opacity-40`}
               aria-label={isListening ? 'Detener grabación' : 'Comenzar grabación'}
             >
               <Mic2 size={26} />
             </button>
-            <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs`}>
-              {isListening ? 'Te escucho… hablá ahora' : 'Tocá el micrófono para hablar'}
+            <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs text-center max-w-xs`}>
+              {!micSupported ? UNSUPPORTED_MIC() : isListening ? 'Te escucho… hablá ahora (tocá de nuevo para terminar)' : 'Tocá el micrófono para hablar'}
             </p>
           </div>
         </div>
