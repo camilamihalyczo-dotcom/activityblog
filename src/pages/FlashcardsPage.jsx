@@ -40,6 +40,11 @@ export default function FlashcardsPage() {
         </span>
         <h1 className="font-display text-3xl sm:text-4xl font-semibold text-ink mb-2">Flashcards</h1>
         <p className="text-ink/60 mb-8">Tocá la tarjeta para dar vuelta y ver la traducción.</p>
+        {cards[0]?.code && (
+          <p className="mb-4">
+            <span className="inline-block rounded border border-current px-1.5 py-px font-mono text-[10px] font-bold uppercase tracking-widest opacity-80" data-testid="exercise-code">{cards[0].code}</span>
+          </p>
+        )}
         {cards.length === 0 ? <EmptyState label="flashcards" /> : <FlashcardDeck key={scopeKey} cards={cards} c={c} />}
       </div>
     </div>

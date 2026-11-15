@@ -2,6 +2,7 @@
 // Infancias). Las preguntas multiple choice de un Reading se corrigen
 // solas, igual que en el Cuestionario; las abiertas y los Writing quedan
 // para revisión manual de la profe.
+import { withCode } from './exerciseCode.js'
 
 // Devuelve el texto de la opción correcta, o null si no hay una marcada.
 // `answer` se guarda como índice (panel nuevo); contenido viejo puede
@@ -36,11 +37,11 @@ export function buildReadingWritingSubmissions(items, readingAnswers, writingAns
           const correct = correctOptionText(q)
           return { id: q.id, question: q.q, given, correct, is_correct: given === correct }
         }
-        return { id: q.id, question: q.q, answer: given || '', manual_review: true }
+        return { id: q.id, question: q.q, answer: given || '', model_answer: q.modelAnswer || null, manual_review: true }
       })
       submissions.push({
         itemId: item.id,
-        label: `Reading — ${item.title}`,
+        label: withCode(item.code, `Reading — ${item.title}`),
         score: graded.length ? detail.filter((d) => d.is_correct).length : null,
         total: graded.length || null,
         detail,
@@ -50,7 +51,7 @@ export function buildReadingWritingSubmissions(items, readingAnswers, writingAns
       if (!hasText(text)) continue
       submissions.push({
         itemId: item.id,
-        label: `Writing — ${item.title}`,
+        label: withCode(item.code, `Writing — ${item.title}`),
         score: null,
         total: null,
         detail: [{ prompt: item.prompt, answer: text, manual_review: true }],

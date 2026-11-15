@@ -54,6 +54,7 @@ function ReadingItem({ item, s, answers, onChange, disabled, showResults, defaul
     <CollapsibleExercise
       title={item.title}
       label="Reading"
+      code={item.code}
       defaultOpen={defaultOpen}
       icon={BookOpen}
       className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}
@@ -126,6 +127,7 @@ function WritingItem({ item, s, text, onChange, disabled, defaultOpen, footer })
     <CollapsibleExercise
       title={item.title}
       label="Writing"
+      code={item.code}
       defaultOpen={defaultOpen}
       icon={PenLine}
       className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}

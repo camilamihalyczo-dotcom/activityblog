@@ -15,6 +15,7 @@ import { getSkin } from '../lib/skin.js'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import ExerciseSubmit from './ExerciseSubmit.jsx'
 import CollapsibleExercise from './CollapsibleExercise.jsx'
+import { withCode } from '../lib/exerciseCode.js'
 
 // Pronunciación — "parejas que suenan igual".
 // El alumno escucha cada palabra (voz del navegador), la arrastra a una
@@ -213,7 +214,7 @@ export default function PronunciationExercise({ exercise, c, kids = false, submi
     recordSubmission({
       ...submission,
       contentType: 'pronunciation',
-      label: exercise.title || 'Pronunciación',
+      label: withCode(exercise.code, exercise.title || 'Pronunciación'),
       studentName,
       score,
       total: rows.length,
@@ -242,6 +243,7 @@ export default function PronunciationExercise({ exercise, c, kids = false, submi
     <CollapsibleExercise
       title={exercise.title || 'Parejas que suenan igual'}
       label="Pronunciación"
+      code={exercise.code}
       defaultOpen
       className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}
     >

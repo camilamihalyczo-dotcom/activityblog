@@ -113,3 +113,80 @@ export function speak(text, { rate = 0.9, lang = 'en-US', onStart, onEnd, onErro
   }, 6000)
   return true
 }
+
+// ─── Guion con varias voces (Listening sin audio) ─────────────────────
+// Parte una transcripción tipo "Sam: Good morning.\nPriya: Hi!" en líneas
+// con su personaje. Las líneas sin "Nombre:" van sin personaje (narrador).
+export function parseScript(transcript) {
+  return String(transcript || '')
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const m = line.match(/^([A-Za-zÀ-ÿ][\w À-ÿ.'-]{0,24}):\s+(.+)$/)
+      return m ? { speaker: m[1].trim(), text: m[2].trim() } : { speaker: '', text: line }
+    })
+}
+
+// Lee el guion entero, una voz por personaje si el dispositivo tiene varias
+// voces en inglés (si tiene una sola, se las distingue con el tono). Todas
+// las líneas se encolan en el mismo toque, así funciona también en iPhone.
+export function speakScript(lines, { rate = 0.9, lang = 'en-US', onStart, onEnd, onError } = {}) {
+  if (!canSpeak() || !lines?.length) return false
+  const synth = window.speechSynthesis
+  if (synth.speaking || synth.pending) synth.cancel()
+  if (synth.paused) synth.resume()
+
+  const base = lang.split('-')[0]
+  const all = synth.getVoices().filter((v) => v.lang?.startsWith(base))
+  // Primero las de Google/Apple "buenas", después el resto, sin repetir.
+  const english = [...all.filter((v) => v.lang === lang), ...all.filter((v) => v.lang !== lang)]
+  const speakers = [...new Set(lines.map((l) => l.speaker || ''))]
+  const PITCHES = [1, 0.8, 1.2, 0.9, 1.1]
+  const voiceFor = (speaker) => {
+    const i = speakers.indexOf(speaker || '')
+    return { voice: english.length ? english[i % english.length] : null, pitch: english.length > i ? 1 : PITCHES[i % PITCHES.length] }
+  }
+
+  let started = false
+  let finished = false
+  const utterances = lines.map((line, idx) => {
+    const u = new SpeechSynthesisUtterance(line.text)
+    const { voice, pitch } = voiceFor(line.speaker)
+    u.lang = voice?.lang || lang
+    if (voice) u.voice = voice
+    u.pitch = pitch
+    u.rate = rate
+    u.onstart = () => {
+      if (!started) {
+        started = true
+        onStart?.()
+      }
+    }
+    u.onerror = (event) => {
+      if (finished) return
+      finished = true
+      if (event.error === 'interrupted' || event.error === 'canceled') onEnd?.()
+      else onError?.(event.error || 'error')
+    }
+    if (idx === lines.length - 1) {
+      u.onend = () => {
+        if (finished) return
+        finished = true
+        onEnd?.()
+      }
+    }
+    return u
+  })
+  currentUtterance = utterances[0]
+  // Se guardan para que Chrome no los descarte a mitad (ver arriba).
+  speakScript.queue = utterances
+  utterances.forEach((u) => synth.speak(u))
+  setTimeout(() => {
+    if (started || finished) return
+    finished = true
+    synth.cancel()
+    onError?.('timeout')
+  }, 6000)
+  return true
+}

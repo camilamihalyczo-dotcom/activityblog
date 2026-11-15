@@ -39,12 +39,18 @@ function ResultIcon({ ok }) {
   )
 }
 
-function FreeTextAnswer({ title, prompt, answer }) {
+function FreeTextAnswer({ title, prompt, answer, model }) {
   return (
     <>
       {title && <p className="text-ink/80">{title}</p>}
       {prompt && <p className="text-ink/60 italic mb-1 whitespace-pre-line">{prompt}</p>}
       <p className="text-ink/85 whitespace-pre-line bg-paper rounded-lg p-3 mt-1">{toText(answer) || <Unanswered />}</p>
+      {model && (
+        <p className="text-ink/60 text-xs mt-1">
+          <span className="font-mono uppercase tracking-wide">Respuesta modelo: </span>
+          {model}
+        </p>
+      )}
     </>
   )
 }
@@ -82,7 +88,7 @@ function DetailItem({ d, index, contentType }) {
 
   // Respuestas abiertas (Reading abierto, Writing): no tienen ✓/✗.
   if (d.manual_review || (d.answer !== undefined && d.is_correct === undefined)) {
-    return <FreeTextAnswer title={d.question} prompt={d.prompt} answer={d.answer} />
+    return <FreeTextAnswer title={d.question} prompt={d.prompt} answer={d.answer} model={d.model_answer} />
   }
 
   // Ejercicios autocorregidos (cuestionario, listening, completar,

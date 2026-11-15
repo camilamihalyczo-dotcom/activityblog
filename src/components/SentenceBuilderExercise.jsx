@@ -4,6 +4,7 @@ import { CheckCircle2, GripVertical, XCircle } from 'lucide-react'
 import NameField from './NameField.jsx'
 import CollapsibleExercise from './CollapsibleExercise.jsx'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
+import { withCode } from '../lib/exerciseCode.js'
 
 function shuffle(items) {
   const result = [...items]
@@ -128,7 +129,7 @@ export default function SentenceBuilderExercise({ exercise, c, kids = false, sco
   const [results, setResults] = useState({})
   if (!exercise.sentences?.length) return null
   return (
-    <CollapsibleExercise title={exercise.title || 'Sentence Builder'} label="Actividad" className={`${c.card} mb-8`}>
+    <CollapsibleExercise title={exercise.title || 'Sentence Builder'} label="Sentence Builder" code={exercise.code} className={`${c.card} mb-8`}>
       <div>
         {exercise.sentences.map((sentence) => <Sentence key={sentence.id} sentence={sentence} c={c} kids={kids} onChange={(indices) => setResults((current) => ({ ...current, [sentence.id]: { indices } }))} submitted={submitted} />)}
         {!submitted ? (
@@ -151,7 +152,7 @@ export default function SentenceBuilderExercise({ exercise, c, kids = false, sco
                 })
                 setSubmitted(true)
                 setResults(Object.fromEntries(evaluated.map((result) => [result.id, result])))
-                recordSubmission({ scope, levelSlug, groupSlug, trackSlug, temarioSlug, contentType: 'sentence_builder', label: exercise.title, studentName, score: evaluated.filter((result) => result.correct).length, total: exercise.sentences.length, detail: evaluated.map(({ id, given, expected, correct }) => ({ id, given, correct: expected, is_correct: correct })) })
+                recordSubmission({ scope, levelSlug, groupSlug, trackSlug, temarioSlug, contentType: 'sentence_builder', label: withCode(exercise.code, exercise.title), studentName, score: evaluated.filter((result) => result.correct).length, total: exercise.sentences.length, detail: evaluated.map(({ id, given, expected, correct }) => ({ id, given, correct: expected, is_correct: correct })) })
               }}
               className={`${kids ? 'bg-kidsInk rounded-full font-playful' : 'bg-ink rounded-lg'} w-full py-3 font-semibold text-white disabled:opacity-40`}
             >

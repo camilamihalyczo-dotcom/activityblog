@@ -562,17 +562,41 @@ function ListeningEditor({ data, onChange }) {
                 <span className="block text-xs text-stamp mt-1">⚠ No reconozco ese link de YouTube — revisalo.</span>
               ))}
             {!String(item.youtubeId || '').trim() && (
-              <span className="block text-xs text-ink/60 mt-1">Opcional: sin video, el alumno ve solo la imagen, la transcripción y las preguntas.</span>
+              <span className="block text-xs text-ink/60 mt-1">Opcional: sin video ni audio, el alumno escucha el guion (la transcripción) con el botón “Escuchar”.</span>
             )}
           </label>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Audio (link a un .mp3, opcional)</span>
+              <input
+                value={item.audioUrl || ''}
+                onChange={(e) => updateItem(i, { audioUrl: e.target.value.trim() })}
+                placeholder="https://…/audio.mp3"
+                className={inputCls}
+              />
+            </label>
+            <label>
+              <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Otro video (link a un .mp4, opcional)</span>
+              <input
+                value={item.videoUrl || ''}
+                onChange={(e) => updateItem(i, { videoUrl: e.target.value.trim() })}
+                placeholder="https://…/video.mp4"
+                className={inputCls}
+              />
+            </label>
+          </div>
           <label>
-            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Transcripción</span>
+            <span className="block text-xs font-mono uppercase tracking-wide text-ink/60 mb-1">Transcripción / guion</span>
             <textarea
               rows={4}
               value={item.transcript}
               onChange={(e) => updateItem(i, { transcript: e.target.value })}
+              placeholder={'Sam: Good morning, everyone.\nPriya: I have a blocker.'}
               className={`${inputCls} resize-y`}
             />
+            <span className="block text-xs text-ink/60 mt-1">
+              Si no hay video ni audio, se lee en voz alta: escribí cada línea como “Nombre: texto” y cada personaje tiene su propia voz.
+            </span>
           </label>
           <ImageField
             url={item.image_url}

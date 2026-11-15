@@ -6,6 +6,7 @@ import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import { getSkin } from '../lib/skin.js'
 import ExerciseSubmit from './ExerciseSubmit.jsx'
 import CollapsibleExercise from './CollapsibleExercise.jsx'
+import { withCode } from '../lib/exerciseCode.js'
 
 // Un único componente de "Completar oraciones" para Adultos e Infancias.
 // Lo único que cambia entre los dos es el estilo, que sale de `getSkin`
@@ -114,7 +115,7 @@ function ClassicGroup({ exercise, c, s, kids, submission }) {
     recordSubmission({
       ...submission,
       contentType: 'fill_blank',
-      label: exercise.title,
+      label: withCode(exercise.code, exercise.title),
       studentName,
       score,
       total: exercise.sentences.length,
@@ -216,7 +217,7 @@ function WordBankGroup({ exercise, c, s, kids, submission }) {
     recordSubmission({
       ...submission,
       contentType: 'fill_blank',
-      label: exercise.title,
+      label: withCode(exercise.code, exercise.title),
       studentName,
       score,
       total: slots.length,
@@ -341,7 +342,8 @@ export default function FillBlankExercise({ exercise, c, kids = false, submissio
   return (
     <CollapsibleExercise
       title={exercise.title || 'Completar oraciones'}
-      label="Actividad"
+      label="Completar oraciones"
+      code={exercise.code}
       className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}
     >
       {exercise.wordBank ? (

@@ -4,6 +4,7 @@ import CollapsibleExercise from './CollapsibleExercise.jsx'
 import NameField from './NameField.jsx'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import { canSpeak, speak, stopSpeaking } from '../lib/speech.js'
+import { withCode } from '../lib/exerciseCode.js'
 
 function normalizeWord(value) {
   return value.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'()_`~?-]/g, '')
@@ -184,6 +185,7 @@ export default function VoiceLabExercise({
     <CollapsibleExercise
       title={challenge.title || 'Desafío de pronunciación'}
       label="Voice Lab"
+      code={challenge.code}
       className={c.card}
     >
       <div className={kids ? 'bg-white' : ''}>
@@ -301,7 +303,7 @@ export default function VoiceLabExercise({
                   trackSlug,
                   temarioSlug,
                   contentType: 'voice_lab',
-                  label: challenge.title,
+                  label: withCode(challenge.code, challenge.title),
                   studentName,
                   score: spokenKeywords.length,
                   total: keywords.length,

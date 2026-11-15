@@ -1,11 +1,13 @@
-import { useState } from 'react'
-import { CheckCircle2, FileText, Video, XCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CheckCircle2, FileText, Snail, Video, Volume2, XCircle } from 'lucide-react'
 import { getSkin } from '../lib/skin.js'
 import { parseYouTubeId } from '../lib/youtube.js'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import CollapsibleExercise from './CollapsibleExercise.jsx'
 import ExerciseSubmit from './ExerciseSubmit.jsx'
 import QuestionHint from './QuestionHint.jsx'
+import { withCode } from '../lib/exerciseCode.js'
+import { canSpeak, parseScript, speakScript, stopSpeaking } from '../lib/speech.js'
 
 // Cuestionario y Listening comparten la misma mecánica (preguntas de
 // opción múltiple, `answer` = índice de la opción correcta). Un solo
@@ -99,7 +101,7 @@ function useMultipleChoice({ questions, submission, contentType, label }) {
       total: graded.length || null,
       detail: questions.map((q) =>
         isOpen(q)
-          ? { id: q.id, question: q.q, answer: answers[q.id].trim(), manual_review: true }
+          ? { id: q.id, question: q.q, answer: answers[q.id].trim(), model_answer: q.modelAnswer || null, manual_review: true }
           : {
               id: q.id,
               question: q.q,
@@ -142,11 +144,11 @@ function useMultipleChoice({ questions, submission, contentType, label }) {
 export function QuizExercise({ quiz, c, kids = false, submission }) {
   const s = getSkin(c, kids)
   const questions = validQuestions(quiz.questions)
-  const mc = useMultipleChoice({ questions, submission, contentType: 'quiz', label: quiz.title })
+  const mc = useMultipleChoice({ questions, submission, contentType: 'quiz', label: withCode(quiz.code, quiz.title) })
   if (questions.length === 0) return null
 
   return (
-    <CollapsibleExercise title={quiz.title || 'Cuestionario'} label="Actividad" className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}>
+    <CollapsibleExercise title={quiz.title || 'Cuestionario'} label="Cuestionario" code={quiz.code} className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}>
       <QuestionList questions={questions} answers={mc.answers} onAnswer={mc.onAnswer} submitted={mc.submitted} s={s} kids={kids} nested />
       <ExerciseSubmit s={s} c={c} kids={kids} {...mc.footerProps} />
     </CollapsibleExercise>
@@ -159,12 +161,42 @@ export function ListeningExercise({ item, c, kids = false, submission }) {
   const s = getSkin(c, kids)
   const [showTranscript, setShowTranscript] = useState(false)
   const questions = validQuestions(item.questions)
-  const mc = useMultipleChoice({ questions, submission, contentType: 'listening', label: item.title })
+  const mc = useMultipleChoice({ questions, submission, contentType: 'listening', label: withCode(item.code, item.title) })
   const videoId = parseYouTubeId(item.youtubeId)
   const transcript = String(item.transcript || '').trim()
+  const audioUrl = String(item.audioUrl || '').trim()
+  const videoUrl = String(item.videoUrl || '').trim()
+  // Sin audio ni video: el guion se escucha con la voz del navegador
+  // (una voz por personaje), con el mismo botón "Escuchar" del Voice Lab.
+  const scriptMode = !videoId && !audioUrl && !videoUrl && Boolean(transcript) && canSpeak()
+  const [playing, setPlaying] = useState(null) // null | 'normal' | 'slow'
+  const [audioError, setAudioError] = useState('')
+  useEffect(() => () => stopSpeaking(), [])
+
+  const playScript = (speed) => {
+    if (playing === speed) {
+      stopSpeaking()
+      setPlaying(null)
+      return
+    }
+    setAudioError('')
+    setPlaying(speed)
+    speakScript(parseScript(transcript), {
+      rate: speed === 'slow' ? 0.65 : 0.9,
+      onEnd: () => setPlaying((cur) => (cur === speed ? null : cur)),
+      onError: () => {
+        setPlaying((cur) => (cur === speed ? null : cur))
+        setAudioError('No pudimos reproducir el audio. Revisá el volumen (y en iPhone, que no esté en modo silencio).')
+      },
+    })
+  }
+  const playBtn = (active) =>
+    `inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors ${
+      active ? `${kids ? 'border-kidsPurpleDeep bg-kidsPurpleDeep' : 'border-brand bg-brand'} text-white` : `${kids ? 'border-kidsInk/15 font-playful' : 'border-ink/15'} ${s.body}`
+    }`
 
   return (
-    <CollapsibleExercise title={item.title || 'Listening'} label="Listening" icon={Video} className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}>
+    <CollapsibleExercise title={item.title || 'Listening'} label="Listening" code={item.code} icon={Video} className={`${s.card} p-6 sm:p-8 mb-8 ${s.outer}`}>
       {item.image_url && (
         <img loading="lazy" decoding="async" src={item.image_url} alt="" className={`w-full max-h-56 object-cover ${s.img} mb-4`} />
       )}
@@ -181,6 +213,30 @@ export function ListeningExercise({ item, c, kids = false, submission }) {
           />
         </div>
       )}
+
+      {audioUrl && (
+        <audio controls preload="none" src={audioUrl} className="w-full mb-4" data-testid="listening-audio">
+          Tu navegador no puede reproducir este audio.
+        </audio>
+      )}
+
+      {!videoId && videoUrl && (
+        <video controls preload="metadata" src={videoUrl} className={`w-full ${s.img} mb-4`} data-testid="listening-video" />
+      )}
+
+      {scriptMode && (
+        <div className="flex flex-wrap items-center gap-2 mb-4" data-testid="listening-script-player">
+          <button type="button" onClick={() => playScript('normal')} aria-pressed={playing === 'normal'} className={playBtn(playing === 'normal')}>
+            <Volume2 size={18} aria-hidden="true" className={playing === 'normal' ? 'animate-pulse' : ''} />
+            {playing === 'normal' ? 'Sonando… (tocá para parar)' : 'Escuchar'}
+          </button>
+          <button type="button" onClick={() => playScript('slow')} aria-pressed={playing === 'slow'} className={playBtn(playing === 'slow')}>
+            <Snail size={18} aria-hidden="true" className={playing === 'slow' ? 'animate-pulse' : ''} />
+            {playing === 'slow' ? 'Sonando…' : 'Más lento'}
+          </button>
+        </div>
+      )}
+      {audioError && <p className="text-stamp text-sm mb-4">{audioError}</p>}
 
       {transcript && (
         <>

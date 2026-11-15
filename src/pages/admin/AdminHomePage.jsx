@@ -37,6 +37,12 @@ const SECTIONS = [
     ready: true,
   },
   {
+    to: '/notas-profe/importar',
+    label: 'Importar semana (JSON)',
+    desc: 'Cargá una semana completa de un curso de una vez — las 8 actividades y el glosario — con vista previa y aviso de errores antes de guardar.',
+    ready: true,
+  },
+  {
     to: '/notas-profe/content-status',
     label: 'Qué falta',
     desc: 'De un vistazo, qué track/temario o grupo todavía no tiene contenido cargado.',
