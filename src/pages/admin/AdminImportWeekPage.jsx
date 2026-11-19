@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { AlertTriangle, CheckCircle2, Download, FileJson, Upload, XCircle } from 'lucide-react'
 import { fetchTracks } from '../../lib/tracks.js'
-import { WEEK_TEMPLATE, buildWeekPlan, importWeek, inspectExisting, parseWeek } from '../../lib/weekImport.js'
+import { fetchGroups } from '../../lib/groups.js'
+import { KIDS_CLASS_TEMPLATE, WEEK_TEMPLATE, buildWeekPlan, importWeek, inspectExisting, parseWeek } from '../../lib/weekImport.js'
 import { clearCache } from '../../lib/cache.js'
 
 // Importar una semana completa de un curso desde un JSON (ver
@@ -42,6 +43,7 @@ function itemSummary(a) {
 
 export default function AdminImportWeekPage() {
   const [tracks, setTracks] = useState([])
+  const [groups, setGroups] = useState([])
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState('')
   const [parseError, setParseError] = useState('')
@@ -56,6 +58,7 @@ export default function AdminImportWeekPage() {
   useEffect(() => {
     clearCache()
     fetchTracks().then(setTracks).catch(() => {})
+    fetchGroups().then(setGroups).catch(() => {})
   }, [])
 
   const analyze = async (raw) => {
@@ -69,7 +72,7 @@ export default function AdminImportWeekPage() {
       return
     }
     setParseError('')
-    const r = buildWeekPlan(parsed.data, { tracks })
+    const r = buildWeekPlan(parsed.data, { tracks, groups })
     setResult(r)
     if (!r.errors.length) {
       try {
@@ -96,6 +99,8 @@ export default function AdminImportWeekPage() {
     try {
       const res = await importWeek(result.plan, mode)
       setDone(res)
+      // Para que la próxima vista previa vea los temas recién activados.
+      fetchGroups().then(setGroups).catch(() => {})
     } catch (err) {
       setImportError(err.message || 'No se pudo importar.')
     } finally {
@@ -103,27 +108,29 @@ export default function AdminImportWeekPage() {
     }
   }
 
-  const downloadTemplate = () => {
-    const blob = new Blob([JSON.stringify(WEEK_TEMPLATE, null, 2)], { type: 'application/json' })
+  const downloadTemplate = (kidsTemplate) => {
+    const blob = new Blob([JSON.stringify(kidsTemplate ? KIDS_CLASS_TEMPLATE : WEEK_TEMPLATE, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'semana-ejemplo.json'
+    a.download = kidsTemplate ? 'kids-clase-ejemplo.json' : 'semana-ejemplo.json'
     a.click()
     URL.revokeObjectURL(url)
   }
 
   const plan = result?.plan
+  const kids = plan?.scope === 'infancias'
   const canImport = result && !result.errors.length && existing && mode && !importing && !done
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
         <Link to="/notas-profe" className="text-brand hover:underline text-sm">← Panel</Link>
-        <h1 className="font-display text-3xl font-semibold text-ink mt-2">Importar semana (JSON)</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink mt-2">Importar semana o clase (JSON)</h1>
         <p className="text-ink/70 mt-1">
-          Subí el archivo de una semana y se cargan todas sus actividades juntas en el temario de esa semana, con el código de
-          clase y ejercicio para lxs alumnxs.
+          <strong>Adultos:</strong> un archivo por semana (con <code>course</code>, <code>level</code> y <code>week</code>) se carga en el
+          temario de esa semana. <strong>English Kids Club:</strong> un archivo por clase (con <code>group</code> y <code>class</code>) se
+          suma a las actividades del grupo. En los dos casos cada ejercicio lleva su código de clase para lxs alumnxs.
         </p>
       </div>
 
@@ -142,9 +149,14 @@ export default function AdminImportWeekPage() {
             e.target.value = ''
           }} />
           {fileName && <span className="inline-flex items-center gap-1 text-sm text-ink/70"><FileJson size={16} /> {fileName}</span>}
-          <button type="button" onClick={downloadTemplate} className="inline-flex items-center gap-1 text-brand hover:underline text-sm ml-auto">
-            <Download size={15} /> Descargar ejemplo
-          </button>
+          <span className="inline-flex flex-wrap items-center gap-3 ml-auto text-sm">
+            <button type="button" onClick={() => downloadTemplate(false)} className="inline-flex items-center gap-1 text-brand hover:underline">
+              <Download size={15} /> Ejemplo Adultos
+            </button>
+            <button type="button" onClick={() => downloadTemplate(true)} className="inline-flex items-center gap-1 text-brand hover:underline">
+              <Download size={15} /> Ejemplo Kids
+            </button>
+          </span>
         </div>
         <label className="block">
           <span className={`${mono} block mb-1`}>O pegá el JSON acá</span>
@@ -174,12 +186,25 @@ export default function AdminImportWeekPage() {
       {result && (
         <section className={box} data-testid="import-preview">
           <p className={mono}>Vista previa</p>
-          <h2 className="font-display text-2xl font-semibold text-ink mt-1">{plan.temarioName}</h2>
+          <h2 className="font-display text-2xl font-semibold text-ink mt-1">
+            {kids ? `Clase ${Number.isInteger(plan.classNum) ? plan.classNum : '?'} · ${plan.title}` : plan.temarioName}
+          </h2>
           {plan.description && <p className="text-ink/80 mt-1">{plan.description}</p>}
           <p className="text-ink/70 text-sm mt-1">
-            {plan.trackName} · Nivel {plan.levelName} · Clase {Number.isInteger(plan.classNum) ? plan.classNum : '?'}
-            {existing && (existing.temario ? ' · el temario ya existe' : ' · se crea un temario nuevo')}
+            {kids ? (
+              <>English Kids Club · Grupo {plan.groupName} · se suma a las actividades del grupo</>
+            ) : (
+              <>
+                {plan.trackName} · Nivel {plan.levelName} · Clase {Number.isInteger(plan.classNum) ? plan.classNum : '?'}
+                {existing && (existing.temario ? ' · el temario ya existe' : ' · se crea un temario nuevo')}
+              </>
+            )}
           </p>
+          {kids && plan.topicsToEnable.length > 0 && !result.errors.length && (
+            <p className="text-sm mt-2 text-ink/80">
+              Se van a activar en el grupo: <strong>{plan.topicsToEnable.join(', ')}</strong>
+            </p>
+          )}
 
           {result.errors.length > 0 && (
             <div className="mt-4 rounded-xl border-2 border-stamp/30 bg-stamp/5 p-4">
@@ -211,14 +236,14 @@ export default function AdminImportWeekPage() {
                 <span className="font-semibold text-ink">{a.label}</span>
                 <span className="text-ink/60 text-sm">{itemSummary(a)}</span>
                 {existing?.filled?.[a.contentType] && (
-                  <span className="text-[11px] font-mono uppercase text-stamp ml-auto">ya tiene contenido</span>
+                  <span className="text-[11px] font-mono uppercase text-stamp ml-auto">{kids ? 'esta clase ya está' : 'ya tiene contenido'}</span>
                 )}
               </li>
             ))}
             {plan.glossary.length > 0 && (
               <li className="flex flex-wrap items-baseline gap-x-3 py-3">
                 <span className="font-mono text-xs text-ink/50 w-28 shrink-0">Glosario</span>
-                <span className="font-semibold text-ink">Glosario del track</span>
+                <span className="font-semibold text-ink">{kids ? 'Glosario del grupo' : 'Glosario del track'}</span>
                 <span className="text-ink/60 text-sm">{plan.glossary.length} palabras (no se duplican las que ya están)</span>
               </li>
             )}
@@ -228,18 +253,29 @@ export default function AdminImportWeekPage() {
 
           {!result.errors.length && existing?.hasContent && !done && (
             <fieldset className="mt-5 rounded-xl border-2 border-ink/15 p-4">
-              <legend className="px-2 font-semibold text-ink">Esta semana ya tiene contenido. ¿Qué hago?</legend>
+              <legend className="px-2 font-semibold text-ink">
+                {kids ? `La clase ${plan.classNum} ya está cargada en este grupo. ¿Qué hago?` : 'Esta semana ya tiene contenido. ¿Qué hago?'}
+              </legend>
               <label className="flex items-start gap-2 text-sm py-1">
                 <input type="radio" name="mode" checked={mode === 'replace'} onChange={() => setMode('replace')} className="mt-1" />
                 <span>
-                  <strong>Reemplazar</strong> — las actividades que trae el archivo pisan lo que hay en esa semana (las que no trae, quedan
-                  como están).
+                  {kids ? (
+                    <>
+                      <strong>Reemplazar esa clase</strong> — se saca lo que estaba cargado como clase {plan.classNum} y se pone lo del archivo.
+                      Las otras clases no se tocan.
+                    </>
+                  ) : (
+                    <>
+                      <strong>Reemplazar</strong> — las actividades que trae el archivo pisan lo que hay en esa semana (las que no trae, quedan
+                      como están).
+                    </>
+                  )}
                 </span>
               </label>
               <label className="flex items-start gap-2 text-sm py-1">
                 <input type="radio" name="mode" checked={mode === 'append'} onChange={() => setMode('append')} className="mt-1" />
                 <span>
-                  <strong>Sumar</strong> — se agregan después de lo que ya hay.
+                  <strong>Sumar</strong> — {kids ? 'se agrega igual, quedan las dos versiones.' : 'se agregan después de lo que ya hay.'}
                 </span>
               </label>
             </fieldset>
@@ -253,7 +289,15 @@ export default function AdminImportWeekPage() {
               disabled={!canImport}
               className="mt-5 w-full sm:w-auto bg-ink text-cream font-semibold px-6 py-3 rounded-lg hover:bg-brand transition-colors disabled:opacity-40"
             >
-              {importing ? 'Importando…' : result.errors.length ? 'Corregí los errores para importar' : existing?.hasContent && !mode ? 'Elegí reemplazar o sumar' : 'Importar semana'}
+              {importing
+                ? 'Importando…'
+                : result.errors.length
+                  ? 'Corregí los errores para importar'
+                  : existing?.hasContent && !mode
+                    ? 'Elegí reemplazar o sumar'
+                    : kids
+                      ? 'Importar clase'
+                      : 'Importar semana'}
             </button>
           )}
           {importError && <p className="text-stamp text-sm mt-3">{importError}</p>}
@@ -261,7 +305,7 @@ export default function AdminImportWeekPage() {
           {done && (
             <div className="mt-5 rounded-xl border-2 border-olive/30 bg-olive/10 p-4" role="status">
               <p className="flex items-center gap-2 font-semibold text-olive">
-                <CheckCircle2 size={18} /> ¡Semana importada!
+                <CheckCircle2 size={18} /> {kids ? '¡Clase importada!' : '¡Semana importada!'}
               </p>
               <ul className="mt-2 text-sm text-ink/80 list-disc pl-5">
                 {done.createdTemario && <li>Se creó el temario “{plan.temarioName}”.</li>}
@@ -270,6 +314,7 @@ export default function AdminImportWeekPage() {
                     {w.label}: {w.count} {w.count === 1 ? 'ítem' : 'ítems'} {mode === 'append' ? 'sumado' : 'cargado'}{w.count === 1 ? '' : 's'}
                   </li>
                 ))}
+                {done.enabledTopics?.length > 0 && <li>Se activaron en el grupo: {done.enabledTopics.join(', ')}.</li>}
                 {plan.glossary.length > 0 && (
                   <li>
                     Glosario: {plural(done.glossaryAdded, 'palabra nueva', 'palabras nuevas')}{done.glossaryUpdated ? `, ${plural(done.glossaryUpdated, 'actualizada', 'actualizadas')}` : ''}
@@ -277,8 +322,13 @@ export default function AdminImportWeekPage() {
                 )}
               </ul>
               <div className="flex flex-wrap gap-4 mt-3 text-sm">
-                <a href={`/adultos/${plan.level}/${plan.course}/${plan.temarioSlug}`} target="_blank" rel="noreferrer" className="text-brand hover:underline font-medium">
-                  Ver la semana como alumnx →
+                <a
+                  href={kids ? `/infancias/${plan.groupSlug}` : `/adultos/${plan.level}/${plan.course}/${plan.temarioSlug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-brand hover:underline font-medium"
+                >
+                  {kids ? 'Ver el grupo como alumnx →' : 'Ver la semana como alumnx →'}
                 </a>
                 <button
                   type="button"
@@ -290,7 +340,7 @@ export default function AdminImportWeekPage() {
                   }}
                   className="text-brand hover:underline"
                 >
-                  Importar otra semana
+                  {kids ? 'Importar otra clase' : 'Importar otra semana'}
                 </button>
               </div>
             </div>

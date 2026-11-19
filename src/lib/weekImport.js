@@ -21,6 +21,13 @@
 // }
 //
 // listening y readingWriting aceptan también un array (varios por semana).
+//
+// English Kids Club: mismo formato, pero en vez de course/level/week va
+//   "group": "aventureros"   ← slug del grupo
+//   "class": 4               ← número de clase (obligatorio)
+// y la clase se SUMA a las actividades del grupo (no hay temarios). Si esa
+// clase ya estaba cargada, se puede reemplazar. Las actividades que el grupo
+// no tenía activadas se activan solas.
 // Cada actividad recibe un código visible para lxs alumnxs, "Clase 1 · Ej. 3",
 // numerado en el orden de arriba; si una actividad trae varias tarjetas
 // (ej. varios Voice Lab) van como 8a, 8b, 8c.
@@ -30,9 +37,12 @@
 
 import { LEVELS } from '../data/levels.js'
 import { clearCache } from './cache.js'
-import { buildAdultosScopeKey, fetchContent, saveContent } from './content.js'
+import { buildAdultosScopeKey, buildInfanciasScopeKey, fetchContent, saveContent } from './content.js'
 import { countBlanks, joinBankWords, sentenceIssues } from './fillBlank.js'
-import { addGlossaryEntries, fetchAdultosGlossary, saveGlossaryEntry } from './glossary.js'
+import { addGlossaryEntries, fetchAdultosGlossary, fetchInfanciasGlossary, saveGlossaryEntry } from './glossary.js'
+import { supabase } from './supabaseClient.js'
+import { classOfCode } from './exerciseCode.js'
+import { fetchGroup } from './groups.js'
 import { fetchTemarios, saveTemario } from './tracks.js'
 import { parseYouTubeId } from './youtube.js'
 
@@ -274,28 +284,68 @@ export function orderFromAnswer(blocks, answer, where, ctx) {
 
 // ─── Plan de importación ──────────────────────────────────────────────
 
-// Valida el JSON y lo convierte. `tracks` = lista de tracks del panel.
-// Devuelve { errors, warnings, plan } — si hay errores no se importa.
-export function buildWeekPlan(data, { tracks = [] } = {}) {
+// Actividad → tema del grupo (Kids): el grupo muestra solo los temas
+// activados en Grupos; el importador activa los que trae el archivo.
+const KIDS_TOPIC_FOR = {
+  flashcards: 'flashcards',
+  quiz: 'cuestionario',
+  sentence_builder: 'sentence-builder',
+  fill_blank: 'completar',
+  listening: 'listening',
+  reading_writing: 'reading-writing',
+  pronunciation: 'pronunciacion',
+  voice_lab: 'voice-lab',
+}
+
+
+// Valida el JSON y lo convierte. Si trae "group" es una clase de English
+// Kids Club; si no, una semana de Adultos (course + level + week).
+// `tracks` / `groups` = listas del panel. Devuelve { errors, warnings, plan };
+// si hay errores no se importa.
+export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
   const errors = []
   const warnings = []
-  const level = str(data.level).toLowerCase()
-  const course = str(data.course)
-  const week = Number(data.week)
-  const classNum = data.class == null || data.class === '' ? week : Number(data.class)
+  const kids = data.group != null && data.group !== ''
   const title = str(data.title)
+  let classNum
+  let header = {}
 
-  if (!LEVELS.some((l) => l.slug === level))
-    errors.push(`"level": "${data.level ?? ''}" no existe. Tiene que ser uno de: ${LEVELS.map((l) => l.slug).join(', ')}.`)
-  const track = tracks.find((t) => t.slug === course)
-  if (!course) errors.push('Falta "course" (el slug del track/curso).')
-  else if (!track)
-    errors.push(`"course": "${course}" no coincide con ningún track. Tracks que existen: ${tracks.map((t) => t.slug).join(', ') || '(ninguno)'}. Crealo primero en Tracks o corregí el slug.`)
-  if (!Number.isInteger(week) || week < 1) errors.push('"week" tiene que ser un número entero (1, 2, 3…).')
-  if (!Number.isInteger(classNum) || classNum < 1) errors.push('"class" tiene que ser un número entero (o no ponerlo y se usa el de "week").')
-  if (!title) errors.push('Falta "title" (el nombre de la semana).')
+  if (kids) {
+    const groupSlug = str(data.group)
+    const group = groups.find((g) => g.slug === groupSlug)
+    if (!group)
+      errors.push(`"group": "${groupSlug}" no coincide con ningún grupo. Grupos que existen: ${groups.map((g) => g.slug).join(', ') || '(ninguno)'}.`)
+    classNum = Number(data.class)
+    if (!Number.isInteger(classNum) || classNum < 1) errors.push('"class" tiene que ser un número entero (1, 2, 3…): es el número de clase del grupo.')
+    for (const k of ['course', 'level', 'week']) if (data[k] != null) warnings.push(`Se ignora "${k}": en Kids alcanza con "group" y "class".`)
+    header = { scope: 'infancias', groupSlug, groupName: group?.name || groupSlug, group: group || null }
+  } else {
+    const level = str(data.level).toLowerCase()
+    const course = str(data.course)
+    const week = Number(data.week)
+    classNum = data.class == null || data.class === '' ? week : Number(data.class)
+    if (!LEVELS.some((l) => l.slug === level))
+      errors.push(`"level": "${data.level ?? ''}" no existe. Tiene que ser uno de: ${LEVELS.map((l) => l.slug).join(', ')}.`)
+    const track = tracks.find((t) => t.slug === course)
+    if (!course) errors.push('Falta "course" (el slug del track/curso), o "group" si es una clase de English Kids Club.')
+    else if (!track)
+      errors.push(`"course": "${course}" no coincide con ningún track. Tracks que existen: ${tracks.map((t) => t.slug).join(', ') || '(ninguno)'}. Crealo primero en Tracks o corregí el slug.`)
+    if (!Number.isInteger(week) || week < 1) errors.push('"week" tiene que ser un número entero (1, 2, 3…).')
+    if (!Number.isInteger(classNum) || classNum < 1) errors.push('"class" tiene que ser un número entero (o no ponerlo y se usa el de "week").')
+    header = {
+      scope: 'adultos',
+      level,
+      levelName: LEVELS.find((l) => l.slug === level)?.code || level,
+      course,
+      trackName: track?.name || course,
+      week,
+      temarioSlug: Number.isInteger(week) ? temarioSlugForWeek(week) : '',
+      temarioName: `Week ${week} · ${title}`,
+    }
+  }
+  if (!title) errors.push(`Falta "title" (el nombre de la ${kids ? 'clase' : 'semana'}).`)
 
-  const known = new Set(['course', 'level', 'week', 'class', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
+  const known = new Set(['course', 'level', 'week', 'group', 'class', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
   for (const key of Object.keys(data)) if (!known.has(key)) warnings.push(`Se ignora "${key}": no es un bloque conocido.`)
 
   const activities = []
@@ -303,7 +353,7 @@ export function buildWeekPlan(data, { tracks = [] } = {}) {
   for (const def of WEEK_ACTIVITIES) {
     const block = data[def.key]
     if (block == null || (Array.isArray(block) && block.length === 0)) continue
-    const ctx = { title: title || `Week ${week}`, err: (m) => errors.push(m), warn: (m) => warnings.push(m) }
+    const ctx = { title: title || `Clase ${classNum}`, err: (m) => errors.push(m), warn: (m) => warnings.push(m) }
     let items = converters[def.key](block, ctx)
     if (!items.length) continue
     n += 1
@@ -327,37 +377,62 @@ export function buildWeekPlan(data, { tracks = [] } = {}) {
 
   if (!activities.length && !glossary.length) errors.push('El archivo no trae ninguna actividad.')
 
+  // Kids: actividades que el grupo todavía no muestra y se van a activar.
+  const topicsToEnable =
+    kids && header.group
+      ? [...new Set(activities.map((a) => KIDS_TOPIC_FOR[a.contentType]))].filter((t) => !(header.group.topics || []).includes(t))
+      : []
+
   return {
     errors,
     warnings,
     plan: {
-      level,
-      levelName: LEVELS.find((l) => l.slug === level)?.code || level,
-      course,
-      trackName: track?.name || course,
-      week,
+      ...header,
       classNum,
       title,
-      // "topic" (ej. el tema gramatical) se usa como subtítulo del temario.
+      // "topic" (ej. el tema gramatical) se usa como subtítulo.
       description: str(data.description) || str(data.topic),
-      temarioSlug: Number.isInteger(week) ? temarioSlugForWeek(week) : '',
-      temarioName: `Week ${week} · ${title}`,
       activities,
       glossary,
+      topicsToEnable,
     },
   }
 }
 
-// Qué hay ya cargado en ese temario (para preguntar si se pisa o se suma).
+const scopeKeyFor = (plan, contentType) =>
+  plan.scope === 'infancias'
+    ? buildInfanciasScopeKey(plan.groupSlug, contentType)
+    : buildAdultosScopeKey(plan.level, plan.course, plan.temarioSlug, contentType)
+
+const saveFor = (plan, contentType, data) =>
+  saveContent(
+    plan.scope === 'infancias'
+      ? { scopeKey: scopeKeyFor(plan, contentType), scope: 'infancias', groupSlug: plan.groupSlug, contentType, data }
+      : { scopeKey: scopeKeyFor(plan, contentType), scope: 'adultos', levelSlug: plan.level, trackSlug: plan.course, temarioSlug: plan.temarioSlug, contentType, data }
+  )
+
+// Qué hay ya cargado (para preguntar si se pisa o se suma).
+// Adultos: si el temario de esa semana ya tiene actividades.
+// Kids: si esa clase (mismo número) ya está cargada en el grupo.
 export async function inspectExisting(plan) {
   clearCache()
+  const filled = {}
+  if (plan.scope === 'infancias') {
+    await Promise.all(
+      plan.activities.map(async (a) => {
+        const data = await fetchContent(scopeKeyFor(plan, a.contentType), a.contentType)
+        const same = (Array.isArray(data) ? data : []).filter((it) => classOfCode(it.code) === plan.classNum)
+        if (same.length) filled[a.contentType] = same.length
+      })
+    )
+    return { filled, hasContent: Object.keys(filled).length > 0 }
+  }
   const temarios = await fetchTemarios(plan.course)
   const temario = temarios.find((t) => t.slug === plan.temarioSlug) || null
-  const filled = {}
   if (temario) {
     await Promise.all(
       plan.activities.map(async (a) => {
-        const data = await fetchContent(buildAdultosScopeKey(plan.level, plan.course, plan.temarioSlug, a.contentType), a.contentType)
+        const data = await fetchContent(scopeKeyFor(plan, a.contentType), a.contentType)
         if (Array.isArray(data) && data.length) filled[a.contentType] = data.length
       })
     )
@@ -365,36 +440,65 @@ export async function inspectExisting(plan) {
   return { temario, filled, hasContent: Object.keys(filled).length > 0, temarioCount: temarios.length }
 }
 
-// Escribe todo. mode: 'replace' (pisa cada actividad de la semana) o
-// 'append' (suma a lo que ya hay). El glosario es del nivel+track (no de la
-// semana), así que nunca se borra: se suman las palabras nuevas y, en modo
+// Ordena por número de clase (lo que no tiene código queda primero, en su
+// orden), así las clases de Kids se ven en orden aunque se carguen salteadas.
+const byClass = (items) =>
+  items
+    .map((it, i) => ({ it, i, c: classOfCode(it.code) ?? -1 }))
+    .sort((a, b) => a.c - b.c || a.i - b.i)
+    .map((x) => x.it)
+
+// Escribe todo.
+// Adultos — mode 'replace': pisa cada actividad que trae la semana;
+//           'append': suma a lo que ya hay.
+// Kids    — siempre se suma a lo del grupo; con 'replace', antes se sacan
+//           los ítems de esa misma clase (para corregir una clase ya cargada).
+// El glosario nunca se borra: se suman las palabras nuevas y, en modo
 // reemplazar, se actualizan las que ya estaban.
 export async function importWeek(plan, mode = 'replace') {
   clearCache()
-  const temarios = await fetchTemarios(plan.course)
+  const kids = plan.scope === 'infancias'
   let createdTemario = false
-  if (!temarios.some((t) => t.slug === plan.temarioSlug)) {
-    await saveTemario({ track_slug: plan.course, slug: plan.temarioSlug, name: plan.temarioName, description: plan.description, sort_order: plan.week })
-    createdTemario = true
+  if (!kids) {
+    const temarios = await fetchTemarios(plan.course)
+    if (!temarios.some((t) => t.slug === plan.temarioSlug)) {
+      await saveTemario({ track_slug: plan.course, slug: plan.temarioSlug, name: plan.temarioName, description: plan.description, sort_order: plan.week })
+      createdTemario = true
+    }
   }
 
   const written = []
   for (const a of plan.activities) {
-    const scopeKey = buildAdultosScopeKey(plan.level, plan.course, plan.temarioSlug, a.contentType)
     let data = a.items
-    if (mode === 'append') {
+    if (kids || mode === 'append') {
       clearCache()
-      const existing = await fetchContent(scopeKey, a.contentType)
-      data = [...(Array.isArray(existing) ? existing : []), ...a.items]
+      let existing = await fetchContent(scopeKeyFor(plan, a.contentType), a.contentType)
+      existing = Array.isArray(existing) ? existing : []
+      if (kids && mode === 'replace') existing = existing.filter((it) => classOfCode(it.code) !== plan.classNum)
+      data = kids ? byClass([...existing, ...a.items]) : [...existing, ...a.items]
     }
-    await saveContent({ scopeKey, scope: 'adultos', levelSlug: plan.level, trackSlug: plan.course, temarioSlug: plan.temarioSlug, contentType: a.contentType, data })
+    await saveFor(plan, a.contentType, data)
     written.push({ label: a.label, count: a.items.length })
+  }
+
+  let enabledTopics = []
+  if (kids) {
+    // Se relee el grupo recién ahora, por si se cambió algo desde la vista previa.
+    clearCache()
+    const group = await fetchGroup(plan.groupSlug)
+    const current = group?.topics || []
+    const missing = [...new Set(plan.activities.map((a) => KIDS_TOPIC_FOR[a.contentType]))].filter((t) => !current.includes(t))
+    if (group?.id != null && missing.length) {
+      const { error } = await supabase.from('groups').update({ topics: [...current, ...missing] }).eq('id', group.id)
+      if (error) throw error
+      enabledTopics = missing
+    }
   }
 
   let glossaryAdded = 0
   let glossaryUpdated = 0
   if (plan.glossary.length) {
-    const existing = await fetchAdultosGlossary(plan.level, plan.course)
+    const existing = kids ? await fetchInfanciasGlossary(plan.groupSlug) : await fetchAdultosGlossary(plan.level, plan.course)
     const byWord = new Map(existing.map((e) => [norm(e.word), e]))
     const seen = new Set()
     const toAdd = []
@@ -403,7 +507,9 @@ export async function importWeek(plan, mode = 'replace') {
       if (seen.has(key)) continue
       seen.add(key)
       const prev = byWord.get(key)
-      const base = { scope: 'adultos', level_slug: plan.level, track_slug: plan.course, word: g.word, translation: g.translation, example: g.example }
+      const base = kids
+        ? { scope: 'infancias', group_slug: plan.groupSlug, word: g.word, translation: g.translation, example: g.example }
+        : { scope: 'adultos', level_slug: plan.level, track_slug: plan.course, word: g.word, translation: g.translation, example: g.example }
       if (!prev) toAdd.push(base)
       else if (mode === 'replace' && (norm(prev.translation) !== norm(g.translation) || norm(prev.example) !== norm(g.example))) {
         await saveGlossaryEntry({ ...base, id: prev.id, word: prev.word })
@@ -414,7 +520,7 @@ export async function importWeek(plan, mode = 'replace') {
     glossaryAdded = toAdd.length
   }
   clearCache()
-  return { createdTemario, written, glossaryAdded, glossaryUpdated }
+  return { createdTemario, written, glossaryAdded, glossaryUpdated, enabledTopics }
 }
 
 // Ejemplo descargable desde el panel (misma forma que la Semana 1).
@@ -441,4 +547,26 @@ export const WEEK_TEMPLATE = {
   readingWriting: { text: '...', questions: [{ q: '...', a: '...' }], writingPrompt: '...' },
   pronunciation: [{ a: 'right', b: 'write', context: 'Right now, I write tests.' }],
   voiceLab: [{ sentence: 'Every day, our team has a standup.', keywords: ['team', 'standup'], tip: '...' }],
+}
+
+export const KIDS_CLASS_TEMPLATE = {
+  group: 'aventureros',
+  class: 1,
+  title: 'My Pets',
+  topic: 'Animals + have got',
+  glossary: [{ term: 'dog', meaning: 'perro', example: 'I have got a dog.' }],
+  flashcards: [{ front: 'cat', back: 'gato' }, { front: 'dog', back: 'perro' }],
+  quiz: [{ question: 'A ___ says "meow".', options: ['dog', 'cat', 'fish'], answer: 'cat' }],
+  sentenceBuilder: [{ blocks: ['I', 'have got', 'a', 'dog.'], answer: 'I have got a dog.' }],
+  fillBlanks: { bank: ['cat', 'fish'], items: [{ text: 'My ___ can swim.', answer: 'fish' }] },
+  listening: {
+    title: 'Pet Song',
+    script: [{ speaker: 'Teacher', text: 'I have got a cat. My cat is black.' }],
+    audioUrl: null,
+    videoUrl: null,
+    questions: [{ q: 'What color is the cat?', options: ['black', 'white'], answer: 0 }],
+  },
+  readingWriting: { text: 'Tom has got a dog. His dog is big and brown.', questions: [{ q: 'Is the dog big?', options: ['Yes', 'No'], answer: 0 }], writingPrompt: 'Contá cómo es tu mascota (o la que te gustaría tener).' },
+  pronunciation: [{ a: 'cat', b: 'cut', context: 'The cat can cut the paper.' }],
+  voiceLab: [{ sentence: 'I have got a big dog.', keywords: ['big', 'dog'], tip: '"Dog" suena /dɒɡ/, con o corta.' }],
 }

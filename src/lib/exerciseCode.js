@@ -8,3 +8,9 @@ export function withCode(code, label) {
   if (!c) return label
   return l ? `${c} — ${l}` : c
 }
+
+// Número de clase a partir del código ("Clase 4 · Ej. 2" → 4).
+export function classOfCode(code) {
+  const m = String(code || '').match(/^Clase\s+(\d+)/i)
+  return m ? Number(m[1]) : null
+}

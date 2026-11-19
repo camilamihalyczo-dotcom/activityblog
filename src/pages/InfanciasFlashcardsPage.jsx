@@ -5,7 +5,7 @@ import { fetchContent, buildInfanciasScopeKey } from '../lib/content.js'
 import { useActivityLoad } from '../lib/useActivityLoad.js'
 import KidsHeader from '../components/KidsHeader.jsx'
 import KidsEmptyState from '../components/KidsEmptyState.jsx'
-import FlashcardDeck from '../components/FlashcardDeck.jsx'
+import CodedFlashcards from '../components/CodedFlashcards.jsx'
 
 export default function InfanciasFlashcardsPage() {
   const { group: slug } = useParams()
@@ -38,7 +38,7 @@ export default function InfanciasFlashcardsPage() {
         </span>
         <h1 className="font-body font-extrabold uppercase tracking-wide text-3xl sm:text-4xl text-kidsInk mb-2">Flashcards</h1>
         <p className="font-playful text-kidsInk/70 mb-8">Tocá la tarjeta para dar vuelta y ver la traducción.</p>
-        {cards.length === 0 ? <KidsEmptyState label="flashcards" /> : <FlashcardDeck key={scopeKey} cards={cards} c={c} kids />}
+        {cards.length === 0 ? <KidsEmptyState label="flashcards" /> : <CodedFlashcards deckKey={scopeKey} cards={cards} c={c} kids />}
       </div>
     </div>
   )

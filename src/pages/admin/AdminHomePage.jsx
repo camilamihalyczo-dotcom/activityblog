@@ -38,8 +38,8 @@ const SECTIONS = [
   },
   {
     to: '/notas-profe/importar',
-    label: 'Importar semana (JSON)',
-    desc: 'Cargá una semana completa de un curso de una vez — las 8 actividades y el glosario — con vista previa y aviso de errores antes de guardar.',
+    label: 'Importar semana o clase (JSON)',
+    desc: 'Cargá una semana de Adultos o una clase de English Kids Club de una vez — las actividades y el glosario — con vista previa y aviso de errores antes de guardar.',
     ready: true,
   },
   {
