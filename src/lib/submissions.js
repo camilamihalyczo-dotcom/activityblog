@@ -26,6 +26,8 @@ export async function recordSubmission({
   score = null,
   total = null,
   detail = [],
+  // strict: si no se pudo guardar, tira error (para avisarle al alumnx).
+  strict = false,
 }) {
   const row = {
     scope,
@@ -55,9 +57,13 @@ export async function recordSubmission({
     // Si se intentó reemplazar y no se pudo, va como entrega nueva (sin el
     // id viejo, para no chocar con la que ya existe).
     const { error } = await supabase.from('submissions').insert(id && !replace ? { id, ...row } : row)
-    if (error) console.warn('[submissions] no se pudo guardar la respuesta:', error.message)
+    if (error) {
+      console.warn('[submissions] no se pudo guardar la respuesta:', error.message)
+      if (strict) throw error
+    }
   } catch (err) {
     console.warn('[submissions] no se pudo guardar la respuesta:', err)
+    if (strict) throw err
   }
 }
 

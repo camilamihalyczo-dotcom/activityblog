@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CheckCircle2, Lightbulb, Mic2, Snail, Volume2, XCircle } from 'lucide-react'
+import { CheckCircle2, Lightbulb, Mic2, RotateCcw, Send, Snail, Square, Volume2, XCircle } from 'lucide-react'
 import CollapsibleExercise from './CollapsibleExercise.jsx'
 import NameField from './NameField.jsx'
 import { recordSubmission, useStudentName } from '../lib/submissions.js'
 import { canSpeak, speak, stopSpeaking } from '../lib/speech.js'
 import { withCode } from '../lib/exerciseCode.js'
+import { MAX_SECONDS, canRecord, uploadRecording, useRecorder } from '../lib/voiceRecording.js'
 
 function normalizeWord(value) {
   return value.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'()_`~?-]/g, '')
@@ -66,6 +67,13 @@ export default function VoiceLabExercise({
   const [playing, setPlaying] = useState(null) // null | 'normal' | 'slow'
   const recognitionRef = useRef(null)
   const ttsAvailable = canSpeak()
+  // Dos grabadoras: una para practicar y escucharse (donde no hay
+  // corrección automática) y otra para la versión que se le manda a la profe.
+  const practiceRec = useRecorder()
+  const sendRec = useRecorder()
+  const recordingAvailable = canRecord()
+  const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
 
   const keywords = useMemo(() => (challenge.keywords || []).map(normalizeWord), [challenge.keywords])
   const spokenSet = new Set(recognizedWords)
@@ -138,6 +146,7 @@ export default function VoiceLabExercise({
       setErrorMessage(UNSUPPORTED_MIC())
       return
     }
+    if (practiceRec.state === 'recording' || sendRec.state === 'recording') return
     // Que el micrófono no "escuche" al modelo sonando.
     if (playing) {
       stopSpeaking()
@@ -181,6 +190,40 @@ export default function VoiceLabExercise({
     }
   }
 
+  const stepCls = `${kids ? 'font-playful text-kidsInk/70' : 'font-mono text-ink/60'} text-[11px] uppercase tracking-widest`
+
+  // Envía a la profe: sube el audio (si hay) y guarda la entrega con el
+  // último resultado de la práctica. Si algo falla se avisa (no se finge
+  // que se mandó).
+  const sendToTeacher = async () => {
+    setSending(true)
+    setSendError('')
+    try {
+      const audioPath = sendRec.blob ? await uploadRecording(sendRec.blob) : null
+      await recordSubmission({
+        strict: true,
+        scope,
+        levelSlug,
+        groupSlug,
+        trackSlug,
+        temarioSlug,
+        contentType: 'voice_lab',
+        label: withCode(challenge.code, challenge.title),
+        studentName,
+        score: transcript ? spokenKeywords.length : null,
+        total: transcript ? keywords.length : null,
+        detail: [
+          { sentence: challenge.sentence, transcript, keywords, spoken_keywords: spokenKeywords, is_complete: allKeywordsSpoken, audio_path: audioPath },
+        ],
+      })
+      setSubmitted(true)
+    } catch {
+      setSendError('No se pudo enviar. Revisá la conexión y probá de nuevo.')
+    } finally {
+      setSending(false)
+    }
+  }
+
   return (
     <CollapsibleExercise
       title={challenge.title || 'Desafío de pronunciación'}
@@ -190,7 +233,7 @@ export default function VoiceLabExercise({
     >
       <div className={kids ? 'bg-white' : ''}>
         <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-sm mb-4`}>
-          Primero escuchá cómo suena, después tocá el micrófono y leé la oración en voz alta.
+          Escuchá cómo suena, practicá todas las veces que quieras y, cuando te salga bien, mandáselo a tu profe.
         </p>
 
         <div className={`${kids ? 'bg-kidsCream' : 'bg-paper'} rounded-xl border-2 ${c.border} p-5 mb-5`}>
@@ -262,64 +305,156 @@ export default function VoiceLabExercise({
             </div>
           )}
           <div className="flex flex-col items-center gap-2">
-            <p className={`${kids ? 'font-playful text-kidsInk/70' : 'font-mono text-ink/60'} text-[11px] uppercase tracking-widest`}>{ttsAvailable ? '2 · Ahora decilo vos' : 'Decilo en voz alta'}</p>
-            <button
-              type="button"
-              onClick={toggleListening}
-              disabled={!micSupported}
-              className={`${isListening ? (kids ? 'bg-kidsRed ring-kidsRed/20' : 'bg-stamp ring-stamp/20') : (kids ? 'bg-kidsPurpleDeep ring-kidsPurpleDeep/15' : 'bg-brand ring-brand/15')} text-white rounded-full p-5 shadow-md ring-4 transition-colors disabled:opacity-40`}
-              aria-label={isListening ? 'Detener grabación' : 'Comenzar grabación'}
-            >
-              <Mic2 size={26} />
-            </button>
-            <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs text-center max-w-xs`}>
-              {!micSupported ? UNSUPPORTED_MIC() : isListening ? 'Te escucho… hablá ahora (tocá de nuevo para terminar)' : 'Tocá el micrófono para hablar'}
-            </p>
+            <p className={`${stepCls}`}>{ttsAvailable ? '2 · Practicá todas las veces que quieras' : 'Practicá todas las veces que quieras'}</p>
+            {micSupported ? (
+              <>
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  disabled={sendRec.state === 'recording'}
+                  className={`${isListening ? (kids ? 'bg-kidsRed ring-kidsRed/20' : 'bg-stamp ring-stamp/20') : (kids ? 'bg-kidsPurpleDeep ring-kidsPurpleDeep/15' : 'bg-brand ring-brand/15')} text-white rounded-full p-5 shadow-md ring-4 transition-colors disabled:opacity-40`}
+                  aria-label={isListening ? 'Detener grabación' : 'Comenzar grabación'}
+                >
+                  <Mic2 size={26} />
+                </button>
+                <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs text-center max-w-xs`}>
+                  {isListening ? 'Te escucho… hablá ahora (tocá de nuevo para terminar)' : 'Tocá el micrófono y leé la oración: las palabras se ponen en verde.'}
+                </p>
+              </>
+            ) : recordingAvailable ? (
+              // Sin reconocimiento de voz (ej. Chrome de iPhone): se graba y se
+              // escucha para compararse con el modelo.
+              <>
+                <RecorderButton rec={practiceRec} kids={kids} disabled={sendRec.state === 'recording'} idleLabel="Grabarme" onStart={() => stopSpeaking()} />
+                {practiceRec.state === 'done' && (
+                  <audio controls src={practiceRec.url} className="w-full max-w-xs" data-testid="practice-audio" />
+                )}
+                <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs text-center max-w-xs`}>
+                  En este navegador no hay corrección automática: grabate, escuchate y compará con el modelo.
+                </p>
+                {practiceRec.error && <p className={`${kids ? 'text-kidsRed font-playful' : 'text-stamp'} text-xs text-center`}>{practiceRec.error}</p>}
+              </>
+            ) : (
+              <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs text-center max-w-xs`}>{UNSUPPORTED_MIC()}</p>
+            )}
           </div>
         </div>
 
-        <div className={`${kids ? 'font-playful text-kidsInk' : 'text-ink'} flex flex-wrap items-center justify-center gap-2 mt-4 text-sm`}>
-          {keywords.map((keyword) => (
-            <span key={keyword} className={`rounded-full border px-3 py-1 ${spokenSet.has(keyword) ? 'border-olive bg-olive/10' : 'border-ink/15'}`}>
-              {spokenSet.has(keyword) ? <CheckCircle2 size={14} className="inline mr-1 text-olive" /> : <XCircle size={14} className="inline mr-1 opacity-40" />}
-              {keyword}
-            </span>
-          ))}
-        </div>
-
-        {allKeywordsSpoken && <p className={`${kids ? 'text-kidsGreenDeep font-playful' : 'text-olive'} text-center font-semibold mt-4`}>¡Excelente! Detectamos todas las palabras críticas.</p>}
-
-        {!submitted ? (
-          <div className="mt-6">
-            <NameField value={studentName} onChange={setStudentName} kids={kids} c={c} />
-            <button
-              type="button"
-              onClick={() => {
-                setSubmitted(true)
-                recordSubmission({
-                  scope,
-                  levelSlug,
-                  groupSlug,
-                  trackSlug,
-                  temarioSlug,
-                  contentType: 'voice_lab',
-                  label: withCode(challenge.code, challenge.title),
-                  studentName,
-                  score: spokenKeywords.length,
-                  total: keywords.length,
-                  detail: [{ sentence: challenge.sentence, transcript, keywords, spoken_keywords: spokenKeywords, is_complete: allKeywordsSpoken }],
-                })
-              }}
-              disabled={!studentName.trim() || !transcript}
-              className={`${kids ? 'bg-kidsInk rounded-full font-playful' : 'bg-ink rounded-lg'} w-full py-3 font-semibold text-white disabled:opacity-40`}
-            >
-              Guardar resultado
-            </button>
-          </div>
-        ) : (
-          <p className={`${kids ? 'font-playful text-kidsInk' : 'text-ink'} mt-6 text-center font-semibold`}>¡Resultado guardado!</p>
+        {micSupported && (
+          <>
+            <div className={`${kids ? 'font-playful text-kidsInk' : 'text-ink'} flex flex-wrap items-center justify-center gap-2 mt-4 text-sm`}>
+              {keywords.map((keyword) => (
+                <span key={keyword} className={`rounded-full border px-3 py-1 ${spokenSet.has(keyword) ? 'border-olive bg-olive/10' : 'border-ink/15'}`}>
+                  {spokenSet.has(keyword) ? <CheckCircle2 size={14} className="inline mr-1 text-olive" /> : <XCircle size={14} className="inline mr-1 opacity-40" />}
+                  {keyword}
+                </span>
+              ))}
+            </div>
+            {allKeywordsSpoken && <p className={`${kids ? 'text-kidsGreenDeep font-playful' : 'text-olive'} text-center font-semibold mt-4`}>¡Excelente! Detectamos todas las palabras críticas.</p>}
+          </>
         )}
+
+        {/* 3 · Envío a la profe: separado de la práctica. */}
+        <div className={`mt-8 pt-6 border-t-2 border-dashed ${kids ? 'border-kidsInk/10' : 'border-ink/10'}`} data-testid="send-to-teacher">
+          <p className={`${stepCls} text-center mb-3`}>{ttsAvailable ? '3 · ' : ''}Mandáselo a tu profe</p>
+          {submitted ? (
+            <div className="text-center">
+              <p className={`${kids ? 'font-playful text-kidsGreenDeep' : 'text-olive'} font-semibold`}>¡Listo! Tu profe ya lo puede escuchar.</p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSubmitted(false)
+                  sendRec.reset()
+                }}
+                className={`mt-3 text-sm underline ${kids ? 'font-playful text-kidsInk/80' : 'text-ink/70'}`}
+              >
+                Grabar y mandar otra vez
+              </button>
+            </div>
+          ) : recordingAvailable ? (
+            <div className="flex flex-col items-center gap-3">
+              {sendRec.state !== 'done' ? (
+                <>
+                  <RecorderButton
+                    rec={sendRec}
+                    kids={kids}
+                    disabled={isListening || practiceRec.state === 'recording'}
+                    idleLabel="Grabar para mi profe"
+                    onStart={() => {
+                      stopSpeaking()
+                      setPlaying(null)
+                      setSendError('')
+                    }}
+                  />
+                  <p className={`${kids ? 'font-playful text-kidsInk/70' : 'text-ink/60'} text-xs text-center max-w-xs`}>
+                    Cuando te salga bien, grabá tu versión final (hasta {MAX_SECONDS} segundos).
+                  </p>
+                  {sendRec.error && <p className={`${kids ? 'text-kidsRed font-playful' : 'text-stamp'} text-xs text-center`}>{sendRec.error}</p>}
+                </>
+              ) : (
+                <>
+                  <audio controls src={sendRec.url} className="w-full max-w-sm" data-testid="send-audio" />
+                  <button type="button" onClick={sendRec.reset} className={`inline-flex items-center gap-1 text-sm underline ${kids ? 'font-playful text-kidsInk/80' : 'text-ink/70'}`}>
+                    <RotateCcw size={14} aria-hidden="true" /> Volver a grabar
+                  </button>
+                  <div className="w-full mt-2">
+                    <NameField value={studentName} onChange={setStudentName} kids={kids} c={c} />
+                    <button
+                      type="button"
+                      onClick={sendToTeacher}
+                      disabled={!studentName.trim() || sending}
+                      className={`${kids ? 'bg-kidsInk rounded-full font-playful' : 'bg-ink rounded-lg'} w-full py-3 font-semibold text-white disabled:opacity-40 inline-flex items-center justify-center gap-2`}
+                    >
+                      <Send size={16} aria-hidden="true" /> {sending ? 'Enviando…' : 'Enviar a mi profe'}
+                    </button>
+                  </div>
+                </>
+              )}
+              {sendError && <p className={`${kids ? 'text-kidsRed font-playful' : 'text-stamp'} text-sm text-center`}>{sendError}</p>}
+            </div>
+          ) : (
+            // Navegador sin grabación (muy viejo): se manda solo el resultado de la práctica.
+            <div>
+              <NameField value={studentName} onChange={setStudentName} kids={kids} c={c} />
+              <button
+                type="button"
+                onClick={sendToTeacher}
+                disabled={!studentName.trim() || !transcript || sending}
+                className={`${kids ? 'bg-kidsInk rounded-full font-playful' : 'bg-ink rounded-lg'} w-full py-3 font-semibold text-white disabled:opacity-40`}
+              >
+                {sending ? 'Enviando…' : 'Enviar resultado a mi profe'}
+              </button>
+              {sendError && <p className={`${kids ? 'text-kidsRed font-playful' : 'text-stamp'} text-sm text-center mt-2`}>{sendError}</p>}
+            </div>
+          )}
+        </div>
       </div>
     </CollapsibleExercise>
+  )
+}
+
+// Botón de grabar/detener con contador.
+function RecorderButton({ rec, kids, disabled, idleLabel, onStart }) {
+  const recording = rec.state === 'recording'
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={() => {
+        if (recording) rec.stop()
+        else {
+          onStart?.()
+          rec.start()
+        }
+      }}
+      className={`inline-flex items-center gap-2 rounded-full px-5 py-3 font-semibold text-white shadow-md ring-4 transition-colors disabled:opacity-40 ${
+        recording
+          ? kids ? 'bg-kidsRed ring-kidsRed/20 font-playful' : 'bg-stamp ring-stamp/20'
+          : kids ? 'bg-kidsPurpleDeep ring-kidsPurpleDeep/15 font-playful' : 'bg-brand ring-brand/15'
+      }`}
+    >
+      {recording ? <Square size={18} aria-hidden="true" /> : <Mic2 size={20} aria-hidden="true" />}
+      {recording ? `Detener (0:${String(rec.seconds).padStart(2, '0')})` : idleLabel}
+    </button>
   )
 }

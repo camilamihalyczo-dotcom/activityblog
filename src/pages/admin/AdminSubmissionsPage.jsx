@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabaseClient.js'
-import { CheckCircle2, XCircle, ChevronDown, ChevronUp } from 'lucide-react'
+import { CheckCircle2, XCircle, ChevronDown, ChevronUp, Play } from 'lucide-react'
+import { KEEP_DAYS, cleanupOldRecordings, deleteRecordings, recordingUrl } from '../../lib/voiceRecording.js'
 
 const CONTENT_TYPE_LABELS = {
   fill_blank: 'Completar oraciones',
@@ -55,16 +56,44 @@ function FreeTextAnswer({ title, prompt, answer, model }) {
   )
 }
 
+// Audio grabado por el alumnx (bucket privado): el link se pide recién al
+// tocar "Escuchar", y vence en una hora.
+function RecordingPlayer({ path }) {
+  const [url, setUrl] = useState('')
+  const [state, setState] = useState('idle') // idle | loading | error
+  if (url) return <audio controls autoPlay src={url} className="w-full max-w-sm mt-2" data-testid="admin-audio" />
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        onClick={async () => {
+          setState('loading')
+          try {
+            setUrl(await recordingUrl(path))
+          } catch {
+            setState('error')
+          }
+        }}
+        className="inline-flex items-center gap-1.5 rounded-full border-2 border-ink/15 px-3 py-1 text-sm font-medium text-ink hover:border-ink/40"
+      >
+        <Play size={14} aria-hidden="true" /> {state === 'loading' ? 'Cargando…' : 'Escuchar su audio'}
+      </button>
+      {state === 'error' && <p className="text-ink/60 text-xs mt-1">El audio ya no está (se borran a los {KEEP_DAYS} días).</p>}
+    </div>
+  )
+}
+
 function VoiceLabDetail({ d }) {
   const spoken = new Set(d.spoken_keywords || [])
   return (
     <>
       <p className="text-ink/80">{d.sentence}</p>
+      {d.audio_path && <RecordingPlayer path={d.audio_path} />}
       <p className="text-ink/70 mt-1">
-        <span className="font-mono text-xs uppercase tracking-wide text-ink/60">Dijo: </span>
-        {d.transcript ? `“${d.transcript}”` : <Unanswered />}
+        <span className="font-mono text-xs uppercase tracking-wide text-ink/60">Práctica con corrección automática: </span>
+        {d.transcript ? `“${d.transcript}”` : d.audio_path ? <span className="text-ink/60">no hubo (su navegador no la tiene) — escuchá el audio</span> : <Unanswered />}
       </p>
-      {(d.keywords || []).length > 0 && (
+      {(d.keywords || []).length > 0 && (d.transcript || !d.audio_path) && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {d.keywords.map((k) => (
             <span
@@ -132,7 +161,7 @@ function SubmissionRow({ entry, onDelete }) {
                 : `${entry.score} / ${entry.total} correctas`}
             </p>
           ) : (
-            <p className="text-ink/60 text-sm mt-0.5">Para revisar</p>
+            <p className="text-ink/60 text-sm mt-0.5">{entry.content_type === 'voice_lab' ? 'Audio para escuchar' : 'Para revisar'}</p>
           )}
         </div>
         <span className="shrink-0 text-ink/60">{open ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
@@ -181,6 +210,10 @@ export default function AdminSubmissionsPage() {
   }
 
   useEffect(loadEntries, [])
+  // Grabaciones de más de 90 días: se borran solas (como mucho una vez por día).
+  useEffect(() => {
+    cleanupOldRecordings().catch(() => {})
+  }, [])
 
   const students = useMemo(() => {
     const set = new Set(entries.map((e) => e.student_name).filter(Boolean))
@@ -200,11 +233,15 @@ export default function AdminSubmissionsPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('¿Borrar esta entrega? No se puede deshacer.')) return
+    const entry = entries.find((e) => e.id === id)
     const { error } = await supabase.from('submissions').delete().eq('id', id)
     if (error) {
       window.alert(`No se pudo borrar: ${error.message}`)
       return
     }
+    // Si tenía grabación, se borra también el audio.
+    const audios = (entry?.detail || []).map((d) => d?.audio_path).filter(Boolean)
+    if (audios.length) deleteRecordings(audios).catch(() => {})
     // Se saca de la lista local en vez de recargar todo (más rápido y no
     // pierde los filtros ni las entregas abiertas).
     setEntries((current) => current.filter((e) => e.id !== id))
