@@ -7,6 +7,7 @@ import CollapsibleExercise from './CollapsibleExercise.jsx'
 import ExerciseSubmit from './ExerciseSubmit.jsx'
 import QuestionHint from './QuestionHint.jsx'
 import { withCode } from '../lib/exerciseCode.js'
+import { ReadAloudButton, allEmojiOptions, readAloudText } from './KidsQuestionTools.jsx'
 import { canSpeak, parseScript, speakScript, stopSpeaking } from '../lib/speech.js'
 
 // Cuestionario y Listening comparten la misma mecánica (preguntas de
@@ -35,7 +36,14 @@ function QuestionList({ questions, answers, onAnswer, submitted, s, kids, nested
           {q.image_url && (
             <img loading="lazy" decoding="async" src={q.image_url} alt="" className={`w-full max-h-56 object-cover ${s.img} mb-4`} />
           )}
-          <p className={`${s.text} font-semibold mb-2 whitespace-pre-line`}>{q.q}</p>
+          {kids ? (
+            <div className="flex items-start gap-3 mb-2">
+              <ReadAloudButton text={readAloudText(q.q, isOpen(q) ? [] : q.options)} />
+              <p className={`${s.text} font-semibold whitespace-pre-line pt-1.5`}>{q.q}</p>
+            </div>
+          ) : (
+            <p className={`${s.text} font-semibold mb-2 whitespace-pre-line`}>{q.q}</p>
+          )}
           <QuestionHint hint={q.hint} kids={kids} />
           {isOpen(q) ? (
             <textarea
@@ -47,6 +55,32 @@ function QuestionList({ questions, answers, onAnswer, submitted, s, kids, nested
               aria-label={`Respuesta a la pregunta ${qi + 1}`}
               className={`w-full px-3 py-2 border-2 text-sm ${s.input} ${s.inputIdle} transition-colors resize-y disabled:opacity-70`}
             />
+          ) : kids && allEmojiOptions(q.options) ? (
+          // Opciones con emojis: fichas grandes, fáciles de tocar.
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3" data-testid="emoji-options">
+            {(q.options || []).map((opt, oi) => {
+              if (!String(opt || '').trim()) return null
+              const chosen = answers[q.id] === oi
+              const correct = submitted && oi === q.answer
+              const wrong = submitted && chosen && oi !== q.answer
+              return (
+                <button
+                  key={oi}
+                  disabled={submitted}
+                  onClick={() => onAnswer(q.id, oi)}
+                  aria-pressed={chosen}
+                  aria-label={`Opción ${oi + 1}: ${opt}`}
+                  className={`relative aspect-square flex items-center justify-center border-2 ${s.option} text-5xl sm:text-6xl leading-none transition-transform
+                    ${correct ? s.ok : wrong ? s.bad : chosen && !submitted ? `${s.chosen} scale-105` : s.idle}
+                  `}
+                >
+                  <span aria-hidden="true">{opt}</span>
+                  {correct && <CheckCircle2 size={22} className={`${s.okIcon} absolute top-2 right-2`} />}
+                  {wrong && <XCircle size={22} className={`${s.badIcon} absolute top-2 right-2`} />}
+                </button>
+              )
+            })}
+          </div>
           ) : (
           <div className="flex flex-col gap-2">
             {(q.options || []).map((opt, oi) => {

@@ -9,8 +9,15 @@ export function withCode(code, label) {
   return l ? `${c} — ${l}` : c
 }
 
-// Número de clase a partir del código ("Clase 4 · Ej. 2" → 4).
+// Número de clase/unidad a partir del código ("Clase 4 · Ej. 2" → 4).
+// Adultos usa "Clase N"; English Kids Club, "Unidad N".
 export function classOfCode(code) {
-  const m = String(code || '').match(/^Clase\s+(\d+)/i)
+  const m = String(code || '').match(/^(?:Clase|Unidad)\s+(\d+)/i)
   return m ? Number(m[1]) : null
+}
+
+// "Unidad 4 · Ej. 2" → "Unidad 4" (para los botones de filtro).
+export function unitLabelOfCode(code) {
+  const m = String(code || '').match(/^((?:Clase|Unidad)\s+\d+)/i)
+  return m ? m[1] : null
 }

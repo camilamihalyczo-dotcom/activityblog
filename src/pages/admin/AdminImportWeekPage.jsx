@@ -113,7 +113,7 @@ export default function AdminImportWeekPage() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = kidsTemplate ? 'kids-clase-ejemplo.json' : 'semana-ejemplo.json'
+    a.download = kidsTemplate ? 'kids-unidad-ejemplo.json' : 'semana-ejemplo.json'
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -126,10 +126,10 @@ export default function AdminImportWeekPage() {
     <div className="flex flex-col gap-6 max-w-4xl">
       <div>
         <Link to="/notas-profe" className="text-brand hover:underline text-sm">← Panel</Link>
-        <h1 className="font-display text-3xl font-semibold text-ink mt-2">Importar semana o clase (JSON)</h1>
+        <h1 className="font-display text-3xl font-semibold text-ink mt-2">Importar semana o unidad (JSON)</h1>
         <p className="text-ink/70 mt-1">
           <strong>Adultos:</strong> un archivo por semana (con <code>course</code>, <code>level</code> y <code>week</code>) se carga en el
-          temario de esa semana. <strong>English Kids Club:</strong> un archivo por clase (con <code>group</code> y <code>class</code>) se
+          temario de esa semana. <strong>English Kids Club:</strong> un archivo por unidad (con <code>group</code> y <code>unit</code>) se
           suma a las actividades del grupo. En los dos casos cada ejercicio lleva su código de clase para lxs alumnxs.
         </p>
       </div>
@@ -187,7 +187,7 @@ export default function AdminImportWeekPage() {
         <section className={box} data-testid="import-preview">
           <p className={mono}>Vista previa</p>
           <h2 className="font-display text-2xl font-semibold text-ink mt-1">
-            {kids ? `Clase ${Number.isInteger(plan.classNum) ? plan.classNum : '?'} · ${plan.title}` : plan.temarioName}
+            {kids ? `Unidad ${Number.isInteger(plan.classNum) ? plan.classNum : '?'} · ${plan.title}` : plan.temarioName}
           </h2>
           {plan.description && <p className="text-ink/80 mt-1">{plan.description}</p>}
           <p className="text-ink/70 text-sm mt-1">
@@ -236,7 +236,7 @@ export default function AdminImportWeekPage() {
                 <span className="font-semibold text-ink">{a.label}</span>
                 <span className="text-ink/60 text-sm">{itemSummary(a)}</span>
                 {existing?.filled?.[a.contentType] && (
-                  <span className="text-[11px] font-mono uppercase text-stamp ml-auto">{kids ? 'esta clase ya está' : 'ya tiene contenido'}</span>
+                  <span className="text-[11px] font-mono uppercase text-stamp ml-auto">{kids ? 'esta unidad ya está' : 'ya tiene contenido'}</span>
                 )}
               </li>
             ))}
@@ -254,15 +254,15 @@ export default function AdminImportWeekPage() {
           {!result.errors.length && existing?.hasContent && !done && (
             <fieldset className="mt-5 rounded-xl border-2 border-ink/15 p-4">
               <legend className="px-2 font-semibold text-ink">
-                {kids ? `La clase ${plan.classNum} ya está cargada en este grupo. ¿Qué hago?` : 'Esta semana ya tiene contenido. ¿Qué hago?'}
+                {kids ? `La unidad ${plan.classNum} ya está cargada en este grupo. ¿Qué hago?` : 'Esta semana ya tiene contenido. ¿Qué hago?'}
               </legend>
               <label className="flex items-start gap-2 text-sm py-1">
                 <input type="radio" name="mode" checked={mode === 'replace'} onChange={() => setMode('replace')} className="mt-1" />
                 <span>
                   {kids ? (
                     <>
-                      <strong>Reemplazar esa clase</strong> — se saca lo que estaba cargado como clase {plan.classNum} y se pone lo del archivo.
-                      Las otras clases no se tocan.
+                      <strong>Reemplazar esa unidad</strong> — se saca lo que estaba cargado como unidad {plan.classNum} y se pone lo del archivo.
+                      Las otras unidades no se tocan.
                     </>
                   ) : (
                     <>
@@ -296,7 +296,7 @@ export default function AdminImportWeekPage() {
                   : existing?.hasContent && !mode
                     ? 'Elegí reemplazar o sumar'
                     : kids
-                      ? 'Importar clase'
+                      ? 'Importar unidad'
                       : 'Importar semana'}
             </button>
           )}
@@ -305,7 +305,7 @@ export default function AdminImportWeekPage() {
           {done && (
             <div className="mt-5 rounded-xl border-2 border-olive/30 bg-olive/10 p-4" role="status">
               <p className="flex items-center gap-2 font-semibold text-olive">
-                <CheckCircle2 size={18} /> {kids ? '¡Clase importada!' : '¡Semana importada!'}
+                <CheckCircle2 size={18} /> {kids ? '¡Unidad importada!' : '¡Semana importada!'}
               </p>
               <ul className="mt-2 text-sm text-ink/80 list-disc pl-5">
                 {done.createdTemario && <li>Se creó el temario “{plan.temarioName}”.</li>}
@@ -340,7 +340,7 @@ export default function AdminImportWeekPage() {
                   }}
                   className="text-brand hover:underline"
                 >
-                  {kids ? 'Importar otra clase' : 'Importar otra semana'}
+                  {kids ? 'Importar otra unidad' : 'Importar otra semana'}
                 </button>
               </div>
             </div>

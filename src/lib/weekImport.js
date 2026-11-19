@@ -24,9 +24,10 @@
 //
 // English Kids Club: mismo formato, pero en vez de course/level/week va
 //   "group": "aventureros"   ← slug del grupo
-//   "class": 4               ← número de clase (obligatorio)
-// y la clase se SUMA a las actividades del grupo (no hay temarios). Si esa
-// clase ya estaba cargada, se puede reemplazar. Las actividades que el grupo
+//   "unit": 4                ← número de unidad (también vale "class")
+// y la unidad se SUMA a las actividades del grupo (no hay temarios), con
+// códigos "Unidad 4 · Ej. 2". Si esa unidad ya estaba cargada, se puede
+// reemplazar. Las actividades que el grupo
 // no tenía activadas se activan solas.
 // Cada actividad recibe un código visible para lxs alumnxs, "Clase 1 · Ej. 3",
 // numerado en el orden de arriba; si una actividad trae varias tarjetas
@@ -315,9 +316,10 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
     const group = groups.find((g) => g.slug === groupSlug)
     if (!group)
       errors.push(`"group": "${groupSlug}" no coincide con ningún grupo. Grupos que existen: ${groups.map((g) => g.slug).join(', ') || '(ninguno)'}.`)
-    classNum = Number(data.class)
-    if (!Number.isInteger(classNum) || classNum < 1) errors.push('"class" tiene que ser un número entero (1, 2, 3…): es el número de clase del grupo.')
-    for (const k of ['course', 'level', 'week']) if (data[k] != null) warnings.push(`Se ignora "${k}": en Kids alcanza con "group" y "class".`)
+    // En Kids la clase es la unidad de la semana: vale "unit" o "class".
+    classNum = Number(data.unit ?? data.class)
+    if (!Number.isInteger(classNum) || classNum < 1) errors.push('"unit" (o "class") tiene que ser un número entero (1, 2, 3…): es el número de unidad del grupo.')
+    for (const k of ['course', 'level', 'week']) if (data[k] != null) warnings.push(`Se ignora "${k}": en Kids alcanza con "group" y "unit".`)
     header = { scope: 'infancias', groupSlug, groupName: group?.name || groupSlug, group: group || null }
   } else {
     const level = str(data.level).toLowerCase()
@@ -327,7 +329,7 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
     if (!LEVELS.some((l) => l.slug === level))
       errors.push(`"level": "${data.level ?? ''}" no existe. Tiene que ser uno de: ${LEVELS.map((l) => l.slug).join(', ')}.`)
     const track = tracks.find((t) => t.slug === course)
-    if (!course) errors.push('Falta "course" (el slug del track/curso), o "group" si es una clase de English Kids Club.')
+    if (!course) errors.push('Falta "course" (el slug del track/curso), o "group" si es una unidad de English Kids Club.')
     else if (!track)
       errors.push(`"course": "${course}" no coincide con ningún track. Tracks que existen: ${tracks.map((t) => t.slug).join(', ') || '(ninguno)'}. Crealo primero en Tracks o corregí el slug.`)
     if (!Number.isInteger(week) || week < 1) errors.push('"week" tiene que ser un número entero (1, 2, 3…).')
@@ -343,9 +345,10 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
       temarioName: `Week ${week} · ${title}`,
     }
   }
-  if (!title) errors.push(`Falta "title" (el nombre de la ${kids ? 'clase' : 'semana'}).`)
+  if (!title) errors.push(`Falta "title" (el nombre de la ${kids ? 'unidad' : 'semana'}).`)
+  const unitWord = kids ? 'Unidad' : 'Clase'
 
-  const known = new Set(['course', 'level', 'week', 'group', 'class', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
+  const known = new Set(['course', 'level', 'week', 'group', 'class', 'unit', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
   for (const key of Object.keys(data)) if (!known.has(key)) warnings.push(`Se ignora "${key}": no es un bloque conocido.`)
 
   const activities = []
@@ -353,13 +356,13 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
   for (const def of WEEK_ACTIVITIES) {
     const block = data[def.key]
     if (block == null || (Array.isArray(block) && block.length === 0)) continue
-    const ctx = { title: title || `Clase ${classNum}`, err: (m) => errors.push(m), warn: (m) => warnings.push(m) }
+    const ctx = { title: title || `${unitWord} ${classNum}`, err: (m) => errors.push(m), warn: (m) => warnings.push(m) }
     let items = converters[def.key](block, ctx)
     if (!items.length) continue
     n += 1
     // Código visible: "Clase 1 · Ej. 3" (con letra si la actividad trae varias tarjetas).
     const multi = items.length > 1
-    items = items.map((it, i) => ({ ...it, code: `Clase ${classNum} · Ej. ${n}${multi ? String.fromCharCode(97 + i) : ''}` }))
+    items = items.map((it, i) => ({ ...it, code: `${unitWord} ${classNum} · Ej. ${n}${multi ? String.fromCharCode(97 + i) : ''}` }))
     if (def.key === 'flashcards') {
       // Flashcards se guarda como lista plana de tarjetas (todas con el código).
       const code = items[0].code
@@ -551,7 +554,7 @@ export const WEEK_TEMPLATE = {
 
 export const KIDS_CLASS_TEMPLATE = {
   group: 'aventureros',
-  class: 1,
+  unit: 1,
   title: 'My Pets',
   topic: 'Animals + have got',
   glossary: [{ term: 'dog', meaning: 'perro', example: 'I have got a dog.' }],
