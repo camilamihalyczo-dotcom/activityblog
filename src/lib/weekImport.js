@@ -7,6 +7,7 @@
 //   "week": 1,
 //   "class": 1,                            ← opcional; si falta, se usa "week"
 //   "title": "The Stand-up Syntax",
+//   "topic": "Present Simple vs Present Continuous",  ← opcional, subtítulo de la semana
 //   "glossary": [{ "term", "meaning", "example" }],
 //   "flashcards": [{ "front", "back" }],
 //   "quiz": [{ "question", "options": [...], "answer": 1 | "texto", "hint" }],
@@ -294,7 +295,7 @@ export function buildWeekPlan(data, { tracks = [] } = {}) {
   if (!Number.isInteger(classNum) || classNum < 1) errors.push('"class" tiene que ser un número entero (o no ponerlo y se usa el de "week").')
   if (!title) errors.push('Falta "title" (el nombre de la semana).')
 
-  const known = new Set(['course', 'level', 'week', 'class', 'title', 'description', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
+  const known = new Set(['course', 'level', 'week', 'class', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
   for (const key of Object.keys(data)) if (!known.has(key)) warnings.push(`Se ignora "${key}": no es un bloque conocido.`)
 
   const activities = []
@@ -337,7 +338,8 @@ export function buildWeekPlan(data, { tracks = [] } = {}) {
       week,
       classNum,
       title,
-      description: str(data.description),
+      // "topic" (ej. el tema gramatical) se usa como subtítulo del temario.
+      description: str(data.description) || str(data.topic),
       temarioSlug: Number.isInteger(week) ? temarioSlugForWeek(week) : '',
       temarioName: `Week ${week} · ${title}`,
       activities,

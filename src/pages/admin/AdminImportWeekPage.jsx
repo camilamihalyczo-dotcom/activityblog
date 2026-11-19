@@ -175,6 +175,7 @@ export default function AdminImportWeekPage() {
         <section className={box} data-testid="import-preview">
           <p className={mono}>Vista previa</p>
           <h2 className="font-display text-2xl font-semibold text-ink mt-1">{plan.temarioName}</h2>
+          {plan.description && <p className="text-ink/80 mt-1">{plan.description}</p>}
           <p className="text-ink/70 text-sm mt-1">
             {plan.trackName} · Nivel {plan.levelName} · Clase {Number.isInteger(plan.classNum) ? plan.classNum : '?'}
             {existing && (existing.temario ? ' · el temario ya existe' : ' · se crea un temario nuevo')}
