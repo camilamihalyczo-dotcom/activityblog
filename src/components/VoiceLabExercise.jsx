@@ -8,7 +8,8 @@ import { withCode } from '../lib/exerciseCode.js'
 import { MAX_SECONDS, canRecord, uploadRecording, useRecorder } from '../lib/voiceRecording.js'
 
 function normalizeWord(value) {
-  return value.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'()_`~?-]/g, '')
+  // También las comillas/apóstrofos "curvos" (’ “ ”), así "let’s" coincide con "let's".
+  return value.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'’‘“”…()_`~?-]/g, '')
 }
 
 function getSpeechRecognition() {

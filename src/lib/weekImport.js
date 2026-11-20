@@ -6,6 +6,9 @@
 //   "level": "a1-a2" | "b1-b2" | "c1-c2",
 //   "week": 1,
 //   "class": 1,                            ← opcional; si falta, se usa "week"
+//   "temario": "technical-storytelling-metrics" ← opcional: cargar en un
+//                temario/bloque que ya existe (se suma por clase) en vez de
+//                crear "Week N"
 //   "title": "The Stand-up Syntax",
 //   "topic": "Present Simple vs Present Continuous",  ← opcional, subtítulo de la semana
 //   "glossary": [{ "term", "meaning", "example" }],
@@ -233,12 +236,16 @@ const converters = {
       const sentence = str(v.sentence)
       const keywords = arr(v.keywords).map(str).filter(Boolean)
       if (!sentence) ctx.err(`Voice Lab ${i + 1}: falta la oración.`)
-      const words = new Set(sentence.toLowerCase().split(/\s+/).map((w) => w.replace(/[.,/#!$%^&*;:{}=[\]"'()_`~?-]/g, '')))
+      const words = new Set(sentence.toLowerCase().split(/\s+/).map((w) => w.replace(/[.,/#!$%^&*;:{}=[\]"'’‘“”…()_`~?-]/g, '')))
       for (const k of keywords) {
-        if (!words.has(k.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'()_`~?-]/g, '')))
+        if (!words.has(k.toLowerCase().replace(/[.,/#!$%^&*;:{}=[\]"'’‘“”…()_`~?-]/g, '')))
           ctx.err(`Voice Lab ${i + 1}: la palabra clave "${k}" no está en la oración.`)
       }
       if (!keywords.length) ctx.warn(`Voice Lab ${i + 1}: no tiene palabras clave (no se va a poder completar).`)
+      for (const k of keywords) {
+        if (/-/.test(k) || /^(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred)\b/i.test(k) && /-/.test(k))
+          ctx.warn(`Voice Lab ${i + 1}: "${k}" tiene guion; el reconocimiento de voz suele escribirlo separado o como número, así que puede no marcarse nunca.`)
+      }
       return { id: genId(), title: str(v.title) || `${ctx.title} — Voice Lab${arr(block).length > 1 ? ` ${i + 1}` : ''}`, sentence, keywords, phoneticTip: str(v.tip ?? v.phoneticTip) }
     })
   },
@@ -324,7 +331,10 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
   } else {
     const level = str(data.level).toLowerCase()
     const course = str(data.course)
-    const week = Number(data.week)
+    // "temario" (opcional): cargar dentro de un temario/bloque que YA existe
+    // (ej. "technical-storytelling-metrics") en vez de crear "Week N".
+    const fixedTemario = str(data.temario)
+    const week = data.week == null || data.week === '' ? NaN : Number(data.week)
     classNum = data.class == null || data.class === '' ? week : Number(data.class)
     if (!LEVELS.some((l) => l.slug === level))
       errors.push(`"level": "${data.level ?? ''}" no existe. Tiene que ser uno de: ${LEVELS.map((l) => l.slug).join(', ')}.`)
@@ -332,8 +342,9 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
     if (!course) errors.push('Falta "course" (el slug del track/curso), o "group" si es una unidad de English Kids Club.')
     else if (!track)
       errors.push(`"course": "${course}" no coincide con ningún track. Tracks que existen: ${tracks.map((t) => t.slug).join(', ') || '(ninguno)'}. Crealo primero en Tracks o corregí el slug.`)
-    if (!Number.isInteger(week) || week < 1) errors.push('"week" tiene que ser un número entero (1, 2, 3…).')
-    if (!Number.isInteger(classNum) || classNum < 1) errors.push('"class" tiene que ser un número entero (o no ponerlo y se usa el de "week").')
+    if (!fixedTemario && (!Number.isInteger(week) || week < 1)) errors.push('"week" tiene que ser un número entero (1, 2, 3…).')
+    if (!Number.isInteger(classNum) || classNum < 1)
+      errors.push(fixedTemario ? 'Con "temario" hace falta "class" (o "week"): el número de clase dentro del bloque.' : '"class" tiene que ser un número entero (o no ponerlo y se usa el de "week").')
     header = {
       scope: 'adultos',
       level,
@@ -341,14 +352,16 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
       course,
       trackName: track?.name || course,
       week,
-      temarioSlug: Number.isInteger(week) ? temarioSlugForWeek(week) : '',
-      temarioName: `Week ${week} · ${title}`,
+      fixedTemario: Boolean(fixedTemario),
+      temarioSlug: fixedTemario || (Number.isInteger(week) ? temarioSlugForWeek(week) : ''),
+      // Con temario fijo, el nombre real se completa en inspectExisting.
+      temarioName: fixedTemario || `Week ${week} · ${title}`,
     }
   }
   if (!title) errors.push(`Falta "title" (el nombre de la ${kids ? 'unidad' : 'semana'}).`)
   const unitWord = kids ? 'Unidad' : 'Clase'
 
-  const known = new Set(['course', 'level', 'week', 'group', 'class', 'unit', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
+  const known = new Set(['course', 'level', 'week', 'temario', 'group', 'class', 'unit', 'title', 'description', 'topic', 'glossary', ...WEEK_ACTIVITIES.map((a) => a.key)])
   for (const key of Object.keys(data)) if (!known.has(key)) warnings.push(`Se ignora "${key}": no es un bloque conocido.`)
 
   const activities = []
@@ -402,6 +415,10 @@ export function buildWeekPlan(data, { tracks = [], groups = [] } = {}) {
   }
 }
 
+// Se suma por clase (y "reemplazar" = solo esa clase) en Kids y cuando la
+// semana va dentro de un temario/bloque que ya existe.
+const classMode = (plan) => plan.scope === 'infancias' || plan.fixedTemario
+
 const scopeKeyFor = (plan, contentType) =>
   plan.scope === 'infancias'
     ? buildInfanciasScopeKey(plan.groupSlug, contentType)
@@ -420,7 +437,14 @@ const saveFor = (plan, contentType, data) =>
 export async function inspectExisting(plan) {
   clearCache()
   const filled = {}
-  if (plan.scope === 'infancias') {
+  let temario = null
+  if (plan.fixedTemario) {
+    const temarios = await fetchTemarios(plan.course)
+    temario = temarios.find((t) => t.slug === plan.temarioSlug) || null
+    if (!temario) return { filled, hasContent: false, missingTemario: true, available: temarios.map((t) => t.slug) }
+    plan.temarioName = temario.name
+  }
+  if (classMode(plan)) {
     await Promise.all(
       plan.activities.map(async (a) => {
         const data = await fetchContent(scopeKeyFor(plan, a.contentType), a.contentType)
@@ -428,10 +452,10 @@ export async function inspectExisting(plan) {
         if (same.length) filled[a.contentType] = same.length
       })
     )
-    return { filled, hasContent: Object.keys(filled).length > 0 }
+    return { temario, filled, hasContent: Object.keys(filled).length > 0 }
   }
   const temarios = await fetchTemarios(plan.course)
-  const temario = temarios.find((t) => t.slug === plan.temarioSlug) || null
+  temario = temarios.find((t) => t.slug === plan.temarioSlug) || null
   if (temario) {
     await Promise.all(
       plan.activities.map(async (a) => {
@@ -461,8 +485,12 @@ const byClass = (items) =>
 export async function importWeek(plan, mode = 'replace') {
   clearCache()
   const kids = plan.scope === 'infancias'
+  const byClassMode = classMode(plan)
   let createdTemario = false
-  if (!kids) {
+  if (plan.fixedTemario) {
+    const temarios = await fetchTemarios(plan.course)
+    if (!temarios.some((t) => t.slug === plan.temarioSlug)) throw new Error(`El temario "${plan.temarioSlug}" no existe en ${plan.trackName}.`)
+  } else if (!kids) {
     const temarios = await fetchTemarios(plan.course)
     if (!temarios.some((t) => t.slug === plan.temarioSlug)) {
       await saveTemario({ track_slug: plan.course, slug: plan.temarioSlug, name: plan.temarioName, description: plan.description, sort_order: plan.week })
@@ -473,12 +501,12 @@ export async function importWeek(plan, mode = 'replace') {
   const written = []
   for (const a of plan.activities) {
     let data = a.items
-    if (kids || mode === 'append') {
+    if (byClassMode || mode === 'append') {
       clearCache()
       let existing = await fetchContent(scopeKeyFor(plan, a.contentType), a.contentType)
       existing = Array.isArray(existing) ? existing : []
-      if (kids && mode === 'replace') existing = existing.filter((it) => classOfCode(it.code) !== plan.classNum)
-      data = kids ? byClass([...existing, ...a.items]) : [...existing, ...a.items]
+      if (byClassMode && mode === 'replace') existing = existing.filter((it) => classOfCode(it.code) !== plan.classNum)
+      data = byClassMode ? byClass([...existing, ...a.items]) : [...existing, ...a.items]
     }
     await saveFor(plan, a.contentType, data)
     written.push({ label: a.label, count: a.items.length })

@@ -120,7 +120,9 @@ export default function AdminImportWeekPage() {
 
   const plan = result?.plan
   const kids = plan?.scope === 'infancias'
-  const canImport = result && !result.errors.length && existing && mode && !importing && !done
+  // Semana de Adultos que va dentro de un temario/bloque que ya existe.
+  const inBlock = Boolean(plan?.fixedTemario)
+  const canImport = result && !result.errors.length && existing && !existing.missingTemario && mode && !importing && !done
 
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
@@ -187,7 +189,11 @@ export default function AdminImportWeekPage() {
         <section className={box} data-testid="import-preview">
           <p className={mono}>Vista previa</p>
           <h2 className="font-display text-2xl font-semibold text-ink mt-1">
-            {kids ? `Unidad ${Number.isInteger(plan.classNum) ? plan.classNum : '?'} · ${plan.title}` : plan.temarioName}
+            {kids
+              ? `Unidad ${Number.isInteger(plan.classNum) ? plan.classNum : '?'} · ${plan.title}`
+              : inBlock
+                ? `Clase ${Number.isInteger(plan.classNum) ? plan.classNum : '?'} · ${plan.title}`
+                : plan.temarioName}
           </h2>
           {plan.description && <p className="text-ink/80 mt-1">{plan.description}</p>}
           <p className="text-ink/70 text-sm mt-1">
@@ -195,11 +201,23 @@ export default function AdminImportWeekPage() {
               <>English Kids Club · Grupo {plan.groupName} · se suma a las actividades del grupo</>
             ) : (
               <>
-                {plan.trackName} · Nivel {plan.levelName} · Clase {Number.isInteger(plan.classNum) ? plan.classNum : '?'}
-                {existing && (existing.temario ? ' · el temario ya existe' : ' · se crea un temario nuevo')}
+                {plan.trackName} · Nivel {plan.levelName}
+                {inBlock ? (
+                  <> · se suma al temario “{existing?.temario?.name || plan.temarioSlug}”</>
+                ) : (
+                  <>
+                    {' '}· Clase {Number.isInteger(plan.classNum) ? plan.classNum : '?'}
+                    {existing && (existing.temario ? ' · el temario ya existe' : ' · se crea un temario nuevo')}
+                  </>
+                )}
               </>
             )}
           </p>
+          {existing?.missingTemario && (
+            <p className="text-stamp text-sm mt-2">
+              El temario “{plan.temarioSlug}” no existe en {plan.trackName}. Temarios que hay: {existing.available.join(', ') || '(ninguno)'}.
+            </p>
+          )}
           {kids && plan.topicsToEnable.length > 0 && !result.errors.length && (
             <p className="text-sm mt-2 text-ink/80">
               Se van a activar en el grupo: <strong>{plan.topicsToEnable.join(', ')}</strong>
@@ -236,7 +254,7 @@ export default function AdminImportWeekPage() {
                 <span className="font-semibold text-ink">{a.label}</span>
                 <span className="text-ink/60 text-sm">{itemSummary(a)}</span>
                 {existing?.filled?.[a.contentType] && (
-                  <span className="text-[11px] font-mono uppercase text-stamp ml-auto">{kids ? 'esta unidad ya está' : 'ya tiene contenido'}</span>
+                  <span className="text-[11px] font-mono uppercase text-stamp ml-auto">{kids ? 'esta unidad ya está' : inBlock ? 'esta clase ya está' : 'ya tiene contenido'}</span>
                 )}
               </li>
             ))}
@@ -254,7 +272,11 @@ export default function AdminImportWeekPage() {
           {!result.errors.length && existing?.hasContent && !done && (
             <fieldset className="mt-5 rounded-xl border-2 border-ink/15 p-4">
               <legend className="px-2 font-semibold text-ink">
-                {kids ? `La unidad ${plan.classNum} ya está cargada en este grupo. ¿Qué hago?` : 'Esta semana ya tiene contenido. ¿Qué hago?'}
+                {kids
+                  ? `La unidad ${plan.classNum} ya está cargada en este grupo. ¿Qué hago?`
+                  : inBlock
+                    ? `La clase ${plan.classNum} ya está cargada en este temario. ¿Qué hago?`
+                    : 'Esta semana ya tiene contenido. ¿Qué hago?'}
               </legend>
               <label className="flex items-start gap-2 text-sm py-1">
                 <input type="radio" name="mode" checked={mode === 'replace'} onChange={() => setMode('replace')} className="mt-1" />
@@ -263,6 +285,11 @@ export default function AdminImportWeekPage() {
                     <>
                       <strong>Reemplazar esa unidad</strong> — se saca lo que estaba cargado como unidad {plan.classNum} y se pone lo del archivo.
                       Las otras unidades no se tocan.
+                    </>
+                  ) : inBlock ? (
+                    <>
+                      <strong>Reemplazar esa clase</strong> — se saca lo que estaba cargado como clase {plan.classNum} y se pone lo del archivo.
+                      Las otras clases del temario no se tocan.
                     </>
                   ) : (
                     <>
@@ -275,7 +302,7 @@ export default function AdminImportWeekPage() {
               <label className="flex items-start gap-2 text-sm py-1">
                 <input type="radio" name="mode" checked={mode === 'append'} onChange={() => setMode('append')} className="mt-1" />
                 <span>
-                  <strong>Sumar</strong> — {kids ? 'se agrega igual, quedan las dos versiones.' : 'se agregan después de lo que ya hay.'}
+                  <strong>Sumar</strong> — {kids || inBlock ? 'se agrega igual, quedan las dos versiones.' : 'se agregan después de lo que ya hay.'}
                 </span>
               </label>
             </fieldset>
